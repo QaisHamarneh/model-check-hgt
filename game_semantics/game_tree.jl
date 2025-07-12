@@ -2,6 +2,7 @@ include("discrete_transitions.jl")
 include("continuous_transitions.jl")
 
 using IterTools
+using Match
 
 struct Node
     config::Configuration
@@ -15,11 +16,15 @@ end
 
 function count_nodes(root::Node)
     println(str(root))
-    if length(root.children) > 0
-        return 1 + sum(count_nodes(child) for child in root.children)
-    else
-        return 1 # Leaf Node
+    @match root begin
+        Node(_, _, []) => 1
+        Node(_, _, children) => 1 + sum(count_nodes(child) for child in children)
     end
+    # if length(root.children) > 0
+    #     return 1 + sum(count_nodes(child) for child in root.children)
+    # else
+    #     return 1 # Leaf Node
+    # end
 end
 
 
