@@ -1,0 +1,3 @@
+This is a model checker for Hybrid Games with Triggers
+
+More information on how to get the tool running coming soon ...
