@@ -4,19 +4,19 @@
     [
         {
             "name": "horizental-right",
-            "invariant": "0 <= x <= 100",
+            "invariant": "0 <= x ∧ x <= 100",
             "flow": "x' = 1"
         },{
             "name": "horizental-left",
-            "invariant": "0 <= x <= 100",
+            "invariant": "0 <= x ∧ x <= 100",
             "flow": "x' = -1"
         },{
             "name": "veritcal-up",
-            "invariant": "0 <= y <= 200",
+            "invariant": "0 <= y ∧ y <= 200",
             "flow": "y' = 2"
         },{
             "name": "veritcal-down",
-            "invariant": "0 <= y <= 200",
+            "invariant": "0 <= y ∧ y <= 200",
             "flow": "y' = -2"
         }
     ],
