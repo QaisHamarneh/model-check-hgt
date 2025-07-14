@@ -10,6 +10,10 @@ struct Var <: ExprLike
     name::String
 end
 
+struct Neg <: ExprLike
+    expr::ExprLike
+end
+
 struct Add <: ExprLike
     left::ExprLike
     right::ExprLike
@@ -39,6 +43,7 @@ function evaluate(expr::ExprLike, valuation::Dict{String, <:Real})::Real
     @match expr begin
         Const(value) => value
         Var(name) => valuation[name]
+        Neg(expr) => -1 * evaluate(expr, valuation)
         Add(left, right) => evaluate(left, valuation) + evaluate(right, valuation)
         Mul(left, right) => evaluate(left, valuation) * evaluate(right, valuation)
         Sub(left, right) => evaluate(left, valuation) - evaluate(right, valuation)
@@ -51,6 +56,7 @@ function str(expr::ExprLike)::String
     @match expr begin
         Const(value) => string(value)
         Var(name) => name
+        Neg(expr) => "- ($(str(expr)))"
         Add(left, right) => "($(str(left)) + $(str(right)))"
         Mul(left, right) => "($(str(left)) * $(str(right)))"
         Sub(left, right) => "($(str(left)) - $(str(right)))"
@@ -63,6 +69,7 @@ function is_constant(expr::ExprLike)::Bool
     @match expr begin
         Const(_) => true
         Var(_) => false
+        Neg(expr) => is_constant(expr)
         Add(left, right) => is_constant(left) && is_constant(right)
         Mul(left, right) => is_constant(left) && is_constant(right)
         Sub(left, right) => is_constant(left) && is_constant(right)
@@ -75,6 +82,7 @@ function is_variable(expr::ExprLike)::Bool
     @match expr begin
         Const(_) => false
         Var(_) => true
+        Neg(expr) => is_variable(expr)
         Add(left, right) => is_variable(left) || is_variable(right)
         Mul(left, right) => is_variable(left) || is_variable(right)
         Sub(left, right) => is_variable(left) || is_variable(right)
@@ -100,6 +108,8 @@ function simplify(expr::ExprLike)::ExprLike
         Expon(left, Const(1)) => left
         Expon(Const(1), power) => Const(1)
         Expon(base, Const(0)) => Const(1)
+        
+        Neg(expr) => Neg(simplify(expr))
 
         Add(left, right) => begin
             left_simplified = simplify(left)

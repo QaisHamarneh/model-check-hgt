@@ -4,9 +4,9 @@ struct Edge
     name::String
     start_location::Location
     target_location::Location
-    guard
-    decision::Dict{Unsigned, String}
-    jump::Dict{String, Real}
+    guard::Constraint
+    decision::Dict{String, String}
+    jump::Dict{String, ExprLike}
 end
 
 function str(edge::Edge)::String
@@ -14,7 +14,7 @@ function str(edge::Edge)::String
 end
 
 function enabled(edge::Edge, valuation::Dict{String, Real})::Bool
-    return edge.guard(valuation) && edge.target_location.invariant(discrete_evolution(valuation, edge.jump))
+    return evaluate(edge.guard, valuation) && evaluate(edge.target_location.invariant, discrete_evolution(valuation, edge.jump))
 end
 
 function select_edge(game, start_location, valuation, decision)::Edge
@@ -32,6 +32,7 @@ function select_edge(game, start_location, valuation, decision)::Edge
             end
         end
     end
+    println("No edge found for decision: $(decision) at location: $(start_location.name)")
     nothing_decision = Dict(agent => "nothing" for agent in game.agents)
-    return Edge("nothing", start_location, start_location, true, nothing_decision, Dict("x" => 0, "y" => 0))
+    return Edge("nothing", start_location, start_location, Truth(true), nothing_decision, Dict("x" => Const(0), "y" => Const(0)))
 end

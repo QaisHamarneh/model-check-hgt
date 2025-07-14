@@ -3,7 +3,8 @@ using Pkg
 dependencies = [
     "IterTools",
     "DifferentialEquations",
-    "Match"
+    "Match",
+    "JSON3"
 ]
 
 Pkg.add(dependencies)

@@ -5,7 +5,7 @@ struct Game
     initial_location::Location
     variables:: Vector{String}
     initial_valuation::Dict{String, Real}
-    agents:: Vector{Unsigned}
+    agents:: Vector{String}
     actions::Vector{String}
     edges:: Vector{Edge}
 end
@@ -14,7 +14,7 @@ function Game(locations::Vector{Location},
               initial_location::Location, 
               variables::Vector{String},
               initial_valuation::Dict{String, Real}, 
-              agents::Vector{Unsigned}, 
+              agents::Vector{String}, 
               actions::Vector{String},
               edges::Vector{Edge},
               initiate::Bool)::Game

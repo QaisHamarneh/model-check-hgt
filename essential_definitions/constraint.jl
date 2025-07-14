@@ -111,5 +111,5 @@ function simplify(constraint::Constraint)::Constraint
     end
 end
 
-println(str(simplify(And(Less(Var("x"), Const(10)), Greater(Var("y"), Const(5))))))
-println(evaluate(And(Less(Var("x"), Const(10)), Greater(Var("y"), Const(5))), Dict("x" => 5, "y" => 6)))
+# println(str(simplify(And(Less(Var("x"), Const(10)), Greater(Var("y"), Const(5))))))
+# println(evaluate(And(Less(Var("x"), Const(10)), Greater(Var("y"), Const(5))), Dict("x" => 5, "y" => 6)))

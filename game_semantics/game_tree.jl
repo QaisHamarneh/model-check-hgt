@@ -15,16 +15,11 @@ function str(node::Node)::String
 end
 
 function count_nodes(root::Node)
-    println(str(root))
+    # println(str(root))
     @match root begin
         Node(_, _, []) => 1
         Node(_, _, children) => 1 + sum(count_nodes(child) for child in children)
     end
-    # if length(root.children) > 0
-    #     return 1 + sum(count_nodes(child) for child in root.children)
-    # else
-    #     return 1 # Leaf Node
-    # end
 end
 
 
@@ -41,8 +36,12 @@ function build_game_tree(game::Game,
     if global_clock >= max_time
         return current_node
     end
-    if time_transition
+    if time_transition 
         transition_time = 1.0
+        while ! evaluate(current_config.location.invariant, continuous_evolution(current_config.valuation, current_config.location.flow, transition_time))
+            transition_time = transition_time / 2
+            println("Reducing transition time to $(transition_time)")
+        end
         push!(current_node.children,
             build_game_tree(game, 
                             max_time, 
@@ -54,13 +53,15 @@ function build_game_tree(game::Game,
     else
         agents_enabled_actions::Vector{Vector{String}} = []
         for agent in game.agents
-            actions = enabled_actions(game, current_node.config.location, current_node.config.valuation, agent)
+            actions = enabled_actions(game, current_config.location, current_node.config.valuation, agent)
             push!(agents_enabled_actions, actions)
         end
         for decision_tuple in product(agents_enabled_actions...)
             decision = Dict()
-            for i in 1:length(game.agents)
-                decision[game.agents[i]] = decision_tuple[i]
+            # for i in 1:length(game.agents)
+            for (agent, action) in zip(game.agents, decision_tuple)
+                # decision[game.agents[i]] = decision_tuple[i]
+                decision[agent] = action
             end
             edge = select_edge(game, current_config.location, current_config.valuation, decision)
             push!(current_node.children, 
