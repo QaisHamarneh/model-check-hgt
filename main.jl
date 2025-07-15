@@ -41,28 +41,28 @@ function run_discrete_test()
 
     actions::Vector{String} = ["a", "b"]
 
-    e1 = Edge("e1", l1, l2, guard1, Dict(1 => "a"), Dict("x" => parse_expression("x + 1")))
-    e2 = Edge("e2", l2, l1, guard2, Dict(1 => "b"), Dict("y" => parse_expression("y + 1")))
+    e1 = Edge("e1", l1, l2, guard1, Dict("1" => "a"), Dict("x" => parse_expression("x + 1")))
+    e2 = Edge("e2", l2, l1, guard2, Dict("1" => "b"), Dict("y" => parse_expression("y + 1")))
 
 
 
     two_agents::Vector{String} = ["1", "2"]
 
-    e12 = Edge("e12", l1, l2, guard1, Dict(1 => "a", 2 => "a"), Dict("x" => parse_expression("x + 1")))
-    e13 = Edge("e13", l1, l3, guard2, Dict(1 => "b", 2 => "a"), Dict("y" => parse_expression("y + 1")))
+    e12 = Edge("e12", l1, l2, guard1, Dict("1" => "a", "2" => "a"), Dict("x" => parse_expression("x + 1")))
+    e13 = Edge("e13", l1, l3, guard2, Dict("1" => "b", "2" => "a"), Dict("y" => parse_expression("y + 1")))
 
-    e21 = Edge("e21", l2, l1, guard1, Dict(2 => "a", 1 => "a"), Dict("x" => parse_expression("x + 1")))
-    e23 = Edge("e23", l2, l3, guard2, Dict(2 => "b", 1 => "a"), Dict("y" => parse_expression("y + 1")))
+    e21 = Edge("e21", l2, l1, guard1, Dict("2" => "a", "1" => "a"), Dict("x" => parse_expression("x + 1")))
+    e23 = Edge("e23", l2, l3, guard2, Dict("2" => "b", "1" => "a"), Dict("y" => parse_expression("y + 1")))
 
-    e31 = Edge("e31", l3, l1, guard1, Dict(1 => "a", 2 => "b"), Dict("x" => parse_expression("x + 1")))
-    e32 = Edge("e32", l3, l2, guard2, Dict(1 => "b", 2 => "b"), Dict("y" => parse_expression("y + 1")))
+    e31 = Edge("e31", l3, l1, guard1, Dict("1" => "a", "2" => "b"), Dict("x" => parse_expression("x + 1")))
+    e32 = Edge("e32", l3, l2, guard2, Dict("1" => "b", "2" => "b"), Dict("y" => parse_expression("y + 1")))
 
 
 
-    small_game = Game([l1, l2], l1, variables, initial_valuation, one_agent, actions, [e1, e2], true)
+    small_game = Game([l1, l2], l1, variables, initial_valuation, one_agent, actions, [e1, e2])
 
-    big_game = Game([l1, l2, l3], l1, variables, initial_valuation, two_agents, actions, [e12, e13, e21, e23, e31, e32], true)
-    game_tree = build_game_tree(small_game, 10.0)
+    big_game = Game([l1, l2, l3], l1, variables, initial_valuation, two_agents, actions, [e12, e13, e21, e23, e31, e32])
+    game_tree = build_game_tree(big_game, 10.0)
 
     t2 = time();
 

@@ -18,13 +18,14 @@ function enabled(edge::Edge, valuation::Dict{String, Real})::Bool
 end
 
 function select_edge(game, start_location, valuation, decision)::Edge
-    for edge in location_edges[start_location]
-        if enabled(edge, valuation)
+    for edge in game.edges
+        if edge.start_location === start_location && enabled(edge, valuation)
             correct_edge = true
             for agent in game.agents
                 if haskey(decision, agent) && haskey(edge.decision, agent) &&
                    edge.decision[agent] != decision[agent]
                     correct_edge = false
+                    break
                 end
             end
             if correct_edge
