@@ -4,7 +4,8 @@ dependencies = [
     "IterTools",
     "DifferentialEquations",
     "Match",
-    "JSON3"
+    "JSON3",
+    "DataStructures"
 ]
 
 Pkg.add(dependencies)

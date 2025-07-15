@@ -1,9 +1,9 @@
 include("../essential_definitions/constraint.jl")
 
 struct Location
-    name::String
+    name::Symbol
     invariant::Constraint
-    flow::Dict{String, ExprLike}
+    flow::OrderedDict{Symbol, ExprLike}
 end
 
 function str(location::Location)::String
@@ -11,8 +11,8 @@ function str(location::Location)::String
     
 end
 
-function enabled_actions(game, location::Location, valuation::Dict{String, Real}, agent::String)::Vector{String}
-    actions::Vector{String} = []
+function enabled_actions(game, location::Location, valuation::OrderedDict{Symbol, Float64}, agent::Symbol)::Vector{Symbol}
+    actions::Vector{Symbol} = []
     for edge in game.edges
         if edge.start_location == location
             if enabled(edge, valuation) && 

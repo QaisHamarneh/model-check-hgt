@@ -1,5 +1,6 @@
-using Match
 include("expression.jl")
+using Match
+using DataStructures
 
 abstract type Constraint end
 
@@ -51,7 +52,7 @@ struct Not <: Constraint
     constraint::Constraint
 end
 
-function evaluate(constraint::Constraint, valuation::Dict{String, <:Real})::Bool
+function evaluate(constraint::Constraint, valuation::OrderedDict)::Bool
     @match constraint begin
         Truth(value) => value
         Less(left, right) => evaluate(left, valuation) < evaluate(right, valuation)
@@ -111,5 +112,5 @@ function simplify(constraint::Constraint)::Constraint
     end
 end
 
-# println(str(simplify(And(Less(Var("x"), Const(10)), Greater(Var("y"), Const(5))))))
-# println(evaluate(And(Less(Var("x"), Const(10)), Greater(Var("y"), Const(5))), Dict("x" => 5, "y" => 6)))
+# println(str(simplify(And(Less(Var(:x), Const(10)), Greater(Var(:x), Const(5))))))
+# println(evaluate(And(Less(Var(:x), Const(10)), Greater(Var(:x), Const(5))), OrderedDict(:x => 5, :x => 6)))

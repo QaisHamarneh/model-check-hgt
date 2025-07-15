@@ -13,7 +13,7 @@
 
 
 using DifferentialEquations
-using Plots; gr()
+# using Plots; gr()
 
 # Define the ODE system
 function car_dynamics!(du, u, p, t)

@@ -1,13 +1,14 @@
 using Match
+using DataStructures
 
 abstract type ExprLike end
 
 struct Const <: ExprLike
-    value::Real
+    value::Float64
 end
 
 struct Var <: ExprLike
-    name::String
+    name::Symbol
 end
 
 struct Neg <: ExprLike
@@ -39,7 +40,7 @@ struct Expon <: ExprLike
     power::ExprLike
 end
 
-function evaluate(expr::ExprLike, valuation::Dict{String, <:Real})::Real
+function evaluate(expr::ExprLike, valuation::OrderedDict{Symbol, Float64})::Float64
     @match expr begin
         Const(value) => value
         Var(name) => valuation[name]
@@ -55,7 +56,7 @@ end
 function str(expr::ExprLike)::String
     @match expr begin
         Const(value) => string(value)
-        Var(name) => name
+        Var(name) => string(name)
         Neg(expr1) => "- ($(str(expr1)))"
         Add(left, right) => "($(str(left)) + $(str(right)))"
         Mul(left, right) => "($(str(left)) * $(str(right)))"
@@ -168,14 +169,9 @@ function simplify(expr::ExprLike)::ExprLike
 end
 
 
-# println(evaluate(Add(Var("x"), Const(5)), Dict("x" => 10))) # Should return 15.0
-# println(evaluate(Mul(Var("x"), Var("y")), Dict("x" => 2, "y" => 3))) # Should return 6.0
-# println(evaluate(Sub(Const(10), Var("x")), Dict("x" => 4))) # Should return 6.0
-# println(evaluate(Div(Var("x"), Const(2)), Dict("x" => 8))) # Should return 4.0
+# println(evaluate(Add(Var(:x), Const(5)), OrderedDict(:x => 10))) # Should return 15.0
+# println(evaluate(Mul(Var(:x), Var(:y)), OrderedDict(:x => 2, :y => 3))) # Should return 6.0
+# println(evaluate(Sub(Const(10), Var(:x)), OrderedDict(:x => 4))) # Should return 6.0
+# println(evaluate(Div(Var(:x), Const(2)), OrderedDict(:x => 8))) # Should return 4.0
 
-# str(simplify(Mul(Add(Var("x"), Var("x")), Var("x")))) # Should return Mul(Var("x"), Const(2))
-
-# println(evaluate_flow(Add(Var("x"), Const(5)), ["x", "y"])) # Should return 15.0
-# println(evaluate_flow(Mul(Var("x"), Var("y")), ["x", "y"])) # Should return 6.0
-# println(evaluate_flow(Sub(Const(10), Var("x")), ["x", "y"])) # Should return 6.0
-# println(evaluate_flow(Div(Var("x"), Const(2)), ["x", "y"])) # Should return 4.0
+# str(simplify(Mul(Add(Var(:x), Var(:x)), Var(:x)))) # Should return Mul(Var(:x), Const(2))

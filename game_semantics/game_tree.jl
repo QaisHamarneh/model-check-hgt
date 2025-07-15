@@ -6,7 +6,7 @@ using Match
 
 struct Node
     config::Configuration
-    global_clock::Real
+    global_clock::Float64
     children::Vector{Node}
 end
 
@@ -24,9 +24,9 @@ end
 
 
 function build_game_tree(game::Game, 
-                        max_time::Real, 
+                        max_time::Float64, 
                         current_config::Union{Configuration,Nothing} = nothing, 
-                        global_clock::Real = 0,
+                        global_clock::Float64 = 0.0,
                         time_transition::Bool = true
                         ):: Node
     if current_config === nothing
@@ -38,26 +38,32 @@ function build_game_tree(game::Game,
     end
     if time_transition 
         transition_time = 1.0
-        while ! evaluate(current_config.location.invariant, continuous_evolution(current_config.valuation, current_config.location.flow, transition_time))
-            transition_time = transition_time / 2
-            println("Reducing transition time to $(transition_time)")
+        # while ! evaluate(current_config.location.invariant, 
+        #                  continuous_evolution(current_config.valuation, current_config.location.flow, transition_time))
+        #     transition_time = transition_time / 2
+        # end
+        if evaluate(current_config.location.invariant, 
+                    continuous_evolution(current_config.valuation, current_config.location.flow, transition_time))
+            push!(current_node.children,
+                build_game_tree(game, 
+                                max_time, 
+                                continuous_transition(current_config, transition_time), 
+                                global_clock + transition_time, 
+                                false)
+                )
+        else
+            println("Transition time is not valid for invariant: ", current_config.location.invariant)
+            return current_node
         end
-        push!(current_node.children,
-            build_game_tree(game, 
-                            max_time, 
-                            continuous_transition(current_config, transition_time), 
-                            global_clock + transition_time, 
-                            false)
-        )
         return current_node
     else
-        agents_enabled_actions::Vector{Vector{String}} = []
+        agents_enabled_actions::Vector{Vector{Symbol}} = []
         for agent in game.agents
             actions = enabled_actions(game, current_config.location, current_node.config.valuation, agent)
             push!(agents_enabled_actions, actions)
         end
         for decision_tuple in product(agents_enabled_actions...)
-            decision = Dict()
+            decision::Dict{Symbol, Symbol} = Dict()
             # for i in 1:length(game.agents)
             for (agent, action) in zip(game.agents, decision_tuple)
                 # decision[game.agents[i]] = decision_tuple[i]

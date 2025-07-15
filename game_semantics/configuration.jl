@@ -2,7 +2,7 @@ include("../game_syntax/game.jl")
 
 struct Configuration
     location::Location
-    valuation::Dict{String, Real}
+    valuation::OrderedDict{Symbol, Float64}
 end
 
 function str(config::Configuration)::String

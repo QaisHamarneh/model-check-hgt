@@ -1,23 +1,23 @@
 include("location.jl")
 
 struct Edge
-    name::String
+    name::Symbol
     start_location::Location
     target_location::Location
     guard::Constraint
-    decision::Dict{String, String}
-    jump::Dict{String, ExprLike}
+    decision::Dict{Symbol, Symbol}
+    jump::OrderedDict{Symbol, ExprLike}
 end
 
-function str(edge::Edge)::String
+function str(edge::Edge)::Symbol
     return "Edge: $(edge.name) from $(edge.start_location.name) to $(edge.target_location.name) with decision: $(edge.decision)"
 end
 
-function enabled(edge::Edge, valuation::Dict{String, Real})::Bool
+function enabled(edge::Edge, valuation::OrderedDict{Symbol, Float64})::Bool
     return evaluate(edge.guard, valuation) && evaluate(edge.target_location.invariant, discrete_evolution(valuation, edge.jump))
 end
 
-function select_edge(game, start_location, valuation, decision)::Edge
+function select_edge(game, start_location::Location, valuation::OrderedDict{Symbol, Float64}, decision::Dict{Symbol, Symbol})::Edge
     for edge in game.edges
         if edge.start_location === start_location && enabled(edge, valuation)
             correct_edge = true
@@ -34,6 +34,11 @@ function select_edge(game, start_location, valuation, decision)::Edge
         end
     end
     println("No edge found for decision: $(decision) at location: $(start_location.name)")
-    nothing_decision = Dict(agent => "nothing" for agent in game.agents)
-    return Edge("nothing", start_location, start_location, Truth(true), nothing_decision, Dict("x" => Const(0), "y" => Const(0)))
+    nothing_decision = Dict(agent => :nothing for agent in game.agents)
+    return Edge(:NothingEdge, 
+                start_location, 
+                start_location, 
+                Truth(true), 
+                nothing_decision, 
+                OrderedDict())
 end
