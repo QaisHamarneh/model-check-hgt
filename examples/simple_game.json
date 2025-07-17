@@ -4,45 +4,61 @@
     [
         {
             "name": "horizental-right",
-            "invariant": "0 <= x ∧ x <= 100",
-            "flow": "x' = 1"
+            "invariant": "0 <= x && x <= 100",
+            "flow": 
+                {
+                    "x": "x + 1",
+                    "y": "1"
+                },
+            "initial": true
         },{
             "name": "horizental-left",
-            "invariant": "0 <= x ∧ x <= 100",
-            "flow": "x' = -1"
+            "invariant": "0 <= x && x <= 100",
+            "flow": 
+                {
+                    "x": "x + 1",
+                    "y": "1"
+                }
         },{
             "name": "veritcal-up",
-            "invariant": "0 <= y ∧ y <= 200",
-            "flow": "y' = 2"
+            "invariant": "0 <= y || y <= 200",
+            "flow": 
+                {
+                    "x": "x + 1",
+                    "y": "1"
+                }
         },{
             "name": "veritcal-down",
-            "invariant": "0 <= y ∧ y <= 200",
-            "flow": "y' = -2"
+            "invariant": "0 <= y || y <= 200",
+            "flow": 
+                {
+                    "x": "x + 1",
+                    "y": "1"
+                }
         }
     ],
-    "initial_location": "horizental-right",
-    "variables": ["x", "y"],
     "initial_valuation":
         {
             "x": 10,
             "y": 10
         },
-    "agents": 2,
-    "actions": ["up", "down", "right", "left"],
+    "agents": ["α", "β"],
+    "actions": ["right", "left"],
     "edges": 
     [
         {
             "name": "e1",
             "start_location": "horizental-right",
             "target_location": "veritcal-up",
-            "guard": "e1",
+            "guard": "0 <= y || x <= 200",
             "decision": 
             {
-                "1": "up"
+                "α": "up",
+                "β": "up"
             },
             "jump": 
             {
-                "y": "y + 10"
+                "y": "y - 1"
             }
         }
     ],

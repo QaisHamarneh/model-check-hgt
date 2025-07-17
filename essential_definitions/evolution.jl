@@ -4,7 +4,7 @@ using DifferentialEquations
 using DataStructures
 
 function continuous_evolution(valuation::OrderedDict{Symbol, Float64}, 
-                              flow::OrderedDict{Symbol, <:ExprLike},
+                              flow::Dict{Symbol, <:ExprLike},
                               time::Float64)::OrderedDict{Symbol, Float64}
     function flowODE!(du, u, p, t)
         # temp_valuation::OrderedDict{Symbol, Real} = Dict()

@@ -79,16 +79,16 @@ function is_constant(expr::ExprLike)::Bool
     end
 end
 
-function is_variable(expr::ExprLike)::Bool
+function is_linear(expr::ExprLike)::Bool
     @match expr begin
-        Const(_) => false
+        Const(_) => true
         Var(_) => true
-        Neg(expr1) => is_variable(expr1)
-        Add(left, right) => is_variable(left) || is_variable(right)
-        Mul(left, right) => is_variable(left) || is_variable(right)
-        Sub(left, right) => is_variable(left) || is_variable(right)
-        Div(left, right) => is_variable(left) || is_variable(right)
-        Expon(base, power) => is_variable(base) || is_variable(power)
+        Neg(expr1) => is_linear(expr1)
+        Add(left, right) => is_linear(left) && is_linear(right)
+        Sub(left, right) => is_linear(left) && is_linear(right)
+        Mul(left, right) => is_constant(left) || is_constant(right)
+        Div(left, right) => is_linear(left) && is_constant(right)
+        Expon(base, power) => is_linear(base) && is_constant(power)
     end
 end
 
@@ -175,3 +175,5 @@ end
 # println(evaluate(Div(Var(:x), Const(2)), OrderedDict(:x => 8))) # Should return 4.0
 
 # str(simplify(Mul(Add(Var(:x), Var(:x)), Var(:x)))) # Should return Mul(Var(:x), Const(2))
+
+# println(is_linear(Sub(Div(Var(:x), Const(2)), Neg(Mul(Var(:y), Const(2)))))) # Should return 4.0

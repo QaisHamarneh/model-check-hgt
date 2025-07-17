@@ -10,8 +10,8 @@ function run_discrete_test()
     variables = [:x, :y]
     initial_valuation::OrderedDict{Symbol, Float64} = OrderedDict(:x => 1, :y => 1)
 
-    flow1::OrderedDict{Symbol, ExprLike} = OrderedDict(:x => parse_expression("x"), :y => parse_expression("y"))
-    flow2::OrderedDict{Symbol, ExprLike} = OrderedDict(:x => parse_expression("x"), :y => parse_expression("y"))
+    flow1::Dict{Symbol, ExprLike} = OrderedDict(:x => parse_expression("x"), :y => parse_expression("y"))
+    flow2::Dict{Symbol, ExprLike} = OrderedDict(:x => parse_expression("x"), :y => parse_expression("y"))
 
     invariant1::Constraint = parse_constraint("x < 4000") 
     invariant2::Constraint = parse_constraint("x < 4000")
@@ -22,7 +22,10 @@ function run_discrete_test()
 
     l1::Location = Location(:l1, invariant1, flow1)
     l2::Location = Location(:l2, invariant2, flow2)
-    l3::Location = Location(:l3, invariant3, flow1)
+
+    l11::Location = Location(:l1, invariant1, flow1)
+    l12::Location = Location(:l2, invariant2, flow2)
+    l13::Location = Location(:l3, invariant3, flow1)
 
     actions::Vector{Symbol} = [:a, :b]
 
@@ -36,32 +39,22 @@ function run_discrete_test()
 
     two_agents::Vector{Symbol} = [:α, :β]
 
-    e12::Edge = Edge(:e12, l1, l2, guard1, Dict(:α => :a, :β => :a), OrderedDict(:x => parse_expression("x + 1")))
-    e13::Edge = Edge(:e13, l1, l3, guard2, Dict(:α => :b, :β => :a), OrderedDict(:y => parse_expression("y + 1")))
+    e12::Edge = Edge(:e12, l11, l12, guard1, Dict(:α => :a, :β => :a), OrderedDict(:x => parse_expression("x + 1")))
+    e13::Edge = Edge(:e13, l11, l13, guard2, Dict(:α => :b, :β => :a), OrderedDict(:y => parse_expression("y + 1")))
 
-    e21::Edge = Edge(:e21, l2, l1, guard1, Dict(:α => :a, :β => :a), OrderedDict(:x => parse_expression("x + 1")))
-    e23::Edge = Edge(:e23, l2, l3, guard2, Dict(:β => :b, :α => :a), OrderedDict(:y => parse_expression("y + 1")))
+    e21::Edge = Edge(:e21, l12, l11, guard1, Dict(:α => :a, :β => :a), OrderedDict(:x => parse_expression("x + 1")))
+    e23::Edge = Edge(:e23, l12, l13, guard2, Dict(:β => :b, :α => :a), OrderedDict(:y => parse_expression("y + 1")))
 
-    e31::Edge = Edge(:e31, l3, l1, guard1, Dict(:α => :a, :β => :b), OrderedDict(:x => parse_expression("x + 1")))
-    e32::Edge = Edge(:e32, l3, l2, guard2, Dict(:α => :b, :β => :b), OrderedDict(:y => parse_expression("y + 1")))
-
-
-
-    small_game::Game = Game([l1, l2], l1, variables, initial_valuation, one_agent, actions, [e1, e2])
-
-    big_game::Game = Game([l1, l2, l3], l1, variables, initial_valuation, two_agents, actions, [e12, e13, e21, e23, e31, e32])
+    e31::Edge = Edge(:e31, l13, l11, guard1, Dict(:α => :a, :β => :b), OrderedDict(:x => parse_expression("x + 1")))
+    e32::Edge = Edge(:e32, l13, l12, guard2, Dict(:α => :b, :β => :b), OrderedDict(:y => parse_expression("y + 1")))
 
 
-    # println("*************************")
-    # println("l1.flow = ", l1.flow)
-    # println("flow1 =   ", flow1)
-    # println("*************************")
-    # println(continuous_evolution(initial_valuation, OrderedDict(:x => Var(:x), :y => Var(:y)), 1.0))
-    # println(continuous_evolution(OrderedDict(:x => 1.0, :y => 1.0), l1.flow, 1.0))
 
-    # continuous_evolution(OrderedDict(:x => 0.0, :y => 0.0), Dict(:x => Var(:y), :y => Const(2.0)), 4.0)
+    small_game::Game = Game("Small Game", [l1, l2], l1, initial_valuation, one_agent, actions, [e1, e2])
 
-    game_tree::Node = build_game_tree(big_game, 10.0)
+    big_game::Game = Game("Big Game", [l11, l12, l13], l11, initial_valuation, two_agents, actions, [e12, e13, e21, e23, e31, e32])
+
+    game_tree::Node = build_game_tree(big_game, max_time=10.0, max_steps=3)
 
     t2 = time();
 

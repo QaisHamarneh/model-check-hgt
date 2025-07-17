@@ -17,9 +17,10 @@ function enabled(edge::Edge, valuation::OrderedDict{Symbol, Float64})::Bool
     return evaluate(edge.guard, valuation) && evaluate(edge.target_location.invariant, discrete_evolution(valuation, edge.jump))
 end
 
-function select_edge(game, start_location::Location, valuation::OrderedDict{Symbol, Float64}, decision::Dict{Symbol, Symbol})::Edge
-    for edge in game.edges
-        if edge.start_location === start_location && enabled(edge, valuation)
+function select_edge(game, location::Location, valuation::OrderedDict{Symbol, Float64}, decision::Dict{Symbol, Symbol})::Edge
+    # Clean up and ensure the correct handling of the nothing actions
+    for edge in location.edges
+        if enabled(edge, valuation)
             correct_edge = true
             for agent in game.agents
                 if haskey(decision, agent) && haskey(edge.decision, agent) &&
@@ -33,12 +34,5 @@ function select_edge(game, start_location::Location, valuation::OrderedDict{Symb
             end
         end
     end
-    println("No edge found for decision: $(decision) at location: $(start_location.name)")
-    nothing_decision = Dict(agent => :nothing for agent in game.agents)
-    return Edge(:NothingEdge, 
-                start_location, 
-                start_location, 
-                Truth(true), 
-                nothing_decision, 
-                OrderedDict())
+    return location.edges[1]  # Default to the stutter edge if no valid edge is found
 end
