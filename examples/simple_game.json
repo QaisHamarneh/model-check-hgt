@@ -1,73 +1,49 @@
 {
-    "Game":"Simple Game",
-    "Locations": 
+    "Game":"Bouncing Ball Game",
+    "locations": 
     [
         {
-            "name": "horizental-right",
-            "invariant": "0 <= x && x <= 100",
+            "name": "falling",
+            "invariant": "0 <= pos && acc == -10",
             "flow": 
                 {
-                    "x": "x + 1",
-                    "y": "1"
+                    "pos": "spd",
+                    "spd": "acc"
                 },
             "initial": true
-        },{
-            "name": "horizental-left",
-            "invariant": "0 <= x && x <= 100",
-            "flow": 
-                {
-                    "x": "x + 1",
-                    "y": "1"
-                }
-        },{
-            "name": "veritcal-up",
-            "invariant": "0 <= y || y <= 200",
-            "flow": 
-                {
-                    "x": "x + 1",
-                    "y": "1"
-                }
-        },{
-            "name": "veritcal-down",
-            "invariant": "0 <= y || y <= 200",
-            "flow": 
-                {
-                    "x": "x + 1",
-                    "y": "1"
-                }
         }
     ],
     "initial_valuation":
         {
-            "x": 10,
-            "y": 10
+            "pos": 100,
+            "spd": 0,
+            "acc": -10
         },
-    "agents": ["α", "β"],
-    "actions": ["right", "left"],
+    "agents": ["α"],
+    "actions": ["up"],
     "edges": 
     [
         {
             "name": "e1",
-            "start_location": "horizental-right",
-            "target_location": "veritcal-up",
-            "guard": "0 <= y || x <= 200",
+            "start_location": "falling",
+            "target_location": "falling",
+            "guard": "x <= 0",
             "decision": 
             {
-                "α": "up",
-                "β": "up"
+                "α": "up"
             },
             "jump": 
             {
-                "y": "y - 1"
+                "spd": "- spd"
             }
         }
     ],
     "triggers": 
     [
-
+        "pos == 0"
     ],
     "initial_triggers": 
-    [
-
-    ]
+    {    
+        "α": ["pos == 0", "up"]
+    }
 }

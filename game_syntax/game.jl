@@ -5,11 +5,12 @@ struct Game
     name::String
     locations::Vector{Location}
     initial_location::Location
-    variables:: Vector{Symbol}
     initial_valuation::OrderedDict{Symbol, Float64}
     agents:: Vector{Symbol}
     actions::Vector{Symbol}
     edges:: Vector{Edge}
+    triggers:: Vector{Constraint}
+    initial_triggers:: Dict{Symbol, Pair{Constraint, Symbol}}
 end
 
 function Game(name::String,
@@ -18,10 +19,22 @@ function Game(name::String,
               initial_valuation::OrderedDict{Symbol, Float64}, 
               agents::Vector{Symbol}, 
               actions::Vector{Symbol},
-              edges::Vector{Edge})::Game
-    game = Game(name, locations, initial_location, collect(keys(initial_valuation)), initial_valuation, agents, actions, edges)
+              edges::Vector{Edge},
+              triggers::Vector{Constraint},
+              initial_triggers::Dict{Symbol, Pair{Constraint, Symbol}},
+              initiate::Bool)::Game
+    game = Game(name, 
+                locations, 
+                initial_location, 
+                initial_valuation, 
+                agents, 
+                actions, 
+                edges, 
+                triggers, 
+                initial_triggers)
 
-    """ First edge in each location is a stutter edge that allows the game to stay in the same location without making any changes. """
+    """ First edge in each location is a stutter edge that allows the game 
+        to stay in the same location without making any changes. """
     stutter_decision = Dict(agent => :nothing for agent in game.agents)
     for location in game.locations
         stutter_edge = Edge(:StutterEdge, 
@@ -37,4 +50,8 @@ function Game(name::String,
         push!(edge.start_location.edges, edge)
     end
     return game
+end
+
+function string(game::Game)::String
+    return "Game: $(game.name) with $(length(game.locations)) locations, $(length(game.agents)) agents, $(length(game.agents)) actions, $(length(game.edges)) edges, and $(length(triggers)) triggers."
 end

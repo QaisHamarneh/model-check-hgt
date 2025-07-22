@@ -5,7 +5,8 @@ dependencies = [
     "DifferentialEquations",
     "Match",
     "JSON3",
-    "DataStructures"
+    "DataStructures",
+    "Plots"
 ]
 
 Pkg.add(dependencies)

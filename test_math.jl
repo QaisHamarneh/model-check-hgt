@@ -1,49 +1,33 @@
-# using DifferentialEquations
-# # using Plots; gr()
-
-
-# f(u,p,t) = 0.98u
-# u0 = 1.0
-# tspan = (0.0,1.0)
-# prob = ODEProblem(f,u0,tspan)
-
-# sol = solve(prob)
-# sol
-# plot(sol)
-
-
 using DifferentialEquations
 # using Plots; gr()
 
-# Define the ODE system
-function car_dynamics!(du, u, p, t)
-    pos, spd = u
-    du[1] = spd      # pos' = spd
-    du[2] = 5.0      # spd' = constant acceleration 5
+function f(du, u, p, t)
+    du[1] = u[2]
+    du[2] = -p
+    du[3] = u[4]
+    du[4] = 0.0
 end
 
-# Initial state: pos=0, spd=0
-u0 = [0.0, 0.0]
-tspan = (0.0, 10.0)  # Large enough time span
+function condition(out, u, t, integrator) # Event when condition(out,u,t,integrator) == 0
+    out[1] = u[1]
+    out[2] = (u[3] - 10.0)u[3]
+end
 
-prob = ODEProblem(car_dynamics!, u0, tspan)
+function affect!(integrator, idx)
+    if idx == 1
+        integrator.u[2] = -0.9integrator.u[2]
+    elseif idx == 2
+        integrator.u[4] = -0.9integrator.u[4]
+    end
+end
 
-# # Define the condition for F: pos >= 10000 or spd >= 100
-# function condition(u, t, integrator)
-#     # return u[2] - 100
-#     return max(u[1] - 10000, u[2] - 100)  # triggers when either crosses threshold
-# end
+cb = VectorContinuousCallback(condition, affect!, 2)
 
-# # What to do when F is satisfied (stop integration)
-# function affect!(integrator)
-#     println("Formula F satisfied at time t = ", integrator.t)
-#     terminate!(integrator)  # stop solving
-# end
+u0 = [50.0, 0.0, 0.0, 2.0]
+tspan = (0.0, 15.0)
+p = 9.8
+prob = ODEProblem(f, u0, tspan, p)
+sol = solve(prob, Tsit5(), callback = cb, dt = 1e-3, adaptive = false)
 
-# cb = ContinuousCallback(condition, affect!)
-
-# # Solve with callback
-# sol = solve(prob, callback=cb, abstol=1e-8, reltol=1e-8)
-sol = solve(prob, abstol=1e-8, reltol=1e-8)
-sol[end]
-# plot(sol)
+println("Time of first event: ", sol.t[findfirst(t -> t >= 10.0, sol.t)])
+println("End of solution: ", sol[end])
