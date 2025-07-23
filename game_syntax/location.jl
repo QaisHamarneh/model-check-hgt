@@ -9,7 +9,7 @@ end
 
 function Location(name::Symbol,
                   invariant::Constraint,
-                  flow::Dict{Symbol, ExprLike})::Location
+                  flow::Dict{Symbol, <:ExprLike})::Location
     location = Location(name, invariant, flow, [])
     return location
 end
@@ -22,8 +22,7 @@ function enabled_actions(location::Location, valuation::OrderedDict{Symbol, Floa
     # Change to filter
     actions::Vector{Symbol} = []
     for edge in location.edges
-        if enabled(edge, valuation) && 
-            ! (edge.decision[agent] in actions)
+        if enabled(edge, valuation) && haskey(edge.decision, agent) && ! (edge.decision[agent] in actions)
             push!(actions, edge.decision[agent])
         end
     end

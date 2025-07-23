@@ -1,49 +1,56 @@
 {
-    "Game":"Bouncing Ball Game",
-    "locations": 
-    [
-        {
-            "name": "falling",
-            "invariant": "0 <= pos && acc == -10",
-            "flow": 
-                {
-                    "pos": "spd",
-                    "spd": "acc"
-                },
-            "initial": true
-        }
-    ],
-    "initial_valuation":
-        {
-            "pos": 100,
-            "spd": 0,
-            "acc": -10
-        },
-    "agents": ["α"],
-    "actions": ["up"],
-    "edges": 
-    [
-        {
-            "name": "e1",
-            "start_location": "falling",
-            "target_location": "falling",
-            "guard": "x <= 0",
-            "decision": 
+    "Game": {
+        "Name":"Bouncing Ball Game",
+        "locations": 
+        [
             {
-                "α": "up"
-            },
-            "jump": 
-            {
-                "spd": "- spd"
+                "name": "falling",
+                "invariant": "0 <= pos && pos <= 100 && acc == -10",
+                "flow": 
+                    {
+                        "pos": "spd",
+                        "spd": "acc"
+                    },
+                "initial": true
             }
+        ],
+        "initial_valuation":
+            {
+                "pos": 100,
+                "spd": 0,
+                "acc": -10
+            },
+        "agents": ["α"],
+        "actions": ["up"],
+        "edges": 
+        [
+            {
+                "name": "e1",
+                "start_location": "falling",
+                "target_location": "falling",
+                "guard": "x <= 0",
+                "decision": 
+                {
+                    "α": "up"
+                },
+                "jump": 
+                {
+                    "spd": "- spd"
+                }
+            }
+        ],
+        "triggers": 
+        [
+            "pos == 0"
+        ],
+        "initial_triggers": 
+        {    
+            "α": ["pos == 0", "up"]
         }
-    ],
-    "triggers": 
+    },
+    "time-bound": 10.0,
+    "max-steps": 3,
+    "formulae": 
     [
-        "pos == 0"
-    ],
-    "initial_triggers": 
-    {    
-        "α": ["pos == 0", "up"]
-    }
+    ]
 }

@@ -1,0 +1,106 @@
+{
+    "Game":"Bouncing Ball Game",
+    "locations": 
+    [
+        {
+            "name": "throwing",
+            "invariant": "0 <= pos-1-x <= 20 && -10 <= pos-1-y <= 10 && 0 <= pos-2-x <= 20 && -10 <= pos-2-y <= 10",
+            "flow": 
+                {
+                    "pos-1-x": "spd-1-x",
+                    "pos-1-y": "spd-1-y",
+                    "pos-2-x": "spd-2-x",
+                    "pos-2-y": "spd-2-y"
+                },
+            "initial": true
+        }
+    ],
+    "initial_valuation":
+        {
+            "pos-1-x": 5,
+            "pos-1-y": 5,
+            "pos-2-x": 5,
+            "pos-2-y": -5,
+            "spd-1-x": -1,
+            "spd-1-y": -1,
+            "spd-2-x": 1,
+            "spd-2-y": -1
+        },
+    "agents": ["α-(0,0)", "β-(10,10)", "γ-(20,0)", "δ-(10,-10)"],
+    "actions": ["right", "left", "opposite"],
+    "edges": 
+    [
+        {
+            "name": "α-right, β-right",
+            "start_location": "throwing",
+            "target_location": "throwing",
+            "guard": "pos-1-x == 0 && pos-1-y == 0 && pos-2-x == 10 && pos-2-y == 10",
+            "decision": 
+            {
+                "α-(0,0)": "right",
+                "β-(10,10)": "right"
+            },
+            "jump": 
+            {
+            "spd-1-x": 1,
+            "spd-1-y": -1,
+            "spd-2-x": 1,
+            "spd-2-y": 1
+            }
+        },
+        {
+            "name": "β-right, δ-right",
+            "start_location": "throwing",
+            "target_location": "throwing",
+            "guard": "pos-1-x == 10 && pos-1-y == 10 && pos-2-x == 20 && pos-2-y == 0",
+            "decision": 
+            {
+                "γ-(20,0)": "right",
+                "β-(10,10)": "right"
+            },
+            "jump": 
+            {
+            "spd-1-x": 1,
+            "spd-1-y": 1,
+            "spd-2-x": -1,
+            "spd-2-y": 1
+            }
+        }
+        {
+            "name": "γ-right, γ-right",
+            "start_location": "throwing",
+            "target_location": "throwing",
+            "guard": "pos-1-x == 20 && pos-1-y == 0 && pos-2-x == 10 && pos-2-y == 10",
+            "decision": 
+            {
+                "γ-(20,0)": "right",
+                "δ-(10,-10)": "right"
+            },
+            "jump": 
+            {
+            "spd-1-x": -1,
+            "spd-1-y": -1,
+            "spd-2-x": -1,
+            "spd-2-y": 1
+            }
+        }
+    ],
+    "triggers": 
+    [
+        "pos-1-x == 0 && pos-1-y == 0",
+        "pos-2-x == 0 && pos-2-y == 0",
+        "pos-1-x == 10 && pos-1-y == 10",
+        "pos-2-x == 10 && pos-2-y == 10",
+        "pos-1-x == 20 && pos-1-y == 0",
+        "pos-2-x == 20 && pos-2-y == 0",
+        "pos-1-x == 10 && pos-1-y == -10",
+        "pos-2-x == 10 && pos-2-y == -10"
+    ],
+    "initial_triggers": 
+    {    
+        "α-(0,0)": "pos-1-x == 0 && pos-1-y == 0 || pos-2-x == 0 && pos-2-y == 0",
+        "β-(10,10)": "pos-1-x == 10 && pos-1-y == 10 || pos-2-x == 10 && pos-2-y == 10",
+        "γ-(20,0)": "pos-1-x == 20 && pos-1-y == 0 || pos-2-x == 20 && pos-2-y == 0",
+        "δ-(10,-10)": "pos-1-x == 10 && pos-1-y == -10 || pos-2-x == 10 && pos-2-y == -10"
+    }
+}

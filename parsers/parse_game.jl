@@ -6,8 +6,9 @@ include("../parsers/parse_constraint.jl")
 function parse_game(json_file)
     open(json_file,"r") do f
         json_string = read(json_file, String)
-        GameDict = JSON3.read(json_string)
-        game_name = GameDict["Game"]
+        FileDict = JSON3.read(json_string)
+        GameDict = FileDict["Game"]
+        game_name = GameDict["name"]
         locations = Location[]
         initial_location = nothing
         for loc in GameDict["locations"]
@@ -42,11 +43,16 @@ function parse_game(json_file)
             push!(edges, Edge(name, start_location, target_location, guard, decision, jump))
         end
 
-        triggers = Constraint[parse_constraint(trigger) for trigger in GameDict["triggers"]]
-        initial_triggers::Dict{Symbol, Pair{Constraint, Symbol}} = Dict(Symbol(agent) => (parse_constraint(trigger) => Symbol(action)) for (agent, (trigger, action)) in GameDict["initial_triggers"])
-        return Game(game_name, locations, initial_location, initial_valuation, agents, actions, edges, triggers, initial_triggers, true)
+        triggers::Dict{Symbol, Vector{ExprLike}} = Dict(Symbol(agent) => ExprLike[parse_expression(trigger) for trigger in agent_triggers] for (agent, agent_triggers) in GameDict["triggers"])
+        
+        max_time::Float64 = FileDict["time-bound"]
+        max_steps::Int64 = FileDict["max-steps"]
+        return Game(game_name, locations, initial_location, initial_valuation, agents, actions, edges, triggers, true), max_time, max_steps
+
     end
 end
 
 
-# bouncing_ball::Game = parse_game("examples/simple_game.json")
+# warehouse_robots_game, max_time, max_steps = parse_game("examples/warehouse_robots_2_streets.json")
+
+# println(warehouse_robots_game)

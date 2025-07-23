@@ -1,0 +1,181 @@
+{
+    "Game": {
+        "name":"Bouncing Ball Game",
+        "locations": 
+        [
+            {
+                "name": "r_r",
+                "invariant": "x1 <= 100 && x1 >= -100 && x2 <= 100 && x2 >= -100",
+                "flow": 
+                    {
+                        "x1": "2",
+                        "x2": "1"
+                    },
+                "initial": true
+            },
+            {
+                "name": "r_l",
+                "invariant": "x1 <= 100 && x1 >= -100 && x2 <= 100 && x2 >= -100",
+                "flow":  
+                    {
+                        "x1": "2",
+                        "x2": "-1"
+                    }
+            },
+            {
+                "name": "l_r",
+                "invariant": "x1 <= 100 && x1 >= -100 && x2 <= 100 && x2 >= -100",
+                "flow":  
+                    {
+                        "x1": "-2",
+                        "x2": "1"
+                    }
+            },
+            {
+                "name": "l_l",
+                "invariant": "x1 <= 100 && x1 >= -100 && x2 <= 100 && x2 >= -100",
+                "flow": 
+                    {
+                        "x1": "-2",
+                        "x2": "-1"
+                    }
+            }
+        ],
+        "initial_valuation":
+            {
+                "x1": -50,
+                "x2": 50
+            },
+        "agents": ["α", "β"],
+        "actions": ["left", "right"],
+        "edges": 
+        [
+            {
+                "name": "α_left_1",
+                "start_location": "r_r",
+                "target_location": "l_r",
+                "guard": "x1 <= 100 && x1 >= -100",
+                "decision": 
+                {
+                    "α": "left"
+                },
+                "jump": 
+                {
+                }
+            },
+            {
+                "name": "α_left_2",
+                "start_location": "r_l",
+                "target_location": "l_l",
+                "guard": "x1 <= 100 && x1 >= -100",
+                "decision": 
+                {
+                    "α": "left"
+                },
+                "jump": 
+                {
+                }
+            },
+            {
+                "name": "α_right_1",
+                "start_location": "l_r",
+                "target_location": "r_r",
+                "guard": "x1 <= 100 && x1 >= -100",
+                "decision": 
+                {
+                    "α": "right"
+                },
+                "jump": 
+                {
+                }
+            },
+            {
+                "name": "α_right_2",
+                "start_location": "l_l",
+                "target_location": "r_l",
+                "guard": "x1 <= 100 && x1 >= -100",
+                "decision": 
+                {
+                    "α": "right"
+                },
+                "jump": 
+                {
+                }
+            },
+            {
+                "name": "β_left_1",
+                "start_location": "r_r",
+                "target_location": "r_l",
+                "guard": "x2 <= 100 && x2 >= -100",
+                "decision": 
+                {
+                    "β": "left"
+                },
+                "jump": 
+                {
+                }
+            },
+            {
+                "name": "β_left_2",
+                "start_location": "l_r",
+                "target_location": "l_l",
+                "guard": "x2 <= 100 && x2 >= -100",
+                "decision": 
+                {
+                    "β": "left"
+                },
+                "jump": 
+                {
+                }
+            },
+            {
+                "name": "β_right_1",
+                "start_location": "r_l",
+                "target_location": "r_r",
+                "guard": "x2 <= 100 && x2 >= -100",
+                "decision": 
+                {
+                    "β": "right"
+                },
+                "jump": 
+                {
+                }
+            },
+            {
+                "name": "β_right_2",
+                "start_location": "l_l",
+                "target_location": "l_r",
+                "guard": "x2 <= 100 && x2 >= -100",
+                "decision": 
+                {
+                    "β": "right"
+                },
+                "jump": 
+                {
+                }
+            }
+        ],
+        "triggers": 
+        {
+            "α": 
+            [
+                "x1",
+                "x1 - 90",
+                "x1 + 90",
+                "x1 - x2"
+            ],
+            "β": 
+            [
+                "x2",
+                "x2 - 90",
+                "x2 + 90",
+                "x2 - x1"
+            ]
+        }
+    },
+    "time-bound": 100.0,
+    "max-steps": 50,
+    "formulae": 
+    [
+    ]
+}

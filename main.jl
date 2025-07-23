@@ -1,6 +1,6 @@
 # using Ranges   # Remove this line
 include("parsers/parse_game.jl")
-include("game_semantics/game_tree.jl")
+include("game_semantics/triggers_turn_based_game_tree.jl")
 include("packages.jl")
 using DataStructures
 
@@ -8,17 +8,23 @@ using DataStructures
 function run_discrete_test()
     t1 = time();
     
-
-    
-    bouncing_ball::Game = parse_game("examples/simple_game.json")
-
-    game_tree::Node = build_game_tree(bouncing_ball, max_time=10.0, max_steps=3)
+    bouncing_ball, max_time, max_steps = parse_game("examples/warehouse_robots_2_streets.json")
 
     t2 = time();
 
-    # println("*************************")
-    # println("Nodes = ", count_nodes(game_tree))
-    # println("Time = $(t2 - t1)")
+    game_tree::Node = build__triggers_game_tree(bouncing_ball, max_time=max_time, max_steps=max_steps)
+
+    t3 = time();
+
+    count = count_nodes(game_tree)
+
+    t4 = time();
+
+    println("*************************")
+    println("Nodes = ", count)
+    println("Time to parse = $(t2 - t1)")
+    println("Time to build = $(t3 - t2)")
+    println("Time to count = $(t4 - t3)")
     println("*************************")
     # println("Game tree path [0]:")
     # println(game_tree.config)
