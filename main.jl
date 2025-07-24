@@ -8,7 +8,8 @@ using DataStructures
 function run_discrete_test()
     t1 = time();
     
-    bouncing_ball, max_time, max_steps = parse_game("examples/warehouse_robots_2_streets.json")
+    # bouncing_ball, max_time, max_steps = parse_game("examples/warehouse_robots_2_streets.json")
+    bouncing_ball, max_time, max_steps = parse_game("examples/4_locations_game.json")
 
     t2 = time();
 

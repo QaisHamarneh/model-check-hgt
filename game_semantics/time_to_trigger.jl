@@ -9,7 +9,12 @@ function time_to_trigger(config::Configuration, triggers::Vector{<:ExprLike}, ma
     function flowODE!(du, u, p, t)
         current_valuation = valuation_from_vector(config.valuation, u)
         for (i, (var, _)) in enumerate(config.valuation)
-            du[i] = evaluate(config.location.flow[var], current_valuation)
+            if haskey(config.location.flow, var)
+                # Evaluate the flow for the variable
+                du[i] = evaluate(config.location.flow[var], current_valuation)
+            else
+                du[i] = 0.0  # If no flow is defined, assume no change
+            end
         end
     end
 

@@ -1,15 +1,9 @@
 include("expression.jl")
+include("helper_functions.jl")
 
 using DifferentialEquations
 using DataStructures
 
-function valuation_from_vector(valuation::OrderedDict{Symbol, Float64}, vector::Vector{Float64})::OrderedDict{Symbol, Float64}
-    new_valuation::OrderedDict{Symbol, Float64} = OrderedDict()
-    for (i, (var, _)) in enumerate(valuation)
-        new_valuation[var] = vector[i]
-    end
-    return new_valuation
-end
 
 function continuous_evolution(valuation::OrderedDict{Symbol, Float64}, 
                               flow::Dict{Symbol, <:ExprLike},

@@ -42,8 +42,7 @@ function parse_game(json_file)
             jump::OrderedDict{Symbol, ExprLike} = OrderedDict(Symbol(var) => parse_expression(jump) for (var, jump) in edge["jump"])
             push!(edges, Edge(name, start_location, target_location, guard, decision, jump))
         end
-
-        triggers::Dict{Symbol, Vector{ExprLike}} = Dict(Symbol(agent) => ExprLike[parse_expression(trigger) for trigger in agent_triggers] for (agent, agent_triggers) in GameDict["triggers"])
+        triggers::Vector{ExprLike} = ExprLike[parse_expression(trigger) for trigger in GameDict["triggers"]]
         
         max_time::Float64 = FileDict["time-bound"]
         max_steps::Int64 = FileDict["max-steps"]
@@ -54,5 +53,6 @@ end
 
 
 # warehouse_robots_game, max_time, max_steps = parse_game("examples/warehouse_robots_2_streets.json")
+# warehouse_robots_game, max_time, max_steps = parse_game("examples/4_locations_game.json")
 
 # println(warehouse_robots_game)

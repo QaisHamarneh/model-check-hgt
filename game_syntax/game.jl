@@ -9,7 +9,7 @@ struct Game
     agents:: Vector{Symbol}
     actions::Vector{Symbol}
     edges:: Vector{Edge}
-    triggers:: Dict{Symbol, Vector{ExprLike}}
+    triggers:: Vector{ExprLike}
 end
 
 function Game(name::String,
@@ -19,7 +19,7 @@ function Game(name::String,
               agents::Vector{Symbol}, 
               actions::Vector{Symbol},
               edges::Vector{Edge},
-              triggers::Dict{Symbol, Vector{ExprLike}},
+              triggers::Vector{ExprLike},
               initiate::Bool)::Game
     game = Game(name, 
                 locations, 
