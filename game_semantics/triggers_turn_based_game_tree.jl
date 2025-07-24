@@ -18,7 +18,6 @@ struct Node
     config::Configuration
     global_clock::Float64
     children::Vector{Node}
-    path::Vector{Node}
 end
 
 function str(node::Node)::String
@@ -27,9 +26,10 @@ end
 
 function count_nodes(root::Node)
     # println(str(root))
+    println("Node: ", root.global_clock)
     @match root begin
-        Node(_, _, [], _) => 1
-        Node(_, _, children, _) => 1 + sum(count_nodes(child) for child in children)
+        Node(config, _, []) => 1
+        Node(_, _, children) => 1 + sum(count_nodes(child) for child in children)
     end
 end
 
@@ -39,12 +39,11 @@ function build__triggers_game_tree(game::Game;
                         max_time::Float64, 
                         global_clock::Float64 = 0.0,
                         max_steps::Int64,
-                        total_steps::Int64 = 0,
-                        path::Vector{PathNode} = PathNode[]):: Node
+                        total_steps::Int64 = 0):: Node
     if current_config === nothing
         current_config = initial_configuration(game)
     end
-    current_node = Node(current_config, global_clock, [], [])
+    current_node = Node(current_config, global_clock, [])
     if global_clock >= max_time || total_steps >= max_steps
         return current_node
     end
@@ -54,6 +53,9 @@ function build__triggers_game_tree(game::Game;
     for agent in game.agents
         triggers = Vector()
         for trigger in game.triggers[agent]
+            if round(evaluate(trigger, current_config.valuation)) == 0
+                continue
+            end
             # println("Evaluating trigger: ", trigger, " for agent: ", agent)
             new_valuation, ttt = time_to_trigger(current_config, ExprLike[trigger], max_time - global_clock)
             if evaluate(current_config.location.invariant, new_valuation)
@@ -105,9 +107,10 @@ function build__triggers_game_tree(game::Game;
                             max_time=max_time,
                             global_clock=global_clock + fastest_time,
                             max_steps=max_steps,
-                            total_steps=total_steps + 1,
-                            path=push!(copy(path), PathNode(current_config, global_clock, fastest_agent, fastest_action, fastest_trigger)))
-        )
+                            total_steps=total_steps + 1
+                            # path=[path; [PathNode(current_config, global_clock, fastest_agent, fastest_action, fastest_trigger)]]
+                            )
+             )
     end
         
 
