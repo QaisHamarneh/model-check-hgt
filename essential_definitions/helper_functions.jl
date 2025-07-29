@@ -1,7 +1,7 @@
 using DataStructures
 
-function round3(num::Float64)::Float64
-    return round(num, digits=3)
+function round5(num::Float64)::Float64
+    return round(num, digits=2)
 end
 
 function valuation_from_vector(valuation::OrderedDict{Symbol, Float64}, vector::Vector{Float64})::OrderedDict{Symbol, Float64}

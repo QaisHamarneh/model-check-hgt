@@ -1,11 +1,11 @@
 {
     "Game": {
-        "Name":"Bouncing Ball Game",
+        "name":"Bouncing Ball Game",
         "locations": 
         [
             {
                 "name": "falling",
-                "invariant": "0 <= pos && pos <= 100 && acc == -10",
+                "invariant": "0 <= pos && pos <= 1000 && acc == -10",
                 "flow": 
                     {
                         "pos": "spd",
@@ -16,7 +16,7 @@
         ],
         "initial_valuation":
             {
-                "pos": 100,
+                "pos": 1000,
                 "spd": 0,
                 "acc": -10
             },
@@ -28,28 +28,24 @@
                 "name": "e1",
                 "start_location": "falling",
                 "target_location": "falling",
-                "guard": "x <= 0",
+                "guard": "pos <= 0",
                 "decision": 
                 {
                     "α": "up"
                 },
                 "jump": 
                 {
-                    "spd": "- spd"
+                    "spd": "-0.5 * spd"
                 }
             }
         ],
         "triggers": 
         [
-            "pos == 0"
-        ],
-        "initial_triggers": 
-        {    
-            "α": ["pos == 0", "up"]
-        }
+            "pos"
+        ]
     },
-    "time-bound": 10.0,
-    "max-steps": 3,
+    "time-bound": 1000.0,
+    "max-steps": 10,
     "formulae": 
     [
     ]

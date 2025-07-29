@@ -42,14 +42,14 @@ end
 
 function evaluate(expr::ExprLike, valuation::OrderedDict{Symbol, Float64})::Float64
     @match expr begin
-        Const(value) => value
-        Var(name) => valuation[name]
-        Neg(expr1) => -1 * evaluate(expr1, valuation)
-        Add(left, right) => evaluate(left, valuation) + evaluate(right, valuation)
-        Mul(left, right) => evaluate(left, valuation) * evaluate(right, valuation)
-        Sub(left, right) => evaluate(left, valuation) - evaluate(right, valuation)
-        Div(left, right) => evaluate(left, valuation) / evaluate(right, valuation)
-        Expon(base, power) => evaluate(base, valuation) ^ evaluate(power, valuation)
+        Const(value) => round5(value)
+        Var(name) => round5(valuation[name])
+        Neg(expr1) => round5(-1 * evaluate(expr1, valuation))
+        Add(left, right) => round5(evaluate(left, valuation) + evaluate(right, valuation))
+        Mul(left, right) => round5(evaluate(left, valuation) * evaluate(right, valuation))
+        Sub(left, right) => round5(evaluate(left, valuation) - evaluate(right, valuation))
+        Div(left, right) => round5(evaluate(left, valuation) / evaluate(right, valuation))
+        Expon(base, power) => round5(evaluate(base, valuation) ^ evaluate(power, valuation))
     end
 end
 

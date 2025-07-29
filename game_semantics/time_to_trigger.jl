@@ -25,13 +25,17 @@ function time_to_trigger(config::Configuration, triggers::Vector{<:ExprLike}, ma
     end
 
     function affect!(integrator, idx)
-        terminate!(integrator) # Stop the integration when the condition is met
+        if round5(integrator.t) == 0.0
+            return # No need to affect the valuation if the trigger is not active
+        else
+            terminate!(integrator) # Stop the integration when the condition is met
+        end
     end
 
     cbv = VectorContinuousCallback(condition, affect!, length(triggers))
 
     u0 = collect(values(config.valuation))
-    tspan = (0.0, max_time)
+    tspan = (0.0, max_time + 1e-3)  # Add a small buffer to ensure we capture the trigger time
     prob = ODEProblem(flowODE!, u0, tspan)
     sol = solve(prob, Tsit5(), callback = cbv, dt = 1e-3, adaptive = false)
     
@@ -39,19 +43,20 @@ function time_to_trigger(config::Configuration, triggers::Vector{<:ExprLike}, ma
 end
 
 
-# t1 = time();
-# config = Configuration( 
-#     Location(:r_r, 
-#              parse_constraint("x1 <= 100 && x1 >= -100 && x2 <= 100 && x2 >= -100"), 
-#              Dict(:x1 => parse_expression("2"), :x2 => parse_expression("1"))), 
-#     OrderedDict(:x1 => -50.0, :x2 => 50.0)
-# )
+t1 = time();
+config = Configuration( 
+    Location(:r_r, 
+             parse_constraint("x1 <= 100 && x2 <= 100"), 
+             Dict(:x1 => parse_expression("1"), :x2 => parse_expression("2"))
+    ), 
+    OrderedDict(:x1 => 0, :x2 => 0)
+)
 
-# ttt = time_to_trigger(config, 
-#                       [parse_expression("x2 - 90"), parse_expression("x2 - x1")], 
-#                       100.0)
-# t2 = time();
+ttt = time_to_trigger(config, 
+                      [parse_expression("x2 - 2 * x1"), parse_expression("x1 - 2 * x2")], 
+                      100.0)
+t2 = time();
 
-# println("ttt = $ttt")
-# println("Time = $(t2 - t1)")
-# println("*************************")
+println("ttt = $ttt")
+println("Time = $(t2 - t1)")
+println("*************************")

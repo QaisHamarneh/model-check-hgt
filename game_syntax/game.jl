@@ -32,16 +32,6 @@ function Game(name::String,
 
     """ First edge in each location is a stutter edge that allows the game 
         to stay in the same location without making any changes. """
-    stutter_decision = Dict(agent => :nothing for agent in game.agents)
-    for location in game.locations
-        stutter_edge = Edge(:StutterEdge, 
-                            location, 
-                            location, 
-                            Truth(true), 
-                            stutter_decision, 
-                            OrderedDict())
-        push!(location.edges, stutter_edge)
-    end
 
     for edge in game.edges
         push!(edge.start_location.edges, edge)

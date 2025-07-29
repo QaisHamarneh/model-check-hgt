@@ -9,11 +9,13 @@ function run_discrete_test()
     t1 = time();
     
     # bouncing_ball, max_time, max_steps = parse_game("examples/warehouse_robots_2_streets.json")
-    bouncing_ball, max_time, max_steps = parse_game("examples/4_locations_game.json")
+    game, max_time, max_steps = parse_game("examples/simple_game.json")
+    # game, max_time, max_steps = parse_game("examples/4_locations_game.json")
 
     t2 = time();
 
-    game_tree::Node = build__triggers_game_tree(bouncing_ball, max_time=max_time, max_steps=max_steps)
+
+    game_tree::Node = build__triggers_game_tree(game, max_time=max_time, max_steps=max_steps)
 
     t3 = time();
 
