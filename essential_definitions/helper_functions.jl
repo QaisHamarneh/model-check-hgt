@@ -1,7 +1,15 @@
 using DataStructures
 
-function round5(num::Float64)::Float64
-    return round(num, digits=2)
+function round3(num::Float64)::Float64
+    return round(num, digits=3)
+end
+
+function round3(valuation::OrderedDict{Symbol, Float64})::OrderedDict{Symbol, Float64}
+    new_valuation::OrderedDict{Symbol, Float64} = OrderedDict()
+    for (var, value) in valuation
+        new_valuation[var] = round3(value)
+    end
+    return new_valuation
 end
 
 function valuation_from_vector(valuation::OrderedDict{Symbol, Float64}, vector::Vector{Float64})::OrderedDict{Symbol, Float64}

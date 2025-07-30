@@ -19,7 +19,7 @@ function continuous_evolution(valuation::OrderedDict{Symbol, Float64},
     prob = ODEProblem(flowODE!, u0, tspan)
     sol = solve(prob, abstol=1e-8, reltol=1e-8)
     new_valuation::OrderedDict{Symbol, Float64} = valuation_from_vector(valuation, sol.u[end])
-    return new_valuation
+    return round3(new_valuation)
 end
 
 function discrete_evolution(valuation::OrderedDict{Symbol, Float64}, 
@@ -28,7 +28,7 @@ function discrete_evolution(valuation::OrderedDict{Symbol, Float64},
     for (var, expr) in jump
         new_valuation[var] = evaluate(expr, new_valuation)
     end
-    new_valuation
+    return round3(new_valuation)
 end
 
 

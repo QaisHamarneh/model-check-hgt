@@ -7,6 +7,9 @@ include("../essential_definitions/constraint.jl")
 Parses a string representing a real arithmetic constraint into a Constraint object.
 """
 function parse_constraint(s::String)::Constraint
+    if s == ""
+        return Truth(true)  # Return a truth constraint for empty input
+    end
     expr = Meta.parse(s)
     return _parse_constraint_internal(expr)
 end
@@ -152,4 +155,4 @@ end
 # println(parse_constraint("x + y < 10"))
 # println(parse_constraint("a >= b && c != d"))
 # println(parse_constraint("!(p <= q || r == 5)"))
-# println(parse_constraint("true"))
+# println(parse_constraint(""))

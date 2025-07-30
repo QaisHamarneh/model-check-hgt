@@ -1,0 +1,292 @@
+{
+    "Game": {
+        "name":"3 Players 2 Balls Game",
+        "locations": 
+        [
+            {
+                "name": "A_A",
+                "invariant": "0 <= pos && pos <= 1000 && acc == -10",
+                "flow": 
+                    {
+                        "b1_x": "spd_A * dir_1_x",
+                        "b1_y": "spd_A * dir_1_y",
+                        "b2_x": "spd_A * dir_2_x",
+                        "b2_y": "spd_A * dir_2_y"
+                    },
+                "initial": true
+            },
+            {
+                "name": "A_B",
+                "invariant": "0 <= pos && pos <= 1000 && acc == -10",
+                "flow": 
+                    {
+                        "b1_x": "spd_A * dir_1_x",
+                        "b1_y": "spd_A * dir_1_y",
+                        "b2_x": "spd_B * dir_2_x",
+                        "b2_y": "spd_B * dir_2_y"
+                    }
+            },
+            {
+                "name": "A_C",
+                "invariant": "0 <= pos && pos <= 1000 && acc == -10",
+                "flow": 
+                    {
+                        "b1_x": "spd_A * dir_1_x",
+                        "b1_y": "spd_A * dir_1_y",
+                        "b2_x": "spd_C * dir_2_x",
+                        "b2_y": "spd_C * dir_2_y"
+                    }
+            },
+            {
+                "name": "B_A",
+                "invariant": "0 <= pos && pos <= 1000 && acc == -10",
+                "flow": 
+                    {
+                        "b1_x": "spd_B * dir_1_x",
+                        "b1_y": "spd_B * dir_1_y",
+                        "b2_x": "spd_A * dir_2_x",
+                        "b2_y": "spd_A * dir_2_y"
+                    }
+            },
+            {
+                "name": "B_B",
+                "invariant": "0 <= pos && pos <= 1000 && acc == -10",
+                "flow": 
+                    {
+                        "b1_x": "spd_B * dir_1_x",
+                        "b1_y": "spd_B * dir_1_y",
+                        "b2_x": "spd_B * dir_2_x",
+                        "b2_y": "spd_B * dir_2_y"
+                    }
+            },
+            {
+                "name": "B_C",
+                "invariant": "0 <= pos && pos <= 1000 && acc == -10",
+                "flow": 
+                    {
+                        "b1_x": "spd_B * dir_1_x",
+                        "b1_y": "spd_B * dir_1_y",
+                        "b2_x": "spd_C * dir_2_x",
+                        "b2_y": "spd_C * dir_2_y"
+                    }
+            },
+            {
+                "name": "C_A",
+                "invariant": "0 <= pos && pos <= 1000 && acc == -10",
+                "flow": 
+                    {
+                        "b1_x": "spd_C * dir_1_x",
+                        "b1_y": "spd_C * dir_1_y",
+                        "b2_x": "spd_A * dir_2_x",
+                        "b2_y": "spd_A * dir_2_y"
+                    }
+            },
+            {
+                "name": "C_B",
+                "invariant": "0 <= pos && pos <= 1000 && acc == -10",
+                "flow": 
+                    {
+                        "b1_x": "spd_C * dir_1_x",
+                        "b1_y": "spd_C * dir_1_y",
+                        "b2_x": "spd_B * dir_2_x",
+                        "b2_y": "spd_B * dir_2_y"
+                    }
+            },
+            {
+                "name": "C_C",
+                "invariant": "0 <= pos && pos <= 1000 && acc == -10",
+                "flow": 
+                    {
+                        "b1_x": "spd_C * dir_1_x",
+                        "b1_y": "spd_C * dir_1_y",
+                        "b2_x": "spd_C * dir_2_x",
+                        "b2_y": "spd_C * dir_2_y"
+                    }
+            }
+        ],
+        "initial_valuation":
+            {
+                "b1_x": 0,
+                "b1_y": 0,
+                "b2_x": 5,
+                "b2_y": 5,
+                "dir_1_x": 1,
+                "dir_1_y": 0,
+                "dir_2_x": -1,
+                "dir_2_y": 1,
+                "spd_A": 1,
+                "spd_B": 2,
+                "spd_C": 3
+            },
+        "agents": ["A", "B", "C"],
+        "actions": ["R", "L"],
+        "edges": 
+        [
+            {
+                "name": "A_1_R__A",
+                "start_location": "B_A",
+                "target_location": "A_A",
+                "guard": "",
+                "decision": 
+                {
+                    "A": "R"
+                },
+                "jump": 
+                {
+                }
+            },
+            {
+                "name": "A_1_L__A",
+                "start_location": "B_A",
+                "target_location": "A_A",
+                "guard": "",
+                "decision": 
+                {
+                    "A": "L"
+                },
+                "jump": 
+                {
+                }
+            },
+            {
+                "name": "A_1_R__A",
+                "start_location": "C_A",
+                "target_location": "A_A",
+                "guard": "",
+                "decision": 
+                {
+                    "A": "R"
+                },
+                "jump": 
+                {
+                }
+            },
+            {
+                "name": "A_1_L__A",
+                "start_location": "C_A",
+                "target_location": "A_A",
+                "guard": "",
+                "decision": 
+                {
+                    "A": "L"
+                },
+                "jump": 
+                {
+                }
+            },
+            {
+                "name": "A_1_R__B",
+                "start_location": "A_B",
+                "target_location": "A_A",
+                "guard": "",
+                "decision": 
+                {
+                    "A": "R"
+                },
+                "jump": 
+                {
+                }
+            },
+            {
+                "name": "A_1_L__B",
+                "start_location": "A_B",
+                "target_location": "A_A",
+                "guard": "",
+                "decision": 
+                {
+                    "A": "L"
+                },
+                "jump": 
+                {
+                }
+            },
+            {
+                "name": "A_1_R__C",
+                "start_location": "A_C",
+                "target_location": "A_A",
+                "guard": "",
+                "decision": 
+                {
+                    "A": "R"
+                },
+                "jump": 
+                {
+                }
+            },
+            {
+                "name": "A_1_L__C",
+                "start_location": "A_C",
+                "target_location": "A_A",
+                "guard": "",
+                "decision": 
+                {
+                    "A": "L"
+                },
+                "jump": 
+                {
+                }
+            },
+            {
+                "name": "A__A_2_R",
+                "start_location": "A_A",
+                "target_location": "A_A",
+                "guard": "",
+                "decision": 
+                {
+                    "A": "R"
+                },
+                "jump": 
+                {
+                }
+            },
+            {
+                "name": "A__A_2_L",
+                "start_location": "A_A",
+                "target_location": "A_A",
+                "guard": "",
+                "decision": 
+                {
+                    "A": "L"
+                },
+                "jump": 
+                {
+                }
+            },
+            {
+                "name": "B__A_2_R",
+                "start_location": "B_A",
+                "target_location": "A_A",
+                "guard": "",
+                "decision": 
+                {
+                    "A": "R"
+                },
+                "jump": 
+                {
+                }
+            },
+            {
+                "name": "B__A_2_L",
+                "start_location": "B_A",
+                "target_location": "A_A",
+                "guard": "",
+                "decision": 
+                {
+                    "A": "L"
+                },
+                "jump": 
+                {
+                }
+            }
+        ],
+        "triggers": 
+        [
+            "pos"
+        ]
+    },
+    "time-bound": 1000.0,
+    "max-steps": 10,
+    "formulae": 
+    [
+    ]
+}

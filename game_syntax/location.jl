@@ -18,11 +18,11 @@ function str(location::Location)::String
     return "Location: $(location.name)"
 end
 
-function enabled_actions(location::Location, valuation::OrderedDict{Symbol, Float64}, agent::Symbol)::Vector{Symbol}
+function enabled_actions(config, agent::Symbol)::Vector{Symbol}
     # Change to filter
     actions::Vector{Symbol} = []
-    for edge in location.edges
-        if enabled(edge, valuation) && haskey(edge.decision, agent) && ! (edge.decision[agent] in actions)
+    for edge in config.location.edges
+        if enabled(edge, config.valuation) && haskey(edge.decision, agent) && ! (edge.decision[agent] in actions)
             push!(actions, edge.decision[agent])
         end
     end

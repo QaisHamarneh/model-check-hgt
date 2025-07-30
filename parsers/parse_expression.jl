@@ -59,3 +59,4 @@ end
 # println(parse_expression("3.14 * x - 2 ^ 2"))  
 # println(parse_expression("a / (b + 1)"))  
 # println(parse_expression("x^2 + 3*x + 2"))  
+# println(parse_expression("(b_x + 10)^ 2 + b_y^2"))  

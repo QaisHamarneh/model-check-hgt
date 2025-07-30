@@ -42,27 +42,27 @@ end
 
 function evaluate(expr::ExprLike, valuation::OrderedDict{Symbol, Float64})::Float64
     @match expr begin
-        Const(value) => round5(value)
-        Var(name) => round5(valuation[name])
-        Neg(expr1) => round5(-1 * evaluate(expr1, valuation))
-        Add(left, right) => round5(evaluate(left, valuation) + evaluate(right, valuation))
-        Mul(left, right) => round5(evaluate(left, valuation) * evaluate(right, valuation))
-        Sub(left, right) => round5(evaluate(left, valuation) - evaluate(right, valuation))
-        Div(left, right) => round5(evaluate(left, valuation) / evaluate(right, valuation))
-        Expon(base, power) => round5(evaluate(base, valuation) ^ evaluate(power, valuation))
+        Const(value) => round3(value)
+        Var(name) => round3(valuation[name])
+        Neg(expr1) => round3(-1 * evaluate(expr1, valuation))
+        Add(left, right) => round3(evaluate(left, valuation) + evaluate(right, valuation))
+        Mul(left, right) => round3(evaluate(left, valuation) * evaluate(right, valuation))
+        Sub(left, right) => round3(evaluate(left, valuation) - evaluate(right, valuation))
+        Div(left, right) => round3(evaluate(left, valuation) / evaluate(right, valuation))
+        Expon(base, power) => round3(evaluate(base, valuation) ^ evaluate(power, valuation))
     end
 end
 
 function str(expr::ExprLike)::String
     @match expr begin
-        Const(value) => string(value)
-        Var(name) => string(name)
+        Const(value) => "$value"
+        Var(name) => String(name)
         Neg(expr1) => "- ($(str(expr1)))"
         Add(left, right) => "($(str(left)) + $(str(right)))"
         Mul(left, right) => "($(str(left)) * $(str(right)))"
         Sub(left, right) => "($(str(left)) - $(str(right)))"
         Div(left, right) => "($(str(left)) / $(str(right)))"
-        Expon(base, power) => "($(str(base))^($(str(power))"
+        Expon(base, power) => "($(str(base)))^($(str(power)))"
     end
 end
 

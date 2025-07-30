@@ -17,10 +17,10 @@ function enabled(edge::Edge, valuation::OrderedDict{Symbol, Float64})::Bool
     return evaluate(edge.guard, valuation) && evaluate(edge.target_location.invariant, discrete_evolution(valuation, edge.jump))
 end
 
-function select_edge(game, location::Location, valuation::OrderedDict{Symbol, Float64}, decision::Dict{Symbol, Symbol})::Edge
+function select_edge(game, config, decision::Dict{Symbol, Symbol})::Edge
     # Clean up and ensure the correct handling of the nothing actions
-    for edge in location.edges
-        if enabled(edge, valuation)
+    for edge in config.location.edges
+        if enabled(edge, config.valuation)
             correct_edge = true
             for agent in game.agents
                 if haskey(decision, agent) && haskey(edge.decision, agent) &&
