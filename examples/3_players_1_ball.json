@@ -5,37 +5,37 @@
         [
             {
                 "name": "A_Throwing",
-                "invariant": "-11 <= b_x <= 11 && -1 <= b_y <= 11",
+                "invariant": "-11 <= x && x <= 11 && -1 <= y && y <= 11",
                 "flow": 
                     {
-                        "b_x": "spd_A * dir_x",
-                        "b_y": "spd_A * dir_y"
+                        "x": "spd_A * dir_x",
+                        "y": "spd_A * dir_y"
                     },
                 "initial": true
             },
             {
                 "name": "B_Throwing",
-                "invariant": "-11 <= b_x <= 11 && -1 <= b_y <= 11",
+                "invariant": "-11 <= x && x <= 11 && -1 <= y && y <= 11",
                 "flow": 
                     {
-                        "b_x": "spd_B * dir_x",
-                        "b_y": "spd_B * dir_y"
+                        "x": "spd_B * dir_x",
+                        "y": "spd_B * dir_y"
                     }
             },
             {
                 "name": "C_Throwing",
-                "invariant": "-11 <= b_x <= 11 && -1 <= b_y <= 11",
+                "invariant": "-11 <= x && x <= 11 && -1 <= y && y <= 11",
                 "flow": 
                     {
-                        "b_x": "spd_C * dir_x",
-                        "b_y": "spd_C * dir_y"
+                        "x": "spd_C * dir_x",
+                        "y": "spd_C * dir_y"
                     }
             }
         ],
         "initial_valuation":
             {
-                "b_x": -5,
-                "b_y": 5,
+                "x": -5,
+                "y": 5,
                 "dir_x": -5,
                 "dir_y": -5,
                 "spd_A": 0.1,
@@ -50,188 +50,188 @@
                 "name": "B_A_B",
                 "start_location": "B_Throwing",
                 "target_location": "A_Throwing",
-                "guard": "(b_x - 10)^2 + (b_y - 10)^2 <= 1",
+                "guard": "x^2 + (y - 10)^2 <= 1",
                 "decision": 
                 {
                     "A": "R"
                 },
                 "jump": 
                 {
-                    "dir_x": "-10 - b_x",
-                    "dir_y": "- b_y"
+                    "dir_x": "-10 - x",
+                    "dir_y": "- y"
                 }
             },
             {
                 "name": "C_A_B",
                 "start_location": "C_Throwing",
                 "target_location": "A_Throwing",
-                "guard": "(b_x - 10)^2 + (b_y - 10)^2 <= 1",
+                "guard": "x^2 + (y - 10)^2 <= 1",
                 "decision": 
                 {
                     "A": "R"
                 },
                 "jump": 
                 {
-                    "dir_x": "-10 - b_x",
-                    "dir_y": "- b_y"
+                    "dir_x": "-10 - x",
+                    "dir_y": "- y"
                 }
             },
             {
                 "name": "B_A_C",
                 "start_location": "B_Throwing",
                 "target_location": "A_Throwing",
-                "guard": "(b_x - 10)^2 + (b_y - 10)^2 <= 1",
+                "guard": "x^2 + (y - 10)^2 <= 1",
                 "decision": 
                 {
                     "A": "L"
                 },
                 "jump": 
                 {
-                    "dir_x": "10 - b_x",
-                    "dir_y": "- b_y"
+                    "dir_x": "10 - x",
+                    "dir_y": "- y"
                 }
             },
             {
                 "name": "C_A_C",
                 "start_location": "C_Throwing",
                 "target_location": "A_Throwing",
-                "guard": "(b_x - 10)^2 + (b_y - 10)^2 <= 1",
+                "guard": "x^2 + (y - 10)^2 <= 1",
                 "decision": 
                 {
                     "A": "L"
                 },
                 "jump": 
                 {
-                    "dir_x": "10 - b_x",
-                    "dir_y": "- b_y"
+                    "dir_x": "10 - x",
+                    "dir_y": "- y"
                 }
             },
             {
                 "name": "A_B_A",
                 "start_location": "A_Throwing",
                 "target_location": "B_Throwing",
-                "guard": "(b_x + 10)^ 2 + b_y^2 <= 1",
+                "guard": "(x + 10)^2 + y^2 <= 1",
                 "decision": 
                 {
                     "B": "R"
                 },
                 "jump": 
                 {
-                    "dir_x": "- b_x",
-                    "dir_y": "10 - b_y"
+                    "dir_x": "- x",
+                    "dir_y": "10 - y"
                 }
             },
             {
                 "name": "C_B_A",
                 "start_location": "C_Throwing",
                 "target_location": "B_Throwing",
-                "guard": "(b_x + 10)^ 2 + b_y^2 <= 1",
+                "guard": "(x + 10)^2 + y^2 <= 1",
                 "decision": 
                 {
                     "B": "R"
                 },
                 "jump": 
                 {
-                    "dir_x": "- b_x",
-                    "dir_y": "10 - b_y"
+                    "dir_x": "- x",
+                    "dir_y": "10 - y"
                 }
             },
             {
                 "name": "A_B_C",
                 "start_location": "A_Throwing",
                 "target_location": "B_Throwing",
-                "guard": "(b_x + 10)^ 2 + b_y^2 <= 1",
+                "guard": "(x + 10)^2 + y^2 <= 1",
                 "decision": 
                 {
                     "B": "L"
                 },
                 "jump": 
                 {
-                    "dir_x": "10 - b_x",
-                    "dir_y": "- b_y"
+                    "dir_x": "10 - x",
+                    "dir_y": "- y"
                 }
             },
             {
                 "name": "C_B_C",
                 "start_location": "C_Throwing",
                 "target_location": "B_Throwing",
-                "guard": "(b_x + 10)^ 2 + b_y^2 <= 1",
+                "guard": "(x + 10)^2 + y^2 <= 1",
                 "decision": 
                 {
                     "B": "L"
                 },
                 "jump": 
                 {
-                    "dir_x": "10 - b_x",
-                    "dir_y": "- b_y"
+                    "dir_x": "10 - x",
+                    "dir_y": "- y"
                 }
             },
             {
                 "name": "A_C_A",
                 "start_location": "A_Throwing",
                 "target_location": "C_Throwing",
-                "guard": "(b_x - 10)^ 2 + b_y^2 <= 1",
+                "guard": "(x - 10)^2 + y^2 <= 1",
                 "decision": 
                 {
-                    "A": "R"
+                    "C": "R"
                 },
                 "jump": 
                 {
-                    "dir_x": "- b_x",
-                    "dir_y": "10 - b_y"
+                    "dir_x": "- x",
+                    "dir_y": "10 - y"
                 }
             },
             {
                 "name": "B_C_A",
                 "start_location": "B_Throwing",
                 "target_location": "C_Throwing",
-                "guard": "(b_x - 10)^ 2 + b_y^2 <= 1",
+                "guard": "(x - 10)^2 + y^2 <= 1",
                 "decision": 
                 {
-                    "A": "R"
+                    "C": "R"
                 },
                 "jump": 
                 {
-                    "dir_x": "- b_x",
-                    "dir_y": "10 - b_y"
+                    "dir_x": "- x",
+                    "dir_y": "10 - y"
                 }
             },
             {
                 "name": "A_C_B",
                 "start_location": "A_Throwing",
                 "target_location": "C_Throwing",
-                "guard": "(b_x - 10)^ 2 + b_y^2 <= 1",
+                "guard": "(x - 10)^2 + y^2 <= 1",
                 "decision": 
                 {
-                    "A": "L"
+                    "C": "L"
                 },
                 "jump": 
                 {
-                    "dir_x": "-10 - b_x",
-                    "dir_y": "- b_y"
+                    "dir_x": "-10 - x",
+                    "dir_y": "- y"
                 }
             },
             {
                 "name": "B_C_B",
                 "start_location": "B_Throwing",
                 "target_location": "C_Throwing",
-                "guard": "(b_x - 10)^ 2 + b_y^2 <= 1",
+                "guard": "(x - 10)^2 + y^2 <= 1",
                 "decision": 
                 {
-                    "A": "L"
+                    "C": "L"
                 },
                 "jump": 
                 {
-                    "dir_x": "-10 - b_x",
-                    "dir_y": "- b_y"
+                    "dir_x": "-10 - x",
+                    "dir_y": "- y"
                 }
             }
         ],
         "triggers": 
         [
-            "(b_x - 10)^ 2 + (b_y - 10)^ 2 - 0.5",
-            "(b_x + 10)^ 2 + b_y^2 - 0.5",
-            "(b_x - 10)^ 2 + b_y^2 - 0.5"
+            "x + (y - 10) <= 0.5",
+            "(x + 10) + y <= 0.5",
+            "(x - 10) + y <= 0.5"
         ]
     },
     "time-bound": 1000.0,

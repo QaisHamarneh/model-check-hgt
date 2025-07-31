@@ -57,12 +57,12 @@ function str(expr::ExprLike)::String
     @match expr begin
         Const(value) => "$value"
         Var(name) => String(name)
-        Neg(expr1) => "- ($(str(expr1)))"
+        Neg(expr1) => "- $(str(expr1))"
         Add(left, right) => "($(str(left)) + $(str(right)))"
         Mul(left, right) => "($(str(left)) * $(str(right)))"
         Sub(left, right) => "($(str(left)) - $(str(right)))"
         Div(left, right) => "($(str(left)) / $(str(right)))"
-        Expon(base, power) => "($(str(base)))^($(str(power)))"
+        Expon(base, power) => "$(str(base))^$(str(power))"
     end
 end
 

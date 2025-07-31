@@ -41,7 +41,7 @@
         ],
         "triggers": 
         [
-            "pos"
+            "pos <= 0"
         ]
     },
     "time-bound": 1000.0,

@@ -26,8 +26,8 @@ end
 
 function count_nodes(root::Node, level::Int = 0)::Int
     println("Level: ", level)
-    println("Location ", root.config.location.name, " Valuation: ", root.config.valuation)
-    println("Time: ", root.global_clock)
+    println("Location ", root.config.location.name, " children: ", length(root.children))
+    println("Time: ", root.global_clock, " Valuation: ", root.config.valuation)
     println("----------------------")
     @match root begin
         Node(config, _, []) => 1
@@ -35,6 +35,25 @@ function count_nodes(root::Node, level::Int = 0)::Int
     end
 end
 
+function depth_of_tree(root::Node, level::Int = 1)::Int
+    @match root begin
+        Node(_, _, []) => level
+        Node(_, _, children) => maximum(depth_of_tree(child, level + 1) for child in children)
+    end
+end
+
+
+function binary(root::Node)::Bool
+    @match root begin
+        Node(_, _, []) =>  true
+        Node(_, _, children) => 
+            if length(children) == 2
+                return all(binary(child) for child in children)
+            else
+                return false
+            end
+    end
+end
 
 function build_triggers_game_tree(game::Game; 
                         current_config::Union{Configuration,Nothing} = nothing, 
@@ -50,17 +69,16 @@ function build_triggers_game_tree(game::Game;
         return current_node
     end
 
-    # _, location_invariant_max = time_to_trigger(current_config, ExprLike[trigger], max_time - global_clock)
+    location_invariant::Float64 = time_to_trigger(current_config, Neg(current_config.location.invariant), max_time - global_clock)
 
-    println("----------------------")
-    println("Step: ", total_steps)
     triggers_valuations::Dict = Dict()
     for trigger in game.triggers
-        new_valuation, ttt = time_to_trigger(current_config, ExprLike[trigger], max_time - global_clock)
-        if ttt <= max_time - global_clock
+        # println("old_valuation: ", current_config.valuation, " with flow: ", ["$(String(var))' = $(evaluate(val, current_config.valuation))" for (var, val) in current_config.location.flow])
+        new_valuation, ttt = time_to_trigger(current_config, trigger, max_time - global_clock)
+        if ttt <= max_time - global_clock && ttt <= location_invariant
             triggers_valuations[trigger] = (Configuration(current_config.location, new_valuation), ttt)
         end
-        println("ttt: ", ttt, " for trigger: ", str(trigger))
+        # println("ttt: ", ttt, " for trigger: ", str(trigger))
     end
     for agent in game.agents
         for (_, (new_config, ttt)) in triggers_valuations
@@ -81,7 +99,7 @@ function build_triggers_game_tree(game::Game;
                 end
             end
         end
-    end          
+    end 
 
     return current_node
 end

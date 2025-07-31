@@ -114,3 +114,34 @@ end
 
 # println(str(simplify(And(Less(Var(:x), Const(10)), Greater(Var(:x), Const(5))))))
 # println(evaluate(And(Less(Var(:x), Const(10)), Greater(Var(:x), Const(5))), OrderedDict(:x => 5, :x => 6)))
+
+
+function get_atomic_constraints(constraint::Constraint)::Vector{Constraint}
+    @match constraint begin
+        Truth(_) => [constraint]
+        Less(left, right) => [constraint]
+        LeQ(left, right) => [constraint]
+        Greater(left, right) => [constraint]
+        GeQ(left, right) => [constraint]
+        Equal(left, right) => [constraint]
+        NotEqual(left, right) => [constraint]
+        And(left, right) => get_atomic_constraints(left) ∪ get_atomic_constraints(right)
+        Or(left, right) => get_atomic_constraints(left) ∪ get_atomic_constraints(right)
+        Not(constraint) => get_atomic_constraints(constraint)
+    end
+end
+
+function geq_zero(constraint::Constraint)::Vector{ExprLike}
+    @match constraint begin
+        Truth(_) => ExprLike[Const(0)]
+        Less(left, right) => ExprLike[Sub(right, left)]
+        LeQ(left, right) => ExprLike[Sub(right, left)]
+        Greater(left, right) => ExprLike[Sub(left, right)]
+        GeQ(left, right) => ExprLike[Sub(left, right)]
+        Equal(left, right) => ExprLike[Sub(left, right)]
+        NotEqual(left, right) => ExprLike[Sub(left, right)]
+        And(left, right) => geq_zero(left) ∪ geq_zero(right)
+        Or(left, right) => geq_zero(left) ∪ geq_zero(right)
+        Not(constraint) => geq_zero(constraint)
+    end
+end
