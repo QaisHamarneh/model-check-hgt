@@ -42,7 +42,7 @@ function parse_game(json_file)
             jump::OrderedDict{Symbol, ExprLike} = OrderedDict(Symbol(var) => parse_expression(jump) for (var, jump) in edge["jump"])
             push!(edges, Edge(name, start_location, target_location, guard, decision, jump))
         end
-        triggers::Vector{Constraint} = ExprLike[parse_constraint(trigger) for trigger in GameDict["triggers"]]
+        triggers::Vector{Constraint} = Constraint[parse_constraint(trigger) for trigger in GameDict["triggers"]]
         
         max_time::Float64 = FileDict["time-bound"]
         max_steps::Int64 = FileDict["max-steps"]

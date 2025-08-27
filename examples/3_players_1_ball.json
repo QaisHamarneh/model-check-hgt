@@ -50,7 +50,7 @@
                 "name": "B_A_B",
                 "start_location": "B_Throwing",
                 "target_location": "A_Throwing",
-                "guard": "x^2 + (y - 10)^2 <= 1",
+                "guard": "x^2 + (y - 10)^2 <= 1.5",
                 "decision": 
                 {
                     "A": "R"
@@ -65,7 +65,7 @@
                 "name": "C_A_B",
                 "start_location": "C_Throwing",
                 "target_location": "A_Throwing",
-                "guard": "x^2 + (y - 10)^2 <= 1",
+                "guard": "x^2 + (y - 10)^2 <= 1.5",
                 "decision": 
                 {
                     "A": "R"
@@ -80,7 +80,7 @@
                 "name": "B_A_C",
                 "start_location": "B_Throwing",
                 "target_location": "A_Throwing",
-                "guard": "x^2 + (y - 10)^2 <= 1",
+                "guard": "x^2 + (y - 10)^2 <= 1.5",
                 "decision": 
                 {
                     "A": "L"
@@ -95,7 +95,7 @@
                 "name": "C_A_C",
                 "start_location": "C_Throwing",
                 "target_location": "A_Throwing",
-                "guard": "x^2 + (y - 10)^2 <= 1",
+                "guard": "x^2 + (y - 10)^2 <= 1.5",
                 "decision": 
                 {
                     "A": "L"
@@ -110,7 +110,7 @@
                 "name": "A_B_A",
                 "start_location": "A_Throwing",
                 "target_location": "B_Throwing",
-                "guard": "(x + 10)^2 + y^2 <= 1",
+                "guard": "(x + 10)^2 + y^2 <= 1.5",
                 "decision": 
                 {
                     "B": "R"
@@ -125,7 +125,7 @@
                 "name": "C_B_A",
                 "start_location": "C_Throwing",
                 "target_location": "B_Throwing",
-                "guard": "(x + 10)^2 + y^2 <= 1",
+                "guard": "(x + 10)^2 + y^2 <= 1.5",
                 "decision": 
                 {
                     "B": "R"
@@ -140,7 +140,7 @@
                 "name": "A_B_C",
                 "start_location": "A_Throwing",
                 "target_location": "B_Throwing",
-                "guard": "(x + 10)^2 + y^2 <= 1",
+                "guard": "(x + 10)^2 + y^2 <= 1.5",
                 "decision": 
                 {
                     "B": "L"
@@ -155,7 +155,7 @@
                 "name": "C_B_C",
                 "start_location": "C_Throwing",
                 "target_location": "B_Throwing",
-                "guard": "(x + 10)^2 + y^2 <= 1",
+                "guard": "(x + 10)^2 + y^2 <= 1.5",
                 "decision": 
                 {
                     "B": "L"
@@ -170,7 +170,7 @@
                 "name": "A_C_A",
                 "start_location": "A_Throwing",
                 "target_location": "C_Throwing",
-                "guard": "(x - 10)^2 + y^2 <= 1",
+                "guard": "(x - 10)^2 + y^2 <= 1.5",
                 "decision": 
                 {
                     "C": "R"
@@ -185,7 +185,7 @@
                 "name": "B_C_A",
                 "start_location": "B_Throwing",
                 "target_location": "C_Throwing",
-                "guard": "(x - 10)^2 + y^2 <= 1",
+                "guard": "(x - 10)^2 + y^2 <= 1.5",
                 "decision": 
                 {
                     "C": "R"
@@ -200,7 +200,7 @@
                 "name": "A_C_B",
                 "start_location": "A_Throwing",
                 "target_location": "C_Throwing",
-                "guard": "(x - 10)^2 + y^2 <= 1",
+                "guard": "(x - 10)^2 + y^2 <= 1.5",
                 "decision": 
                 {
                     "C": "L"
@@ -215,7 +215,7 @@
                 "name": "B_C_B",
                 "start_location": "B_Throwing",
                 "target_location": "C_Throwing",
-                "guard": "(x - 10)^2 + y^2 <= 1",
+                "guard": "(x - 10)^2 + y^2 <= 1.5",
                 "decision": 
                 {
                     "C": "L"
@@ -229,13 +229,13 @@
         ],
         "triggers": 
         [
-            "x + (y - 10) <= 0.5",
-            "(x + 10) + y <= 0.5",
-            "(x - 10) + y <= 0.5"
+            "-0.5 <= x <= 0.5 && 9.5 <= y <= 10.5",
+            "-10.5 <= x <= -9.5 && -0.5 <= y <= 0.5",
+            "9.5 <= x <= 10.5 && -0.5 <= y <= 0.5"
         ]
     },
     "time-bound": 1000.0,
-    "max-steps": 3,
+    "max-steps": 6,
     "formulae": 
     [
     ]

@@ -5,8 +5,8 @@ include("configuration.jl")
 
 
 
-function time_to_trigger(config::Configuration, triggers::Constraint, max_time::Float64)
-    atomic_triggers = geq_zero(triggers)
+function time_to_trigger(config::Configuration, trigger::Constraint, max_time::Float64)
+    zero_triggers::Vector{ExprLike} = geq_zero(trigger)
     function flowODE!(du, u, p, t)
         current_valuation = valuation_from_vector(config.valuation, u)
         for (i, (var, _)) in enumerate(config.valuation)
@@ -20,21 +20,27 @@ function time_to_trigger(config::Configuration, triggers::Constraint, max_time::
     end
 
     function condition(out, u, t, integrator) # Event when condition(out,u,t,integrator) == 0
-        for (i, trigger) in enumerate(atomic_triggers)
-            out[i] = evaluate(trigger, valuation_from_vector(config.valuation, u))
+        for (i, zero_trigger) in enumerate(zero_triggers)
+            out[i] = evaluate(zero_trigger, valuation_from_vector(config.valuation, u))
         end
     end
 
     function affect!(integrator, idx)
         if round3(integrator.t) == 0.0
             return # No need to affect the valuation if the trigger is not active
-        else
+        end
+        current_valuation = valuation_from_vector(config.valuation, integrator.u)
+        # println("Trigger condition met at time $(integrator.t): $(zero_triggers[idx]) - Valuation: $current_valuation")
+        # println("The trigger is: ", trigger)
+        if evaluate(trigger, round3(current_valuation))
+            # println("Terminated")
             terminate!(integrator) # Stop the integration when the condition is met
-            return 5, 5
+        else
+            return 
         end
     end
 
-    cbv = VectorContinuousCallback(condition, affect!, length(atomic_triggers)) #, save_positions = false)
+    cbv = VectorContinuousCallback(condition, affect!, length(zero_triggers)) #, save_positions = false)
 
     u0 = collect(values(config.valuation))
     tspan = (0.0, max_time + 1e-3)  # Add a small buffer to ensure we capture the trigger time
@@ -47,22 +53,37 @@ function time_to_trigger(config::Configuration, triggers::Constraint, max_time::
 end
 
 
-t1 = time();
-config = Configuration( 
-    Location(:r_r, 
-             parse_constraint("x <= 100 && y <= 100"), 
-             Dict(:x => parse_expression("4"), :y => parse_expression("1"))
-    ), 
-    OrderedDict(:x => -10, :y => 0, :dir_x => 19.5, :dir_y => -0.5, :spd_A => 0.1, :spd_B => 0.2, :spd_C => 0.4)
-)
+# t1 = time();
 
-println("Valution = ", evaluate(parse_expression("(((10 - 10.0)^2.0 + 0^2.0) - 0.5)"), OrderedDict(:x => -9.5, :y => 0.5, :dir_x => 19.5, :dir_y => -0.5, :spd_A => 0.1, :spd_B => 0.2, :spd_C => 0.4)))
-valuation, ttt = time_to_trigger(config, 
-                      parse_constraint("(x - 10.0) + (y - 5) >= 10 && y - 3 >= 3"), 
-                      20.0)
-t2 = time();
+# valuation = OrderedDict(:x => -5, :y => 5, :dir_x => -5.0, :dir_y => -5.0, :spd_A => 0.1, :spd_B => 0.2, :spd_C => 0.4)
+# flow = Dict(:x => parse_expression("spd_A * dir_x"), :y => parse_expression("spd_A * dir_y"))
+# config = Configuration( 
+#     Location(:r_r, 
+#              parse_constraint("x <= 100 && y <= 100"), 
+#              flow), 
+#     valuation
+# )
 
-println("valuation = $valuation")
-println("ttt = $ttt")
-println("Time = $(t2 - t1)")
-println("*************************")
+# trigger = And(And(LeQ(Const(-9.5), Var(:x)), LeQ(Var(:x), Const(-10.5))), And(LeQ(Const(-0.5), Var(:y)), LeQ(Var(:y), Const(0.5))))
+# new_valuation, ttt = time_to_trigger(config, 
+#                       trigger, 
+#                       50.0)
+# t2 = time();
+
+# println("valuation = $new_valuation")
+# println("ttt = $ttt")
+# println("Time = $(t2 - t1)")
+# println("*************************")
+
+
+# valuation = OrderedDict(:x => -9.499823194984256, :y => 0.5001768050157437, :dir_x => -5.0, :dir_y => -5.0, :spd_A => 0.1, :spd_B => 0.2, :spd_C => 0.4)
+# trigger = And(
+#             And(
+#                 LeQ(Const(-9.5), Var(:x)), 
+#                 LeQ(Var(:x), Const(-10.5))), 
+#             And(
+#                 LeQ(Const(-0.5), Var(:y)), 
+#                 LeQ(Var(:y), Const(0.5)))
+#             )
+# println(evaluate(trigger, valuation))
+# println("*************************")

@@ -133,7 +133,8 @@ end
 
 function geq_zero(constraint::Constraint)::Vector{ExprLike}
     @match constraint begin
-        Truth(_) => ExprLike[Const(0)]
+        Truth(true) => ExprLike[Const(0)]
+        Truth(false) => ExprLike[Const(1)]
         Less(left, right) => ExprLike[Sub(right, left)]
         LeQ(left, right) => ExprLike[Sub(right, left)]
         Greater(left, right) => ExprLike[Sub(left, right)]

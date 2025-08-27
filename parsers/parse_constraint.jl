@@ -14,45 +14,6 @@ function parse_constraint(s::String)::Constraint
     return _parse_constraint_internal(expr)
 end
 
-# function _parse_constraint_internal(@nospecialize ex)::Constraint
-#     if isa(ex, Bool)
-#         return Truth(ex)
-#     elseif isa(ex, Expr)
-#         if ex.head == :call
-#             op = ex.args[1]
-#             if op == :<
-#                 return Less(_parse_expr_internal(ex.args[2]), _parse_expr_internal(ex.args[3]))
-#             elseif op == :<=
-#                 return LeQ(_parse_expr_internal(ex.args[2]), _parse_expr_internal(ex.args[3]))
-#             elseif op == :>
-#                 return Greater(_parse_expr_internal(ex.args[2]), _parse_expr_internal(ex.args[3]))
-#             elseif op == :>=
-#                 return GeQ(_parse_expr_internal(ex.args[2]), _parse_expr_internal(ex.args[3]))
-#             elseif op == :(==)
-#                 return Equal(_parse_expr_internal(ex.args[2]), _parse_expr_internal(ex.args[3]))
-#             elseif op == :(!=) || op == :≠ # Julia uses !=, but ≠ is also supported
-#                 return NotEqual(_parse_expr_internal(ex.args[2]), _parse_expr_internal(ex.args[3]))
-#             elseif op == :! # Unary Not
-#                 return Not(_parse_constraint_internal(ex.args[2]))
-#             else
-#                 error("Unsupported constraint operator: $op")
-#             end
-#         elseif ex.head == :&& # Corrected: Handle && directly
-#             return And(_parse_constraint_internal(ex.args[1]), _parse_constraint_internal(ex.args[2]))
-#         elseif ex.head == :|| # Corrected: Handle || directly
-#             return Or(_parse_constraint_internal(ex.args[1]), _parse_constraint_internal(ex.args[2]))
-#         elseif ex.head == :block
-#             return _parse_constraint_internal(ex.args[end])
-#         elseif ex.head == :quote
-#             return _parse_constraint_internal(ex.args[1])
-#         else
-#             error("Unsupported constraint type: $(ex.head)")
-#         end
-#     else
-#         error("Unsupported constraint element: $ex of type $(typeof(ex))")
-#     end
-# end
-
 function _parse_constraint_internal(@nospecialize ex)::Constraint
     if isa(ex, Bool)
         return Truth(ex)
@@ -91,19 +52,6 @@ function _parse_constraint_internal(@nospecialize ex)::Constraint
                     _parse_constraint_internal(Expr(:call, op1, ex.args[1], ex.args[3])),
                     _parse_constraint_internal(Expr(:call, op2, ex.args[3], ex.args[5]))
                 )
-                # if op1 == :<= && op2 == :<
-                #     return EqBetween(left_expr, mid_expr, right_expr)
-                # elseif op1 == :< && op2 == :<=
-                #     return BetweenEq(left_expr, mid_expr, right_expr)
-                # elseif op1 == :<= && op2 == :<=
-                #     return EqBetweenEq(left_expr, mid_expr, right_expr)
-                # else
-                #     # If it's a comparison but doesn't match the new types,
-                #     # we can convert it to an And constraint of two binary comparisons.
-                #     # This makes the parser more robust to other comparison chains.
-                #     # For example, "a < b > c" would become And(Less(a,b), Greater(b,c))
-                #     # Or you can throw an error if you strictly only allow the 3 new types.
-                # end
             else
                 # Handle more complex comparison chains by breaking them down into ANDs
                 # This ensures any valid Julia chained comparison is parsed.

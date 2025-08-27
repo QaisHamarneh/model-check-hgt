@@ -28,14 +28,14 @@
                 "name": "e1",
                 "start_location": "falling",
                 "target_location": "falling",
-                "guard": "pos <= 0",
+                "guard": "spd < 0",
                 "decision": 
                 {
                     "α": "up"
                 },
                 "jump": 
                 {
-                    "spd": "-0.5 * spd"
+                    "spd": "- spd"
                 }
             }
         ],

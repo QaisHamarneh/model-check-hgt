@@ -1,17 +1,16 @@
 # using Ranges   # Remove this line
+include("packages.jl")
 include("parsers/parse_game.jl")
 include("game_semantics/triggers_turn_based_game_tree.jl")
-include("packages.jl")
 using DataStructures
 
 
 t1 = time();
 
 # bouncing_ball, max_time, max_steps = parse_game("examples/warehouse_robots_2_streets.json")
-game, max_time, max_steps = parse_game("examples/simple_game.json")
+# game, max_time, max_steps = parse_game("examples/simple_game.json")
 
-# game, max_time, max_steps = parse_game("examples/3_players_1_ball.json")
-
+game, max_time, max_steps = parse_game("examples/3_players_1_ball.json")
 t2 = time();
 
 
@@ -20,7 +19,7 @@ game_tree::Node = build_triggers_game_tree(game, max_time=max_time, max_steps=ma
 t3 = time();
 
 count = count_nodes(game_tree)
-depth = binary(game_tree)
+depth = depth_of_tree(game_tree)
 
 t4 = time();
 
