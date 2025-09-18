@@ -9,7 +9,8 @@
                 "flow": 
                     {
                         "x": "spd_A * dir_x",
-                        "y": "spd_A * dir_y"
+                        "y": "spd_A * dir_y",
+                        "time": "1"
                     },
                 "initial": true
             },
@@ -19,7 +20,8 @@
                 "flow": 
                     {
                         "x": "spd_B * dir_x",
-                        "y": "spd_B * dir_y"
+                        "y": "spd_B * dir_y",
+                        "time": "1"
                     }
             },
             {
@@ -28,7 +30,8 @@
                 "flow": 
                     {
                         "x": "spd_C * dir_x",
-                        "y": "spd_C * dir_y"
+                        "y": "spd_C * dir_y",
+                        "time": "1"
                     }
             }
         ],
@@ -40,7 +43,8 @@
                 "dir_y": -5,
                 "spd_A": 0.1,
                 "spd_B": 0.2,
-                "spd_C": 0.4
+                "spd_C": 0.4,
+                "time": 0
             },
         "agents": ["A", "B", "C"],
         "actions": ["R", "L"],
@@ -235,7 +239,7 @@
         ]
     },
     "time-bound": 1000.0,
-    "max-steps": 6,
+    "max-steps": 3,
     "formulae": 
     [
     ]

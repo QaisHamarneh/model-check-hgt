@@ -40,57 +40,74 @@ struct Expon <: ExprLike
     power::ExprLike
 end
 
+struct Sin <: ExprLike
+    base::ExprLike
+end
+struct CoSin <: ExprLike
+    base::ExprLike
+end
+struct Tan <: ExprLike
+    base::ExprLike
+end
+struct CoTan <: ExprLike
+    base::ExprLike
+end
+
 function evaluate(expr::ExprLike, valuation::OrderedDict{Symbol, Float64})::Float64
     @match expr begin
-        Const(value) => round3(value)
-        Var(name) => round3(valuation[name])
-        Neg(expr1) => round3(-1 * evaluate(expr1, valuation))
-        Add(left, right) => round3(evaluate(left, valuation) + evaluate(right, valuation))
-        Mul(left, right) => round3(evaluate(left, valuation) * evaluate(right, valuation))
-        Sub(left, right) => round3(evaluate(left, valuation) - evaluate(right, valuation))
-        Div(left, right) => round3(evaluate(left, valuation) / evaluate(right, valuation))
-        Expon(base, power) => round3(evaluate(base, valuation) ^ evaluate(power, valuation))
+        Const(value) => round5(value)
+        Var(name) => round5(valuation[name])
+        Neg(expr1) => round5(-1 * evaluate(expr1, valuation))
+        Add(left, right) => round5(evaluate(left, valuation) + evaluate(right, valuation))
+        Mul(left, right) => round5(evaluate(left, valuation) * evaluate(right, valuation))
+        Sub(left, right) => round5(evaluate(left, valuation) - evaluate(right, valuation))
+        Div(left, right) => round5(evaluate(left, valuation) / evaluate(right, valuation))
+        Expon(base, power) => round5(evaluate(base, valuation) ^ evaluate(power, valuation))
+        Sin(base) => round5(sin(evaluate(base, valuation)))
+        CoSin(base) => round5(cos(evaluate(base, valuation)))
+        Tan(base) => round5(tan(evaluate(base, valuation)))
+        CoTan(base) => round5(cot(evaluate(base, valuation)))
     end
 end
 
-function str(expr::ExprLike)::String
-    @match expr begin
-        Const(value) => "$value"
-        Var(name) => String(name)
-        Neg(expr1) => "- $(str(expr1))"
-        Add(left, right) => "($(str(left)) + $(str(right)))"
-        Mul(left, right) => "($(str(left)) * $(str(right)))"
-        Sub(left, right) => "($(str(left)) - $(str(right)))"
-        Div(left, right) => "($(str(left)) / $(str(right)))"
-        Expon(base, power) => "$(str(base))^$(str(power))"
-    end
-end
+# function str(expr::ExprLike)::String
+#     @match expr begin
+#         Const(value) => "$value"
+#         Var(name) => String(name)
+#         Neg(expr1) => "- $(str(expr1))"
+#         Add(left, right) => "($(str(left)) + $(str(right)))"
+#         Mul(left, right) => "($(str(left)) * $(str(right)))"
+#         Sub(left, right) => "($(str(left)) - $(str(right)))"
+#         Div(left, right) => "($(str(left)) / $(str(right)))"
+#         Expon(base, power) => "$(str(base))^$(str(power))"
+#     end
+# end
 
-function is_constant(expr::ExprLike)::Bool
-    @match expr begin
-        Const(_) => true
-        Var(_) => false
-        Neg(expr1) => is_constant(expr1)
-        Add(left, right) => is_constant(left) && is_constant(right)
-        Mul(left, right) => is_constant(left) && is_constant(right)
-        Sub(left, right) => is_constant(left) && is_constant(right)
-        Div(left, right) => is_constant(left) && is_constant(right)
-        Expon(base, power) => is_constant(base) && is_constant(power)
-    end
-end
+# function is_constant(expr::ExprLike)::Bool
+#     @match expr begin
+#         Const(_) => true
+#         Var(_) => false
+#         Neg(expr1) => is_constant(expr1)
+#         Add(left, right) => is_constant(left) && is_constant(right)
+#         Mul(left, right) => is_constant(left) && is_constant(right)
+#         Sub(left, right) => is_constant(left) && is_constant(right)
+#         Div(left, right) => is_constant(left) && is_constant(right)
+#         Expon(base, power) => is_constant(base) && is_constant(power)
+#     end
+# end
 
-function is_linear(expr::ExprLike)::Bool
-    @match expr begin
-        Const(_) => true
-        Var(_) => true
-        Neg(expr1) => is_linear(expr1)
-        Add(left, right) => is_linear(left) && is_linear(right)
-        Sub(left, right) => is_linear(left) && is_linear(right)
-        Mul(left, right) => is_constant(left) || is_constant(right)
-        Div(left, right) => is_linear(left) && is_constant(right)
-        Expon(base, power) => is_linear(base) && is_constant(power)
-    end
-end
+# function is_linear(expr::ExprLike)::Bool
+#     @match expr begin
+#         Const(_) => true
+#         Var(_) => true
+#         Neg(expr1) => is_linear(expr1)
+#         Add(left, right) => is_linear(left) && is_linear(right)
+#         Sub(left, right) => is_linear(left) && is_linear(right)
+#         Mul(left, right) => is_constant(left) || is_constant(right)
+#         Div(left, right) => is_linear(left) && is_constant(right)
+#         Expon(base, power) => is_linear(base) && is_constant(power)
+#     end
+# end
 
 function simplify(expr::ExprLike)::ExprLike
     @match expr begin

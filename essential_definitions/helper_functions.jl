@@ -1,41 +1,42 @@
 using DataStructures
 
-function round3(num::Float64)::Float64
-    return round(num, digits=3)
+function round5(num::Float64)::Float64
+    return round(num, digits=5)
 end
 
-function round3(valuation::OrderedDict{Symbol, Float64})::OrderedDict{Symbol, Float64}
+function round5(valuation::OrderedDict{Symbol, Float64})::OrderedDict{Symbol, Float64}
     new_valuation::OrderedDict{Symbol, Float64} = OrderedDict()
     for (var, value) in valuation
-        new_valuation[var] = round3(value)
+        new_valuation[var] = round5(value)
     end
     return new_valuation
 end
-function round3(expr::ExprLike)::ExprLike
+
+function round5(expr::ExprLike)::ExprLike
     @match expr begin
-        Const(value) => Const(round3(value))
+        Const(value) => Const(round5(value))
         Var(name) => Var(name)
-        Neg(expr1) => Neg(round3(expr1))
-        Add(left, right) => Add(round3(left), round3(right))
-        Mul(left, right) => Mul(round3(left), round3(right))
-        Sub(left, right) => Sub(round3(left), round3(right))
-        Div(left, right) => Div(round3(left), round3(right))
-        Expon(base, power) => Expon(round3(base), round3(power))
+        Neg(expr1) => Neg(round5(expr1))
+        Add(left, right) => Add(round5(left), round5(right))
+        Mul(left, right) => Mul(round5(left), round5(right))
+        Sub(left, right) => Sub(round5(left), round5(right))
+        Div(left, right) => Div(round5(left), round5(right))
+        Expon(base, power) => Expon(round5(base), round5(power))
     end
 end
 
-function round3(constraint::Constraint)::Constraint
+function round5(constraint::Constraint)::Constraint
     @match constraint begin
         Truth(value) => Truth(value)
-        Less(left, right) => Less(round3(left), round3(right))
-        LeQ(left, right) => LeQ(round3(left), round3(right))
-        Greater(left, right) => Greater(round3(left), round3(right))
-        GeQ(left, right) => GeQ(round3(left), round3(right))
-        Equal(left, right) => Equal(round3(left), round3(right))
-        NotEqual(left, right) => NotEqual(round3(left), round3(right))
-        And(left, right) => And(round3(left), round3(right))
-        Or(left, right) => Or(round3(left), round3(right))
-        Not(constraint1) => Not(round3(constraint1))
+        Less(left, right) => Less(round5(left), round5(right))
+        LeQ(left, right) => LeQ(round5(left), round5(right))
+        Greater(left, right) => Greater(round5(left), round5(right))
+        GeQ(left, right) => GeQ(round5(left), round5(right))
+        Equal(left, right) => Equal(round5(left), round5(right))
+        NotEqual(left, right) => NotEqual(round5(left), round5(right))
+        And(left, right) => And(round5(left), round5(right))
+        Or(left, right) => Or(round5(left), round5(right))
+        Not(constraint1) => Not(round5(constraint1))
     end
 end
 
@@ -64,3 +65,21 @@ function find_set(set::Vector,
     end
     return minimums
 end
+
+function union_safe(l)
+    if isempty(l)
+        # Return an empty vector with a specific type if known,
+        # or a generic empty vector if not.
+        return eltype(l)[] 
+    else
+        return union(l...)
+    end
+end
+
+# l1 = [[1, 2], [3, 4]]
+# l2 = []
+
+# println(union_safe(l1))
+# # Output: [1, 2, 3, 4]
+
+# println(union_safe(l2))

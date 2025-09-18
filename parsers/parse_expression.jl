@@ -34,6 +34,14 @@ function _parse_expr_internal(@nospecialize ex)::ExprLike
                 return Div(_parse_expr_internal(ex.args[2]), _parse_expr_internal(ex.args[3]))
             elseif op == :^
                 return Expon(_parse_expr_internal(ex.args[2]), _parse_expr_internal(ex.args[3]))
+            elseif op == :sin
+                return Sin(_parse_expr_internal(ex.args[2]))
+            elseif op == :cos
+                return CoSin(_parse_expr_internal(ex.args[2]))
+            elseif op == :tan
+                return Tan(_parse_expr_internal(ex.args[2]))
+            elseif op == :cot
+                return CoTan(_parse_expr_internal(ex.args[2]))
             else
                 error("Unsupported expression operator: $op")
             end
@@ -52,6 +60,7 @@ end
 
 
 # println(parse_expression("x"))  
+# println(parse_expression("sin(x)")) 
 # println(parse_expression("5"))  
 # println(parse_expression("x + y"))  
 # println(simplify(parse_expression("(x + y) - (x + y)")))  

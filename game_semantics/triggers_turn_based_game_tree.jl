@@ -2,6 +2,7 @@
 include("time_to_trigger.jl")
 include("discrete_transitions.jl")
 include("continuous_transitions.jl")
+include("tree.jl")
 
 using IterTools
 using Match
@@ -14,33 +15,6 @@ struct Trigger
     valuation::OrderedDict{Symbol, Float64}
 end
 
-struct Node
-    config::Configuration
-    global_clock::Float64
-    children::Vector{Node}
-end
-
-function str(node::Node)::String
-    return "⟨ $(str(node.config)) , $(node.global_clock), childern = $(length(node.children))⟩"
-end
-
-function count_nodes(root::Node, level::Int = 0)::Int
-    # println("Level: ", level)
-    # println("Location ", root.config.location.name, " children: ", length(root.children))
-    # println("Time: ", root.global_clock, " Valuation: ", root.config.valuation)
-    # println("----------------------")
-    @match root begin
-        Node(config, _, []) => 1
-        Node(_, _, children) => 1 + sum(count_nodes(child, level + 1) for child in children)
-    end
-end
-
-function depth_of_tree(root::Node, level::Int = 1)::Int
-    @match root begin
-        Node(_, _, []) => level
-        Node(_, _, children) => maximum(depth_of_tree(child, level + 1) for child in children)
-    end
-end
 
 function build_triggers_game_tree(game::Game; 
                         current_config::Union{Configuration,Nothing} = nothing, 
@@ -57,11 +31,16 @@ function build_triggers_game_tree(game::Game;
         return current_node
     end
 
-    _, location_invariant::Float64 = time_to_trigger(current_config, Not(current_config.location.invariant), remaining_time)
+    _, location_invariant, _ = time_to_trigger(current_config, Not(current_config.location.invariant), Set{Constraint}(), remaining_time)
 
     triggers_valuations::Dict = Dict()
     for trigger in game.triggers
-        new_valuation, ttt = time_to_trigger(current_config, trigger, remaining_time)
+        new_valuation, ttt, path_properties = time_to_trigger(current_config, trigger, Set{Constraint}([parse_constraint("y > 5")]), location_invariant)
+        if length(path_properties) > 0
+            println("current_valuation: ", current_config.valuation)
+            println("Path properties: ", path_properties)
+            println("new_valuation: ", new_valuation)
+        end
         if ttt <= remaining_time && ttt < location_invariant
             triggers_valuations[trigger] = (Configuration(current_config.location, new_valuation), ttt)
         end
@@ -89,17 +68,3 @@ function build_triggers_game_tree(game::Game;
 end
 
 
-
-
-
-function binary(root::Node)::Bool
-    @match root begin
-        Node(_, _, []) =>  true
-        Node(_, _, children) => 
-            if length(children) == 2
-                return all(binary(child) for child in children)
-            else
-                return false
-            end
-    end
-end

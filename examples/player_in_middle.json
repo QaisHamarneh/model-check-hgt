@@ -1,0 +1,178 @@
+
+{
+    "Description": "A bouncing ball game with a player in the middle moving in a sinusoidal pattern",
+    "Game": {
+        "name":"Bouncing Ball Game",
+        "locations": 
+        [
+            {
+                "name": "A_Waiting",
+                "invariant": "timer <= 5",
+                "flow": 
+                    {
+                        "middle_player": "sin(time) * spd_C",
+                        "timer": "1",
+                        "time": "1"
+                    }
+            },
+            {
+                "name": "A_Throwing",
+                "invariant": "",
+                "flow": 
+                    {
+                        "x": "spd_A * dir_x",
+                        "y": "spd_A * dir_y",
+                        "middle_player": "sin(time) * spd_C",
+                        "time": "1"
+                    },
+                "initial": true
+            },
+            {
+                "name": "B_Waiting",
+                "invariant": "timer <= 5",
+                "flow": 
+                    {
+                        "middle_player": "cos(time) * spd_C",
+                        "timer": "1",
+                        "time": "1"
+                    }
+            },
+            {
+                "name": "B_Throwing",
+                "invariant": "",
+                "flow": 
+                    {
+                        "x": "spd_B * dir_x",
+                        "y": "spd_B * dir_y",
+                        "middle_player": "cos(time) * spd_C",
+                        "time": "1"
+                    }
+            },
+            {
+                "name": "Caught",
+                "invariant": "1 <= x <= 1 && (y - middle_player)^2 <= 1",
+                "flow": 
+                    {
+                        "time": "1"
+                    }
+            }
+        ],
+        "initial_valuation":
+            {
+                "x": -5,
+                "y": 0.5,
+                "middle_player": 0,
+                "dir_x": -5,
+                "dir_y": -0.5,
+                "spd_A": 0.1,
+                "spd_B": 0.2,
+                "spd_C": 5,
+                "time": 0,
+                "timer": 0
+            },
+        "agents": ["A", "B", "C"],
+        "actions": ["catch", "throw"],
+        "edges": 
+        [
+            {
+                "name": "A_Caught",
+                "start_location": "B_Throwing",
+                "target_location": "A_Waiting",
+                "guard": "(x - 10)^2 + y^2 <= 1",
+                "decision": 
+                {
+                    "A": "catch"
+                },
+                "jump": 
+                {
+                    "timer": "0"
+                }
+            },
+            {
+                "name": "A_throw",
+                "start_location": "A_Waiting",
+                "target_location": "A_Throwing",
+                "guard": "1 <= timer <= 4",
+                "decision": 
+                {
+                    "A": "throw"
+                },
+                "jump": 
+                {
+                    "dir_x": "-10 - x",
+                    "dir_y": "- y"
+                }
+            },
+            {
+                "name": "B_Caught",
+                "start_location": "A_Throwing",
+                "target_location": "B_Waiting",
+                "guard": "(x + 10)^2 + y^2 <= 1",
+                "decision": 
+                {
+                    "B": "catch"
+                },
+                "jump": 
+                {
+                    "timer": "0"
+                }
+            },
+            {
+                "name": "B_throw",
+                "start_location": "B_Waiting",
+                "target_location": "B_Throwing",
+                "guard": "1 <= timer <= 4",
+                "decision": 
+                {
+                    "B": "throw"
+                },
+                "jump": 
+                {
+                    "dir_x": "10 - x",
+                    "dir_y": "- y"
+                }
+            },
+            {
+                "name": "Middle_Caught_A",
+                "start_location": "A_Throwing",
+                "target_location": "Caught",
+                "guard": "x^2 + (y - middle_player)^2 <= 1",
+                "decision": 
+                {
+                    "C": "catch"
+                },
+                "jump": 
+                {
+                }
+            },
+            {
+                "name": "Middle_Caught_B",
+                "start_location": "B_Throwing",
+                "target_location": "Caught",
+                "guard": "x^2 + (y - middle_player)^2 <= 1",
+                "decision": 
+                {
+                    "C": "catch"
+                },
+                "jump": 
+                {
+                }
+            }
+        ],
+        "triggers": 
+        [
+            "x^2 + (y - middle_player)^2 <= 0.5",
+            "-10.5 <= x <= -9.5 && -0.5 <= y <= 0.5",
+            "9.5 <= x <= 10.5 && -0.5 <= y <= 0.5",
+            "timer == 1",
+            "timer == 2",
+            "timer == 3",
+            "timer == 4"
+        ]
+    },
+    "time-bound": 1000.0,
+    "max-steps": 4,
+    "formulae": 
+    [
+    ]
+}

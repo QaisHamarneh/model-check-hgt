@@ -52,21 +52,6 @@ struct Not <: Constraint
     constraint::Constraint
 end
 
-function evaluate(constraint::Constraint, valuation::OrderedDict)::Bool
-    @match constraint begin
-        Truth(value) => value
-        Less(left, right) => evaluate(left, valuation) < evaluate(right, valuation)
-        LeQ(left, right) => evaluate(left, valuation) <= evaluate(right, valuation)
-        Greater(left, right) => evaluate(left, valuation) > evaluate(right, valuation)
-        GeQ(left, right) => evaluate(left, valuation) >= evaluate(right, valuation)
-        Equal(left, right) => evaluate(left, valuation) == evaluate(right, valuation)
-        NotEqual(left, right) => evaluate(left, valuation) != evaluate(right, valuation)
-        And(left, right) => evaluate(left, valuation) && evaluate(right, valuation)
-        Or(left, right) => evaluate(left, valuation) || evaluate(right, valuation)
-        Not(constraint) => !evaluate(constraint, valuation)
-    end
-end
-
 function str(constraint::Constraint)::String
     @match constraint begin
         Truth(value) => string(value)
@@ -131,18 +116,38 @@ function get_atomic_constraints(constraint::Constraint)::Vector{Constraint}
     end
 end
 
-function geq_zero(constraint::Constraint)::Vector{ExprLike}
+function get_zero(constraint::Constraint)::Vector{ExprLike}
     @match constraint begin
         Truth(true) => ExprLike[Const(0)]
         Truth(false) => ExprLike[Const(1)]
-        Less(left, right) => ExprLike[Sub(right, left)]
         LeQ(left, right) => ExprLike[Sub(right, left)]
-        Greater(left, right) => ExprLike[Sub(left, right)]
+        Less(left, right) => ExprLike[Sub(right, Add(left, Const(1e-5)))]
         GeQ(left, right) => ExprLike[Sub(left, right)]
+        Greater(left, right) => ExprLike[Sub(left, Add(right, Const(1e-5)))]
         Equal(left, right) => ExprLike[Sub(left, right)]
-        NotEqual(left, right) => ExprLike[Sub(left, right)]
-        And(left, right) => geq_zero(left) ∪ geq_zero(right)
-        Or(left, right) => geq_zero(left) ∪ geq_zero(right)
-        Not(constraint) => geq_zero(constraint)
+        NotEqual(left, right) => get_zero(Greater(left, right)) ∪ get_zero(Less(left, right))
+        And(left, right) => get_zero(left) ∪ get_zero(right)
+        Or(left, right) => get_zero(left) ∪ get_zero(right)
+        Not(constraint) => get_zero(constraint)
     end
+end
+
+function evaluate(constraint::Constraint, valuation::OrderedDict)::Bool
+    @match constraint begin
+        Truth(value) => value
+        Less(left, right) => evaluate(left, valuation) < evaluate(right, valuation)
+        LeQ(left, right) => evaluate(left, valuation) <= evaluate(right, valuation)
+        Greater(left, right) => evaluate(left, valuation) > evaluate(right, valuation)
+        GeQ(left, right) => evaluate(left, valuation) >= evaluate(right, valuation)
+        Equal(left, right) => evaluate(left, valuation) == evaluate(right, valuation)
+        NotEqual(left, right) => evaluate(left, valuation) != evaluate(right, valuation)
+        And(left, right) => evaluate(left, valuation) && evaluate(right, valuation)
+        Or(left, right) => evaluate(left, valuation) || evaluate(right, valuation)
+        Not(constraint) => !evaluate(constraint, valuation)
+    end
+end
+
+
+function unsatisfied_constraints(constraints, valuation::OrderedDict)
+    filter(constraint -> ! evaluate(constraint, valuation), constraints)
 end

@@ -10,7 +10,9 @@ t1 = time();
 # bouncing_ball, max_time, max_steps = parse_game("examples/warehouse_robots_2_streets.json")
 # game, max_time, max_steps = parse_game("examples/simple_game.json")
 
-game, max_time, max_steps = parse_game("examples/3_players_1_ball.json")
+# game, max_time, max_steps = parse_game("examples/3_players_1_ball.json")
+
+game, max_time, max_steps = parse_game("examples/player_in_middle.json")
 t2 = time();
 
 

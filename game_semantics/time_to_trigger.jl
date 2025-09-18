@@ -2,11 +2,15 @@ using DifferentialEquations
 include("../parsers/parse_constraint.jl")
 include("../essential_definitions/evolution.jl")
 include("configuration.jl")
+include("tree.jl")
 
 
 
-function time_to_trigger(config::Configuration, trigger::Constraint, max_time::Float64)
-    zero_triggers::Vector{ExprLike} = geq_zero(trigger)
+function time_to_trigger(config::Configuration, trigger::Constraint, properties::Set{Constraint}, max_time::Float64)
+    unsatisfied_properties = unsatisfied_constraints(properties, config.valuation)
+    zero_properties::Vector{ExprLike} = union_safe([get_zero(prop) for prop in unsatisfied_properties])
+    zero_triggers = get_zero(trigger)
+    path_properties::Set = Set()
     function flowODE!(du, u, p, t)
         current_valuation = valuation_from_vector(config.valuation, u)
         for (i, (var, _)) in enumerate(config.valuation)
@@ -20,36 +24,41 @@ function time_to_trigger(config::Configuration, trigger::Constraint, max_time::F
     end
 
     function condition(out, u, t, integrator) # Event when condition(out,u,t,integrator) == 0
-        for (i, zero_trigger) in enumerate(zero_triggers)
-            out[i] = evaluate(zero_trigger, valuation_from_vector(config.valuation, u))
+        for (i, zero_prop) in enumerate(zero_properties ∪ zero_triggers)
+            out[i] = evaluate(zero_prop, valuation_from_vector(config.valuation, u))
         end
     end
 
     function affect!(integrator, idx)
-        if round3(integrator.t) == 0.0
+        if round5(integrator.t) == 0.0
             return # No need to affect the valuation if the trigger is not active
         end
-        current_valuation = valuation_from_vector(config.valuation, integrator.u)
-        # println("Trigger condition met at time $(integrator.t): $(zero_triggers[idx]) - Valuation: $current_valuation")
-        # println("The trigger is: ", trigger)
-        if evaluate(trigger, round3(current_valuation))
+        current_valuation = round5(valuation_from_vector(config.valuation, integrator.u))
+        if evaluate(trigger, current_valuation)
             # println("Terminated")
             terminate!(integrator) # Stop the integration when the condition is met
-        else
-            return 
+            return
+        end
+        if any(zero_prop -> evaluate(zero_prop, current_valuation) == 0.0, zero_properties)
+             # println("Property satisfied at time ", integrator.t)
+            for prop in unsatisfied_properties
+                if evaluate(prop, current_valuation)
+                    push!(path_properties, (prop, current_valuation, integrator.t))
+                end
+            end
         end
     end
 
-    cbv = VectorContinuousCallback(condition, affect!, length(zero_triggers)) #, save_positions = false)
+    cbv = VectorContinuousCallback(condition, affect!, length(zero_properties ∪ zero_triggers)) #, save_positions = false)
 
     u0 = collect(values(config.valuation))
-    tspan = (0.0, max_time + 1e-3)  # Add a small buffer to ensure we capture the trigger time
+    tspan = (0.0, max_time + 1e-5)  # Add a small buffer to ensure we capture the trigger time
     prob = ODEProblem(flowODE!, u0, tspan)
     # sol = solve(prob, callback = cbv, dt = 1e-3, adaptive = false)
     sol = solve(prob, Tsit5(), callback = cbv, abstol=1e-6, reltol=1e-6)
     
     final_valuation = valuation_from_vector(config.valuation, sol[end])
-    return round3(final_valuation), round3(sol.t[end])
+    return round5(final_valuation), round5(sol.t[end]), path_properties
 end
 
 

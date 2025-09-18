@@ -81,4 +81,4 @@ function _parse_stl_formula_internal(@nospecialize ex)::STL_Formula
     end
 end
 
-parse_stl_formula("not (a and b) or x > 5 && y < 10 U[4, 6] c")
+parse_stl_formula("! (a && b) || x > 5 && (y < 10 U[4, 6] c)")
