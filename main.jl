@@ -10,13 +10,13 @@ t1 = time();
 # bouncing_ball, max_time, max_steps = parse_game("examples/warehouse_robots_2_streets.json")
 # game, max_time, max_steps = parse_game("examples/simple_game.json")
 
-# game, max_time, max_steps = parse_game("examples/3_players_1_ball.json")
+game, max_time, max_steps = parse_game("examples/3_players_1_ball.json")
 
-game, max_time, max_steps = parse_game("examples/player_in_middle.json")
+# game, max_time, max_steps = parse_game("examples/player_in_middle.json")
 t2 = time();
 
 
-game_tree::Node = build_triggers_game_tree(game, max_time=max_time, max_steps=max_steps)
+game_tree::Node = build_triggers_game_tree(game, Set{Constraint}(), max_time=max_time, max_steps=max_steps)
 # game_tree::Node = build_triggers_game_tree_iterative(game, max_time=max_time, max_steps=max_steps)
 t3 = time();
 

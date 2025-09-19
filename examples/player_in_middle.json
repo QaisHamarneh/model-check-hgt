@@ -10,9 +10,9 @@
                 "invariant": "timer <= 5",
                 "flow": 
                     {
+                        "time": "1",
                         "middle_player": "sin(time) * spd_C",
-                        "timer": "1",
-                        "time": "1"
+                        "timer": "1"
                     }
             },
             {
@@ -172,7 +172,8 @@
     },
     "time-bound": 1000.0,
     "max-steps": 4,
+    "final-locations": "Caught",
     "formulae": 
-    [
+    [   
     ]
 }

@@ -148,6 +148,10 @@ function evaluate(constraint::Constraint, valuation::OrderedDict)::Bool
 end
 
 
+function satisfied_constraints(constraints, valuation::OrderedDict)
+    filter(constraint -> evaluate(constraint, valuation), constraints)
+end
+
 function unsatisfied_constraints(constraints, valuation::OrderedDict)
     filter(constraint -> ! evaluate(constraint, valuation), constraints)
 end

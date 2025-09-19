@@ -21,8 +21,8 @@ function parse_game(json_file)
             end
             push!(locations, location)
         end
-        agents = Symbol[Symbol(agent) for agent in GameDict["agents"]]
-        actions = Symbol[Symbol(action) for action in GameDict["actions"]]
+        agents = Set{Symbol}([Symbol(agent) for agent in GameDict["agents"]])
+        actions = Set{Symbol}([Symbol(action) for action in GameDict["actions"]])
         initial_valuation::OrderedDict{Symbol, Float64} = OrderedDict(Symbol(var) => value for (var, value) in GameDict["initial_valuation"])
         edges = Edge[]
         for edge in GameDict["edges"]

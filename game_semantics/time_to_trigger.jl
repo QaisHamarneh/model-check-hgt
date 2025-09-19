@@ -10,7 +10,7 @@ function time_to_trigger(config::Configuration, trigger::Constraint, properties:
     unsatisfied_properties = unsatisfied_constraints(properties, config.valuation)
     zero_properties::Vector{ExprLike} = union_safe([get_zero(prop) for prop in unsatisfied_properties])
     zero_triggers = get_zero(trigger)
-    path_properties::Set = Set()
+    path_properties::Dict{Float64, Pair{Valuation, Set{Constraint}}} = Dict() # time => (valuation, satisfied_properties)
     function flowODE!(du, u, p, t)
         current_valuation = valuation_from_vector(config.valuation, u)
         for (i, (var, _)) in enumerate(config.valuation)
@@ -30,7 +30,7 @@ function time_to_trigger(config::Configuration, trigger::Constraint, properties:
     end
 
     function affect!(integrator, idx)
-        if round5(integrator.t) == 0.0
+        if integrator.t < 1e-5
             return # No need to affect the valuation if the trigger is not active
         end
         current_valuation = round5(valuation_from_vector(config.valuation, integrator.u))
@@ -40,10 +40,13 @@ function time_to_trigger(config::Configuration, trigger::Constraint, properties:
             return
         end
         if any(zero_prop -> evaluate(zero_prop, current_valuation) == 0.0, zero_properties)
-             # println("Property satisfied at time ", integrator.t)
+            time = round5(integrator.t)
+            if !haskey(path_properties, time)
+                path_properties[time] = Pair(current_valuation, Set{Constraint}())
+            end
             for prop in unsatisfied_properties
                 if evaluate(prop, current_valuation)
-                    push!(path_properties, (prop, current_valuation, integrator.t))
+                    push!(path_properties[time].second, prop)
                 end
             end
         end

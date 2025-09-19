@@ -6,8 +6,8 @@ struct Game
     locations::Vector{Location}
     initial_location::Location
     initial_valuation::OrderedDict{Symbol, Float64}
-    agents:: Vector{Symbol}
-    actions::Vector{Symbol}
+    agents:: Set{Symbol}
+    actions::Set{Symbol}
     edges:: Vector{Edge}
     triggers:: Vector{Constraint}
 end
@@ -16,8 +16,8 @@ function Game(name::String,
               locations::Vector{Location}, 
               initial_location::Location, 
               initial_valuation::OrderedDict{Symbol, Float64}, 
-              agents::Vector{Symbol}, 
-              actions::Vector{Symbol},
+              agents::Set{Symbol}, 
+              actions::Set{Symbol},
               edges::Vector{Edge},
               triggers::Vector{Constraint},
               initiate::Bool)::Game
