@@ -14,16 +14,16 @@ function parse_game(json_file)
         for loc in GameDict["locations"]
             name = Symbol(loc["name"])
             invariant::Constraint = parse_constraint(loc["invariant"])
-            flow::Dict{Symbol, ExprLike} = Dict(Symbol(var) => parse_expression(flow) for (var, flow) in loc["flow"])
+            flow::ReAssignment = Dict(Symbol(var) => parse_expression(flow) for (var, flow) in loc["flow"])
             location = Location(name, invariant, flow)
             if haskey(loc, "initial") && loc["initial"]
                 initial_location = location
             end
             push!(locations, location)
         end
-        agents = Set{Symbol}([Symbol(agent) for agent in GameDict["agents"]])
-        actions = Set{Symbol}([Symbol(action) for action in GameDict["actions"]])
-        initial_valuation::OrderedDict{Symbol, Float64} = OrderedDict(Symbol(var) => value for (var, value) in GameDict["initial_valuation"])
+        agents = Set{Agent}([Symbol(agent) for agent in GameDict["agents"]])
+        actions = Set{Action}([Symbol(action) for action in GameDict["actions"]])
+        initial_valuation::Valuation = OrderedDict(Symbol(var) => value for (var, value) in GameDict["initial_valuation"])
         edges = Edge[]
         for edge in GameDict["edges"]
             name = Symbol(edge["name"])
@@ -37,16 +37,21 @@ function parse_game(json_file)
                 start_location = locations[start_location_ind]
                 target_location = locations[target_location_ind]
             end
-            decision::Dict{Symbol, Symbol} = Dict(Symbol(agent) => Symbol(action) for (agent, action) in edge["decision"])
+            decision::Decision = Dict(Symbol(agent) => Symbol(action) for (agent, action) in edge["decision"])
             guard::Constraint = parse_constraint(edge["guard"])
-            jump::OrderedDict{Symbol, ExprLike} = OrderedDict(Symbol(var) => parse_expression(jump) for (var, jump) in edge["jump"])
+            jump::ReAssignment = Dict(Symbol(var) => parse_expression(jump) for (var, jump) in edge["jump"])
             push!(edges, Edge(name, start_location, target_location, guard, decision, jump))
         end
         triggers::Vector{Constraint} = Constraint[parse_constraint(trigger) for trigger in GameDict["triggers"]]
         
-        max_time::Float64 = FileDict["time-bound"]
-        max_steps::Int64 = FileDict["max-steps"]
-        return Game(game_name, locations, initial_location, initial_valuation, agents, actions, edges, triggers, true), max_time, max_steps
+        game = Game(game_name, locations, initial_location, initial_valuation, agents, actions, edges, triggers, true)
+
+        termination_conditions = FileDict["termination-conditions"]
+        # max_time::Float64 = FileDict["time-bound"]
+        # max_steps::Int64 = FileDict["max-steps"]
+        # queries::Vector{Strategy_Formula} = Strategy_Formula[parse_strategy_formula(query) for query in FileDict["queries"]]
+        queries = FileDict["queries"]
+        return game, termination_conditions, queries
 
     end
 end

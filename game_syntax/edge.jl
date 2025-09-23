@@ -5,19 +5,15 @@ struct Edge
     start_location::Location
     target_location::Location
     guard::Constraint
-    decision::Dict{Symbol, Symbol}
-    jump::OrderedDict{Symbol, ExprLike}
+    decision::Decision
+    jump::ReAssignment
 end
 
-function str(edge::Edge)::Symbol
-    return "Edge: $(edge.name) from $(edge.start_location.name) to $(edge.target_location.name) with decision: $(edge.decision)"
-end
-
-function enabled(edge::Edge, valuation::OrderedDict{Symbol, Float64})::Bool
+function enabled(edge::Edge, valuation::Valuation)::Bool
     return evaluate(edge.guard, valuation) && evaluate(edge.target_location.invariant, discrete_evolution(valuation, edge.jump))
 end
 
-function select_edge(game, config, decision::Dict{Symbol, Symbol})::Edge
+function select_edge(game, config, decision::Decision)::Edge
     # Clean up and ensure the correct handling of the nothing actions
     for edge in config.location.edges
         if enabled(edge, config.valuation)

@@ -4,10 +4,8 @@ include("../game_semantics/tree.jl")
 using Match
 using DataStructures
 
-abstract type Logic_Formula end
-
-abstract type Strategy_Formula <: Logic_Formula end
-abstract type State_Formula <: Logic_Formula end
+abstract type Strategy_Formula end
+abstract type State_Formula  end
 
 
 struct Strategy_to_State <: Strategy_Formula
@@ -48,15 +46,20 @@ struct Strategy_Not <: Strategy_Formula
     formula::Strategy_Formula
 end
 
+struct Strategy_Imply <: Strategy_Formula
+    left::Strategy_Formula
+    right::Strategy_Formula
+end
+
 struct State_Truth <: State_Formula
     value::Bool
 end
 
-struct Location_Prop <: State_Formula
+struct State_Location <: State_Formula
     proposition::Symbol
 end
 
-struct Constraint_Prop <: State_Formula
+struct State_Constraint <: State_Formula
     constraint::Constraint
 end
 
@@ -74,44 +77,55 @@ struct State_Not <: State_Formula
     formula::State_Formula
 end
 
-
-
-function get_state_formulae(formula::Strategy_Formula)::Set{State_Formula}
-    @match formula begin
-        Strategy_to_State(f) => Set([f])
-        Exist_Always(_, f) => Set([f])
-        Exist_Eventually(_, f) => Set([f])
-        All_Always(_, f) => Set([f])
-        All_Eventually(_, f) => Set([f])
-        Strategy_And(left, right) => get_state_formulae(left) ∪ get_state_formulae(right)
-        Strategy_Or(left, right) => get_state_formulae(left) ∪ get_state_formulae(right)
-        Strategy_Not(f) => get_state_formulae(f)
-    end
+struct State_Imply <: State_Formula
+    left::State_Formula
+    right::State_Formula
 end
 
 
-
-function get_all_formulae(formula::Strategy_Formula)::Set{Logic_Formula}
+function get_all_properties(formula::State_Formula)::Set{Constraint}
     @match formula begin
-        Strategy_to_State(f) => Set([formula]) ∪ get_all_formulae(f)
-        Exist_Always(_, f) => Set([formula]) ∪ get_all_formulae(f)
-        Exist_Eventually(_, f) => Set([formula]) ∪ get_all_formulae(f)
-        All_Always(_, f) => Set([formula]) ∪ get_all_formulae(f)
-        All_Eventually(_, f) => Set([formula]) ∪ get_all_formulae(f)
-        Strategy_And(left, right) => Set([formula]) ∪ get_all_formulae(left) ∪ get_all_formulae(right)
-        Strategy_Or(left, right) => Set([formula]) ∪ get_all_formulae(left) ∪ get_all_formulae(right)
-        Strategy_Not(f) => Set([formula]) ∪ get_all_formulae(f)
+        State_Truth(_) => Set{State_Formula}()
+        State_Location(_) => Set{State_Formula}()
+        State_Constraint(constraint) => Set([constraint, Not(constraint)])
+        State_And(left, right) => get_all_properties(left) ∪ get_all_properties(right)
+        State_Or(left, right) => get_all_properties(left) ∪ get_all_properties(right)
+        State_Not(f) => get_all_properties(f)
+        State_Imply(left, right) => get_all_properties(left) ∪ get_all_properties(right)
     end
+end
+
+function get_all_properties(formula::Strategy_Formula)::Set{Constraint}
+    @match formula begin
+        Strategy_to_State(f) => get_all_properties(f)
+        Exist_Always(_, f) => get_all_properties(f)
+        Exist_Eventually(_, f) => get_all_properties(f)
+        All_Always(_, f) => get_all_properties(f)
+        All_Eventually(_, f) => get_all_properties(f)
+        Strategy_And(left, right) => get_all_properties(left) ∪ get_all_properties(right)
+        Strategy_Or(left, right) => get_all_properties(left) ∪ get_all_properties(right)
+        Strategy_Not(f) => get_all_properties(f)
+        Strategy_Imply(left, right) => get_all_properties(left) ∪ get_all_properties(right)
+    end
+end
+
+function get_all_properties(formulae::Vector{Strategy_Formula})::Set{Constraint}
+    props = Set{Constraint}()
+    for formula in formulae
+        props = props ∪ get_all_properties(formula)
+    end
+    return props
 end
 
 function evaluate(formula::State_Formula, config::Configuration)::Bool
     @match formula begin
         State_Truth(value) => value
-        Location_Prop(loc) => loc == config.location
-        Constraint_Prop(constraint) => evaluate(constraint, config.valuation)
+        State_Location(loc) => loc == config.location
+        State_Constraint(constraint) => evaluate(constraint, config.valuation)
         State_And(left, right) => evaluate(left, config) && evaluate(right, config)
         State_Or(left, right) => evaluate(left, config) || evaluate(right, config)
         State_Not(f) => ! evaluate(f, config)
+        State_Imply(left, right) => ! evaluate(left, config) || evaluate(right, config)
     end
 end
 
@@ -129,12 +143,12 @@ function evaluate(formula::Strategy_Formula, node::Node, all_agents::Set{Agent})
             other_agents_children = Vector{Node}()
             for child in node.children
                 if child.reaching_decision.first in agents
-                    if evaluate(formula, child, all_agents)
+                    if all(valuation -> evalaute(f, Configuration(node.config.location, valuation)), child.path_to_node) && evaluate(formula, child, all_agents)
                         return true
                     end
                     push!(agents_children, child)
                 else 
-                    if ! evaluate(formula, child, all_agents)
+                    if any(valuation -> ! evalaute(f, Configuration(node.config.location, valuation)), child.path_to_node) || ! evaluate(formula, child, all_agents)
                         return false
                     end
                     push!(other_agents_children, child)
@@ -157,12 +171,12 @@ function evaluate(formula::Strategy_Formula, node::Node, all_agents::Set{Agent})
             other_agents_children = Vector{Node}()
             for child in node.children
                 if child.reaching_decision.first in agents
-                    if evaluate(formula, child, all_agents)
+                    if any(valuation -> evalaute(f, Configuration(node.config.location, valuation)), child.path_to_node) || evaluate(formula, child, all_agents)
                         return true
                     end
                     push!(agents_children, child)
                 else 
-                    if ! evaluate(formula, child, all_agents)
+                    if all(valuation -> ! evalaute(f, Configuration(node.config.location, valuation)), child.path_to_node) && ! evaluate(formula, child, all_agents)
                         return false
                     end
                     push!(other_agents_children, child)
@@ -179,5 +193,6 @@ function evaluate(formula::Strategy_Formula, node::Node, all_agents::Set{Agent})
         Strategy_And(left, right) => evaluate(left, node) && evaluate(right, node)
         Strategy_Or(left, right) => evaluate(left, node) || evaluate(right, node)
         Strategy_Not(f) => ! evaluate(f, node)
+        Strategy_Imply(left, right) => ! evaluate(left, node) || evaluate(right, node)
     end
 end

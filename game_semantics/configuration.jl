@@ -2,11 +2,7 @@ include("../game_syntax/game.jl")
 
 struct Configuration
     location::Location
-    valuation::OrderedDict{Symbol, Float64}
-end
-
-function str(config::Configuration)::String
-    return "⟨ $(config.location.name) , $(config.valuation)⟩"
+    valuation::Valuation
 end
 
 function initial_configuration(game::Game)::Configuration

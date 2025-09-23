@@ -5,9 +5,9 @@ struct Game
     name::String
     locations::Vector{Location}
     initial_location::Location
-    initial_valuation::OrderedDict{Symbol, Float64}
-    agents:: Set{Symbol}
-    actions::Set{Symbol}
+    initial_valuation::Valuation
+    agents:: Set{Agent}
+    actions::Set{Action}
     edges:: Vector{Edge}
     triggers:: Vector{Constraint}
 end
@@ -15,9 +15,9 @@ end
 function Game(name::String,
               locations::Vector{Location}, 
               initial_location::Location, 
-              initial_valuation::OrderedDict{Symbol, Float64}, 
-              agents::Set{Symbol}, 
-              actions::Set{Symbol},
+              initial_valuation::Valuation, 
+              agents::Set{Agent}, 
+              actions::Set{Action},
               edges::Vector{Edge},
               triggers::Vector{Constraint},
               initiate::Bool)::Game
@@ -37,8 +37,4 @@ function Game(name::String,
         push!(edge.start_location.edges, edge)
     end
     return game
-end
-
-function string(game::Game)::String
-    return "Game: $(game.name) with $(length(game.locations)) locations, $(length(game.agents)) agents, $(length(game.agents)) actions, $(length(game.edges)) edges."
 end

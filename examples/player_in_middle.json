@@ -170,10 +170,13 @@
             "timer == 4"
         ]
     },
-    "time-bound": 1000.0,
-    "max-steps": 4,
-    "final-locations": "Caught",
-    "formulae": 
-    [   
+    "termination-conditions": {
+        "time-bound": 1000.0,
+        "max-steps": 3,
+        "state-formula": "false"
+    },
+    "queries": 
+    [
+        "<<A, B>> F x > 5 && y > 5"
     ]
 }

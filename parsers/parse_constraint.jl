@@ -2,11 +2,11 @@ include("parse_expression.jl")
 include("../essential_definitions/constraint.jl")
 
 """
-    parse_constraint(s::String)::Constraint
+    parse_constraint(s::AbstractString)::Constraint
 
 Parses a string representing a real arithmetic constraint into a Constraint object.
 """
-function parse_constraint(s::String)::Constraint
+function parse_constraint(s::AbstractString)::Constraint
     if s == ""
         return Truth(true)  # Return a truth constraint for empty input
     end

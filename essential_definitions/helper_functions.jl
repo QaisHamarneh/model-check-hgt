@@ -4,7 +4,7 @@ function round5(num::Float64)::Float64
     return round(num, digits=5)
 end
 
-function round5(valuation::OrderedDict{Symbol, Float64})::OrderedDict{Symbol, Float64}
+function round5(valuation::Valuation)::Valuation
     new_valuation::OrderedDict{Symbol, Float64} = OrderedDict()
     for (var, value) in valuation
         new_valuation[var] = round5(value)
@@ -40,30 +40,12 @@ function round5(constraint::Constraint)::Constraint
     end
 end
 
-function valuation_from_vector(valuation::OrderedDict{Symbol, Float64}, vector::Vector{Float64})::OrderedDict{Symbol, Float64}
+function valuation_from_vector(valuation::Valuation, vector::Vector{Float64})::Valuation
     new_valuation::OrderedDict{Symbol, Float64} = OrderedDict()
     for (i, (var, _)) in enumerate(valuation)
         new_valuation[var] = vector[i]
     end
     return new_valuation
-end
-
-function find_set(set::Vector, 
-                     relation)
-    minimums = []
-    for element in set
-        is_minimal = true
-        for other_element in set
-            if element != other_element && relation(other_element, element)
-                is_minimal = false
-                break
-            end
-        end
-        if is_minimal
-            push!(minimums, element)
-        end
-    end
-    return minimums
 end
 
 function union_safe(l)
@@ -75,11 +57,3 @@ function union_safe(l)
         return union(l...)
     end
 end
-
-# l1 = [[1, 2], [3, 4]]
-# l2 = []
-
-# println(union_safe(l1))
-# # Output: [1, 2, 3, 4]
-
-# println(union_safe(l2))

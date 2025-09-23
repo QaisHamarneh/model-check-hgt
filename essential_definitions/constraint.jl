@@ -1,6 +1,7 @@
-include("expression.jl")
 using Match
 using DataStructures
+
+include("expression.jl")
 
 abstract type Constraint end
 
@@ -132,7 +133,7 @@ function get_zero(constraint::Constraint)::Vector{ExprLike}
     end
 end
 
-function evaluate(constraint::Constraint, valuation::OrderedDict)::Bool
+function evaluate(constraint::Constraint, valuation::Valuation)::Bool
     @match constraint begin
         Truth(value) => value
         Less(left, right) => evaluate(left, valuation) < evaluate(right, valuation)
@@ -148,10 +149,10 @@ function evaluate(constraint::Constraint, valuation::OrderedDict)::Bool
 end
 
 
-function satisfied_constraints(constraints, valuation::OrderedDict)
+function satisfied_constraints(constraints, valuation::Valuation)
     filter(constraint -> evaluate(constraint, valuation), constraints)
 end
 
-function unsatisfied_constraints(constraints, valuation::OrderedDict)
+function unsatisfied_constraints(constraints, valuation::Valuation)
     filter(constraint -> ! evaluate(constraint, valuation), constraints)
 end

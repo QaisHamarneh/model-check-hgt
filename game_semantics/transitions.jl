@@ -7,3 +7,10 @@ function continuous_transition(start_config::Configuration, time::Real)::Configu
                   continuous_evolution(start_config.valuation, start_config.location.flow, time)
                  )
 end
+
+
+function discrete_transition(start_config::Configuration, edge::Edge)::Configuration
+    Configuration(edge.target_location, 
+                  discrete_evolution(start_config.valuation, edge.jump)
+                 )
+end

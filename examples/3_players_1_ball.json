@@ -238,9 +238,13 @@
             "9.5 <= x <= 10.5 && -0.5 <= y <= 0.5"
         ]
     },
-    "time-bound": 1000.0,
-    "max-steps": 3,
-    "formulae": 
+    "termination-conditions": {
+        "time-bound": 1000.0,
+        "max-steps": 3,
+        "state-formula": "false"
+    },
+    "queries": 
     [
+        "<<A, B>> F x > 5 && y > 5"
     ]
 }

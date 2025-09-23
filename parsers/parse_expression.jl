@@ -3,11 +3,11 @@ include("../essential_definitions/expression.jl")
 
 
 """
-    parse_expression(s::String)::ExprLike
+    parse_expression(s::AbstractString)::ExprLike
 
 Parses a string representing a real arithmetic expression into an ExprLike object.
 """
-function parse_expression(s::String)::ExprLike
+function parse_expression(s::AbstractString)::ExprLike
     expr = Meta.parse(s)
     return _parse_expr_internal(expr)
 end
