@@ -6,7 +6,8 @@ dependencies = [
     "Match",
     "JSON3",
     "DataStructures",
-    "Plots"
+    "Plots",
+    "QML"
 ]
 
 Pkg.add(dependencies)

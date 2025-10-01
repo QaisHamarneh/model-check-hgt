@@ -143,12 +143,12 @@ function evaluate(formula::Strategy_Formula, node::Node, all_agents::Set{Agent})
             other_agents_children = Vector{Node}()
             for child in node.children
                 if child.reaching_decision.first in agents
-                    if all(valuation -> evalaute(f, Configuration(node.config.location, valuation)), child.path_to_node) && evaluate(formula, child, all_agents)
+                    if all(config -> evaluate(f, config), child.path_to_node) && evaluate(formula, child, all_agents)
                         return true
                     end
                     push!(agents_children, child)
                 else 
-                    if any(valuation -> ! evalaute(f, Configuration(node.config.location, valuation)), child.path_to_node) || ! evaluate(formula, child, all_agents)
+                    if any(valuation -> ! evaluate(f, config), child.path_to_node) || ! evaluate(formula, child, all_agents)
                         return false
                     end
                     push!(other_agents_children, child)
@@ -171,12 +171,12 @@ function evaluate(formula::Strategy_Formula, node::Node, all_agents::Set{Agent})
             other_agents_children = Vector{Node}()
             for child in node.children
                 if child.reaching_decision.first in agents
-                    if any(valuation -> evalaute(f, Configuration(node.config.location, valuation)), child.path_to_node) || evaluate(formula, child, all_agents)
+                    if any(config -> evaluate(f, config), child.path_to_node) || evaluate(formula, child, all_agents)
                         return true
                     end
                     push!(agents_children, child)
                 else 
-                    if all(valuation -> ! evalaute(f, Configuration(node.config.location, valuation)), child.path_to_node) && ! evaluate(formula, child, all_agents)
+                    if all(config -> ! evaluate(f, config), child.path_to_node) && ! evaluate(formula, child, all_agents)
                         return false
                     end
                     push!(other_agents_children, child)
@@ -195,4 +195,13 @@ function evaluate(formula::Strategy_Formula, node::Node, all_agents::Set{Agent})
         Strategy_Not(f) => ! evaluate(f, node)
         Strategy_Imply(left, right) => ! evaluate(left, node) || evaluate(right, node)
     end
+end
+
+
+function evaluate(formulae::Vector{Strategy_Formula}, node::Node, all_agents::Set{Agent})::Vector{Bool}
+    results = Vector{Bool}()
+    for formula in formulae
+        push!(results, evaluate(formula, node, all_agents))
+    end
+    return results
 end

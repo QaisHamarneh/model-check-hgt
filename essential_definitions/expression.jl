@@ -54,9 +54,10 @@ struct CoTan <: ExprLike
     base::ExprLike
 end
 
-if !isdefined(Main, :ReAssignment)
-    const ReAssignment = Dict{Symbol, <:ExprLike}
-end
+# if !isdefined(Main, :ReAssignment)
+#     const 
+ReAssignment = Dict{Symbol, <:ExprLike}
+# end
 
 function evaluate(expr::ExprLike, valuation::Valuation)::Float64
     @match expr begin

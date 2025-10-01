@@ -14,7 +14,10 @@ function parse_game(json_file)
         for loc in GameDict["locations"]
             name = Symbol(loc["name"])
             invariant::Constraint = parse_constraint(loc["invariant"])
-            flow::ReAssignment = Dict(Symbol(var) => parse_expression(flow) for (var, flow) in loc["flow"])
+            flow::ReAssignment = Dict{Symbol, ExprLike}()
+            if ! isempty(loc["flow"])
+                flow = Dict(Symbol(var) => parse_expression(flow) for (var, flow) in loc["flow"])
+            end
             location = Location(name, invariant, flow)
             if haskey(loc, "initial") && loc["initial"]
                 initial_location = location
@@ -23,7 +26,10 @@ function parse_game(json_file)
         end
         agents = Set{Agent}([Symbol(agent) for agent in GameDict["agents"]])
         actions = Set{Action}([Symbol(action) for action in GameDict["actions"]])
-        initial_valuation::Valuation = OrderedDict(Symbol(var) => value for (var, value) in GameDict["initial_valuation"])
+        initial_valuation::Valuation = Dict{Symbol, Float64}()
+        if ! isempty(GameDict["initial_valuation"])
+            initial_valuation = OrderedDict(Symbol(var) => value for (var, value) in GameDict["initial_valuation"])
+        end
         edges = Edge[]
         for edge in GameDict["edges"]
             name = Symbol(edge["name"])
@@ -37,9 +43,15 @@ function parse_game(json_file)
                 start_location = locations[start_location_ind]
                 target_location = locations[target_location_ind]
             end
-            decision::Decision = Dict(Symbol(agent) => Symbol(action) for (agent, action) in edge["decision"])
+            decision::Decision = Dict{Agent, Action}()
+            if ! isempty(edge["jump"])
+                decision = Dict(Symbol(agent) => Symbol(action) for (agent, action) in edge["decision"])
+            end
             guard::Constraint = parse_constraint(edge["guard"])
-            jump::ReAssignment = Dict(Symbol(var) => parse_expression(jump) for (var, jump) in edge["jump"])
+            jump::ReAssignment = Dict{Symbol, ExprLike}()
+            if ! isempty(edge["jump"])
+                jump = Dict(Symbol(var) => parse_expression(jump) for (var, jump) in edge["jump"])
+            end
             push!(edges, Edge(name, start_location, target_location, guard, decision, jump))
         end
         triggers::Vector{Constraint} = Constraint[parse_constraint(trigger) for trigger in GameDict["triggers"]]

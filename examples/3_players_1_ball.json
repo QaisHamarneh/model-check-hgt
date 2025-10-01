@@ -239,8 +239,8 @@
         ]
     },
     "termination-conditions": {
-        "time-bound": 1000.0,
-        "max-steps": 3,
+        "time-bound": 100.0,
+        "max-steps": 6,
         "state-formula": "false"
     },
     "queries": 

@@ -10,7 +10,7 @@ function time_to_trigger(config::Configuration, trigger::Constraint, properties:
     unsatisfied_properties = unsatisfied_constraints(properties, config.valuation)
     zero_properties::Vector{ExprLike} = union_safe([get_zero(prop) for prop in unsatisfied_properties])
     zero_triggers = get_zero(trigger)
-    path_to_node::Vector{Valuation} = Vector() # time => (valuation, satisfied_properties)
+    path_to_node::Vector{Configuration} = Vector() # time => (valuation, satisfied_properties)
     function flowODE!(du, u, p, t)
         current_valuation = valuation_from_vector(config.valuation, u)
         for (i, (var, _)) in enumerate(config.valuation)
@@ -40,7 +40,7 @@ function time_to_trigger(config::Configuration, trigger::Constraint, properties:
             return
         end
         if any(zero_prop -> evaluate(zero_prop, current_valuation) == 0.0, zero_properties) && any(prop -> evaluate(prop, current_valuation), unsatisfied_properties)
-            push!(path_to_node, current_valuation)
+            push!(path_to_node, Configuration(config.location, current_valuation, config.global_clock + integrator.t))
             unsatisfied_properties = unsatisfied_constraints(properties, current_valuation)
             zero_properties = union_safe([get_zero(prop) for prop in unsatisfied_properties])
             # time = round5(integrator.t)
@@ -76,7 +76,8 @@ end
 #     Location(:r_r, 
 #              parse_constraint("x <= 100 && y <= 100"), 
 #              flow), 
-#     valuation
+#     valuation,
+#     0.0
 # )
 
 # trigger = And(And(LeQ(Const(-9.5), Var(:x)), LeQ(Var(:x), Const(-10.5))), And(LeQ(Const(-0.5), Var(:y)), LeQ(Var(:y), Const(0.5))))

@@ -172,7 +172,7 @@
     },
     "termination-conditions": {
         "time-bound": 1000.0,
-        "max-steps": 3,
+        "max-steps": 4,
         "state-formula": "false"
     },
     "queries": 

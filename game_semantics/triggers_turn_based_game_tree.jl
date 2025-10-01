@@ -11,7 +11,7 @@ struct TriggerPath
     trigger::Constraint
     end_valuation::Valuation
     ttt::Float64
-    path_to_node::Vector{Valuation} # time => (valuation, satisfied_properties)
+    path_to_node::Vector{Configuration} # time => (valuation, satisfied_properties)
 end
 
 function build_triggers_game_tree(game::Game,
@@ -20,15 +20,14 @@ function build_triggers_game_tree(game::Game,
                         current_config::Union{Configuration,Nothing} = nothing, 
                         parent::Union{Node, Nothing} = nothing,
                         reaching_decision::Union{Pair{Agent, Action}, Nothing} = nothing,
-                        path_to_node::Union{Vector{Valuation}, Nothing}  = nothing,
+                        path_to_node::Union{Vector{Configuration}, Nothing}  = nothing,
                         global_clock::Float64 = 0.0,
                         total_steps::Int64 = 0):: Node
     if current_config === nothing
         current_config = initial_configuration(game)
     end
     remaining_time = termination_conditions["time-bound"] - global_clock
-    sat_props = satisfied_constraints(properties, current_config.valuation)
-    current_node = Node(parent, reaching_decision, path_to_node, current_config, global_clock, sat_props, [])
+    current_node = Node(parent, reaching_decision, path_to_node, current_config, [])
 
     if global_clock >= termination_conditions["time-bound"] || 
         total_steps >= termination_conditions["max-steps"] #||
@@ -40,7 +39,7 @@ function build_triggers_game_tree(game::Game,
 
     triggers_valuations::Vector{TriggerPath} = []
     for trigger in game.triggers
-        new_valuation, ttt, path_to_node = time_to_trigger(current_config, trigger, Set{Constraint}([parse_constraint("y > 5")]), location_invariant)
+        new_valuation, ttt, path_to_node = time_to_trigger(current_config, trigger, properties, location_invariant)
         if ttt <= remaining_time && ttt < location_invariant
             trigger_path = TriggerPath(trigger, new_valuation, ttt, path_to_node)
             push!(triggers_valuations, trigger_path)
@@ -48,7 +47,7 @@ function build_triggers_game_tree(game::Game,
     end
     for agent in game.agents
         for trigger_path in triggers_valuations
-            config_after_trigger = Configuration(current_config.location, trigger_path.end_valuation)
+            config_after_trigger = Configuration(current_config.location, trigger_path.end_valuation, global_clock + trigger_path.ttt)
             for action in enabled_actions(config_after_trigger, agent)
                 edge = select_edge(game, config_after_trigger, Dict(agent => action))
                 config_after_edge = discrete_transition(config_after_trigger, edge)
@@ -67,7 +66,7 @@ function build_triggers_game_tree(game::Game,
             end
         end
     end 
-    sort!(current_node.children, by = child -> child.global_clock)
+    sort!(current_node.children, by = child -> child.config.global_clock)
     return current_node
 end
 
