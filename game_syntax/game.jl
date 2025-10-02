@@ -9,18 +9,18 @@ struct Game
     agents:: Set{Agent}
     actions::Set{Action}
     edges:: Vector{Edge}
-    triggers:: Vector{Constraint}
+    triggers:: Dict{Agent, Vector{Constraint}}
 end
 
-function Game(name::String,
-              locations::Vector{Location}, 
-              initial_location::Location, 
-              initial_valuation::Valuation, 
-              agents::Set{Agent}, 
-              actions::Set{Action},
-              edges::Vector{Edge},
-              triggers::Vector{Constraint},
-              initiate::Bool)::Game
+function Game(  name::String,
+                locations::Vector{Location}, 
+                initial_location::Location, 
+                initial_valuation::Valuation, 
+                agents::Set{Agent}, 
+                actions::Set{Action},
+                edges::Vector{Edge},
+                triggers:: Dict{Agent, Vector{Constraint}},
+                initiate::Bool)::Game
     game = Game(name, 
                 locations, 
                 initial_location, 

@@ -1,6 +1,6 @@
 include("../essential_definitions/constraint.jl")
 include("../game_semantics/configuration.jl")
-include("../game_semantics/tree.jl")
+include("../game_tree/tree.jl")
 using Match
 using DataStructures
 
@@ -14,22 +14,22 @@ end
 
 struct Exist_Always <: Strategy_Formula
     agents::Set{Symbol}
-    formula::State_Formula
+    formula::Strategy_Formula
 end
 
 struct Exist_Eventually <: Strategy_Formula
     agents::Set{Symbol}
-    formula::State_Formula
+    formula::Strategy_Formula
 end
 
 struct All_Always <: Strategy_Formula
     agents::Set{Symbol}
-    formula::State_Formula
+    formula::Strategy_Formula
 end
 
 struct All_Eventually <: Strategy_Formula
     agents::Set{Symbol}
-    formula::State_Formula
+    formula::Strategy_Formula
 end
 
 struct Strategy_And <: Strategy_Formula
@@ -133,22 +133,26 @@ function evaluate(formula::Strategy_Formula, node::Node, all_agents::Set{Agent})
     @match formula begin
         Strategy_to_State(f) => evaluate(f, node.config)
         Exist_Always(agents, f) => begin
-            if ! evaluate(f, node.config)
+            if ! evaluate(f, node, all_agents)
                 return false
             end
-            if length(node.children) == 0
+            if length(node.children) == 0 || node.terminal_node
                 return true
             end
+            if node.passive_node
+                return evaluate(formula, node.children[1], all_agents)
+            end
+            children = sort_children_by_clock_agent(node, agents)
             agents_children = Vector{Node}()
             other_agents_children = Vector{Node}()
-            for child in node.children
+            for child in children
                 if child.reaching_decision.first in agents
-                    if all(config -> evaluate(f, config), child.path_to_node) && evaluate(formula, child, all_agents)
+                    if evaluate(formula, child, all_agents)
                         return true
                     end
                     push!(agents_children, child)
                 else 
-                    if any(valuation -> ! evaluate(f, config), child.path_to_node) || ! evaluate(formula, child, all_agents)
+                    if ! evaluate(formula, child, all_agents)
                         return false
                     end
                     push!(other_agents_children, child)
@@ -161,22 +165,26 @@ function evaluate(formula::Strategy_Formula, node::Node, all_agents::Set{Agent})
             end
         end
         Exist_Eventually(agents, f) => begin
-            if evaluate(f, node.config)
+            if evaluate(f, node, all_agents)
                 return true
             end
-            if length(node.children) == 0
+            if length(node.children) == 0 || node.terminal_node
                 return false
             end
+            if node.passive_node
+                return evaluate(formula, node.children[1], all_agents)
+            end
+            children = sort_children_by_clock_agent(node, agents)
             agents_children = Vector{Node}()
             other_agents_children = Vector{Node}()
-            for child in node.children
+            for child in children
                 if child.reaching_decision.first in agents
-                    if any(config -> evaluate(f, config), child.path_to_node) || evaluate(formula, child, all_agents)
+                    if evaluate(formula, child, all_agents)
                         return true
                     end
                     push!(agents_children, child)
                 else 
-                    if all(config -> ! evaluate(f, config), child.path_to_node) && ! evaluate(formula, child, all_agents)
+                    if ! evaluate(formula, child, all_agents)
                         return false
                     end
                     push!(other_agents_children, child)

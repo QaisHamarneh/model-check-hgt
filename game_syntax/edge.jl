@@ -13,22 +13,12 @@ function enabled(edge::Edge, valuation::Valuation)::Bool
     return evaluate(edge.guard, valuation) && evaluate(edge.target_location.invariant, discrete_evolution(valuation, edge.jump))
 end
 
-function select_edge(game, config, decision::Decision)::Edge
-    # Clean up and ensure the correct handling of the nothing actions
+function select_edges(game, config, decision::Decision)::Vector{Edge}
+    selected_edges = Edge[]
     for edge in config.location.edges
-        if enabled(edge, config.valuation)
-            correct_edge = true
-            for agent in game.agents
-                if haskey(decision, agent) && haskey(edge.decision, agent) &&
-                   edge.decision[agent] != decision[agent]
-                    correct_edge = false
-                    break
-                end
-            end
-            if correct_edge
-                return edge
-            end
+        if enabled(edge, config.valuation) && edge.decision == decision
+            push!(selected_edges, edge)
         end
     end
-    return location.edges[1]  # Default to the stutter edge if no valid edge is found
+    return selected_edges
 end

@@ -160,15 +160,11 @@
             }
         ],
         "triggers": 
-        [
-            "x^2 + (y - middle_player)^2 <= 0.5",
-            "-10.5 <= x <= -9.5 && -0.5 <= y <= 0.5",
-            "9.5 <= x <= 10.5 && -0.5 <= y <= 0.5",
-            "timer == 1",
-            "timer == 2",
-            "timer == 3",
-            "timer == 4"
-        ]
+        {
+            "A": ["-10.5 <= x <= -9.5 && -0.5 <= y <= 0.5", "timer == 1", "timer == 2", "timer == 3", "timer == 4"],
+            "B": ["9.5 <= x <= 10.5 && -0.5 <= y <= 0.5", "timer == 1", "timer == 2", "timer == 3", "timer == 4"],
+            "C": ["x^2 + (y - middle_player)^2 <= 0.5"]
+        }
     },
     "termination-conditions": {
         "time-bound": 1000.0,
