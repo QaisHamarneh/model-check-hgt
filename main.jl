@@ -1,25 +1,25 @@
 # using Ranges   # Remove this line
 include("packages.jl")
 include("parsers/parse_game.jl")
-include("game_semantics/triggers_turn_based_game_tree.jl")
+include("game_tree/triggers_based_game_tree.jl")
 # include("STL/logic.jl")
 using DataStructures
 
 
 t1 = time();
 
-example = 3
+example = 2
 
 if example == 1
     game, termination_conditions, _ = parse_game("examples/bouncing_ball.json")
-    queries = Strategy_Formula[ Exist_Eventually(Set([:α]), State_Constraint(parse_constraint("pos < 0 || pos > 1000")))]
+    queries = Strategy_Formula[ Exist_Eventually(Set([:α]), Strategy_to_State(State_Constraint(parse_constraint("pos < 0 || pos > 1000"))))]
 elseif example == 2
     game, termination_conditions, _ = parse_game("examples/3_players_1_ball.json")
-    queries = Strategy_Formula[ Exist_Eventually(Set([:A]), State_Constraint(parse_constraint("y > 8"))), 
-                                Exist_Eventually(Set([:A, :B]), State_Constraint(parse_constraint("x > 8")))]
+    queries = Strategy_Formula[ Exist_Eventually(Set([:A]), Exist_Eventually(Set([:A]), Strategy_to_State(State_Constraint(parse_constraint("y > 8"))))), 
+                                Exist_Eventually(Set([:A, :B]), Exist_Eventually(Set([:A, :B]), Strategy_to_State(State_Constraint(parse_constraint("y > 8")))))]
 elseif example == 3
     game, termination_conditions, _ = parse_game("examples/player_in_middle.json")
-    queries = Strategy_Formula[ Exist_Always(Set([:A, :B]), State_Not(State_Location(:Caught)))]
+    queries = Strategy_Formula[ Exist_Always(Set([:A, :B]), Strategy_to_State(State_Not(State_Location(:Caught))))]
 end
 
 t2 = time();

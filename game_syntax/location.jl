@@ -18,8 +18,8 @@ function enabled_actions(config, agent::Agent)::Vector{Action}
     # Change to filter
     actions::Vector{Action} = []
     for edge in config.location.edges
-        if enabled(edge, config.valuation) && haskey(edge.decision, agent) && ! (edge.decision[agent] in actions)
-            push!(actions, edge.decision[agent])
+        if enabled(edge, config.valuation) && edge.decision.first == agent && ! (edge.decision.second in actions)
+            push!(actions, edge.decision.second)
         end
     end
     actions

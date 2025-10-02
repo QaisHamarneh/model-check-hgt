@@ -40,9 +40,9 @@
             }
         ],
         "triggers": 
-        [
-            "pos <= 0"
-        ]
+        {
+            "α": ["pos <= 0"]
+        }
     },
     "termination-conditions": {
         "time-bound": 100.0,
@@ -51,6 +51,6 @@
     },
     "queries": 
     [
-        "<<A, B>> F x > 5 && y > 5"
+        "<<α>> F pos <= 0 || pos >= 1000"
     ]
 }
