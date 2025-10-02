@@ -8,7 +8,7 @@ using DataStructures
 
 t1 = time();
 
-example = 2
+example = 3
 
 if example == 1
     game, termination_conditions, _ = parse_game("examples/bouncing_ball.json")

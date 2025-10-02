@@ -13,22 +13,22 @@ struct Strategy_to_State <: Strategy_Formula
 end
 
 struct Exist_Always <: Strategy_Formula
-    agents::Set{Symbol}
+    agents::Set{Agent}
     formula::Strategy_Formula
 end
 
 struct Exist_Eventually <: Strategy_Formula
-    agents::Set{Symbol}
+    agents::Set{Agent}
     formula::Strategy_Formula
 end
 
 struct All_Always <: Strategy_Formula
-    agents::Set{Symbol}
+    agents::Set{Agent}
     formula::Strategy_Formula
 end
 
 struct All_Eventually <: Strategy_Formula
-    agents::Set{Symbol}
+    agents::Set{Agent}
     formula::Strategy_Formula
 end
 

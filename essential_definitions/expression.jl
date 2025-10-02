@@ -56,7 +56,7 @@ end
 
 # if !isdefined(Main, :ReAssignment)
 #     const 
-ReAssignment = Dict{Symbol, <:ExprLike}
+ReAssignment = Dict{Variable, <:ExprLike}
 # end
 
 function evaluate(expr::ExprLike, valuation::Valuation)::Float64
