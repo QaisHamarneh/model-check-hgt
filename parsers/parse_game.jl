@@ -43,16 +43,16 @@ function parse_game(json_file)
                 start_location = locations[start_location_ind]
                 target_location = locations[target_location_ind]
             end
-            decision::Decision = Dict{Agent, Action}()
-            if ! isempty(edge["jump"])
-                decision = Dict(Symbol(agent) => Symbol(action) for (agent, action) in edge["decision"])
+            decisions::Vector{Decision} = Pair{Agent, Action}[Symbol(agent) => Symbol(action) for (agent, action) in edge["decision"]]
+            if length(decisions) != 1
+                error("Edge $(name) must have exactly one decision (agent-action pair). Found: ", decisions)
             end
             guard::Constraint = parse_constraint(edge["guard"])
             jump::ReAssignment = Dict{Symbol, ExprLike}()
             if ! isempty(edge["jump"])
                 jump = Dict(Symbol(var) => parse_expression(jump) for (var, jump) in edge["jump"])
             end
-            push!(edges, Edge(name, start_location, target_location, guard, decision, jump))
+            push!(edges, Edge(name, start_location, target_location, guard, decisions[1], jump))
         end
         # triggers::Vector{Constraint} = Constraint[parse_constraint(trigger) for trigger in GameDict["triggers"]]
         triggers::Dict{Agent, Vector{Constraint}} = Dict(Symbol(agent) => Constraint[parse_constraint(trigger) for trigger in agents_triggers] for (agent, agents_triggers) in GameDict["triggers"])

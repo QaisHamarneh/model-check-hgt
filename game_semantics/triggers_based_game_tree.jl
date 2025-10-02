@@ -52,20 +52,21 @@ function build_triggers_game_tree(game::Game,
         for trigger_path in triggers_valuations[agent]
             config_after_trigger = Configuration(current_config.location, trigger_path.end_valuation, global_clock + trigger_path.ttt)
             for action in enabled_actions(config_after_trigger, agent)
-                edge = select_edge(game, config_after_trigger, Dict(agent => action))
-                config_after_edge = discrete_transition(config_after_trigger, edge)
-                push!(current_node.children, 
-                    build_triggers_game_tree(game, 
-                            properties,
-                            termination_conditions,
-                            parent=current_node,
-                            reaching_decision=Pair(agent, action),
-                            path_to_node=trigger_path.path_to_node,
-                            current_config=config_after_edge,
-                            global_clock=global_clock + trigger_path.ttt,
-                            total_steps=total_steps + 1
+                for edge in select_edges(game, config_after_trigger, agent => action)
+                    config_after_edge = discrete_transition(config_after_trigger, edge)
+                    push!(current_node.children, 
+                        build_triggers_game_tree(game, 
+                                properties,
+                                termination_conditions,
+                                parent=current_node,
+                                reaching_decision=Pair(agent, action),
+                                path_to_node=trigger_path.path_to_node,
+                                current_config=config_after_edge,
+                                global_clock=global_clock + trigger_path.ttt,
+                                total_steps=total_steps + 1
+                        )
                     )
-                )
+                end
             end
         end
     end 
