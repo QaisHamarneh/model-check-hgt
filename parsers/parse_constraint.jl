@@ -1,5 +1,5 @@
-include("parse_expression.jl")
 include("../essential_definitions/constraint.jl")
+include("parse_expression.jl")
 
 """
     parse_constraint(s::AbstractString)::Constraint
