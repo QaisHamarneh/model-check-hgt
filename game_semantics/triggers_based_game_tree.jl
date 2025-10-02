@@ -37,16 +37,19 @@ function build_triggers_game_tree(game::Game,
 
     _, location_invariant, _ = time_to_trigger(current_config, Not(current_config.location.invariant), Set{Constraint}(), remaining_time)
 
-    triggers_valuations::Vector{TriggerPath} = []
-    for trigger in game.triggers
-        new_valuation, ttt, path_to_node = time_to_trigger(current_config, trigger, properties, location_invariant)
-        if ttt <= remaining_time && ttt < location_invariant
-            trigger_path = TriggerPath(trigger, new_valuation, ttt, path_to_node)
-            push!(triggers_valuations, trigger_path)
+    triggers_valuations::Dict{Agent, Vector{TriggerPath}} = Dict{Agent, Vector{TriggerPath}}()
+    for agent in game.agents
+        triggers_valuations[agent] = TriggerPath[]
+        for trigger in game.triggers[agent]
+            new_valuation, ttt, path_to_node = time_to_trigger(current_config, trigger, properties, location_invariant)
+            if ttt <= remaining_time && ttt < location_invariant
+                trigger_path = TriggerPath(trigger, new_valuation, ttt, path_to_node)
+                push!(triggers_valuations[agent], trigger_path)
+            end
         end
     end
     for agent in game.agents
-        for trigger_path in triggers_valuations
+        for trigger_path in triggers_valuations[agent]
             config_after_trigger = Configuration(current_config.location, trigger_path.end_valuation, global_clock + trigger_path.ttt)
             for action in enabled_actions(config_after_trigger, agent)
                 edge = select_edge(game, config_after_trigger, Dict(agent => action))

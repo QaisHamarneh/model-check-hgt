@@ -1,7 +1,7 @@
 # using Ranges   # Remove this line
 include("packages.jl")
 include("parsers/parse_game.jl")
-include("game_semantics/triggers_turn_based_game_tree.jl")
+include("game_semantics/triggers_based_game_tree.jl")
 # include("STL/logic.jl")
 using DataStructures
 

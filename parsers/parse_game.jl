@@ -54,8 +54,9 @@ function parse_game(json_file)
             end
             push!(edges, Edge(name, start_location, target_location, guard, decision, jump))
         end
-        triggers::Vector{Constraint} = Constraint[parse_constraint(trigger) for trigger in GameDict["triggers"]]
-        
+        # triggers::Vector{Constraint} = Constraint[parse_constraint(trigger) for trigger in GameDict["triggers"]]
+        triggers::Dict{Agent, Vector{Constraint}} = Dict(Symbol(agent) => Constraint[parse_constraint(trigger) for trigger in agents_triggers] for (agent, agents_triggers) in GameDict["triggers"])
+
         game = Game(game_name, locations, initial_location, initial_valuation, agents, actions, edges, triggers, true)
 
         termination_conditions = FileDict["termination-conditions"]
@@ -69,7 +70,6 @@ function parse_game(json_file)
 end
 
 
-# warehouse_robots_game, max_time, max_steps = parse_game("examples/warehouse_robots_2_streets.json")
-# warehouse_robots_game, max_time, max_steps = parse_game("examples/4_locations_game.json")
+game, termination_conditions, queries = parse_game("examples/3_players_1_ball.json")
 
-# println(warehouse_robots_game)
+println("********************")

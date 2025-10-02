@@ -24,3 +24,8 @@ function depth_of_tree(root::Node, level::Int = 1)::Int
         Node(_, _, _, _, children) => maximum(depth_of_tree(child, level + 1) for child in children)
     end
 end
+
+function sort_children_by_clock_agent(root::Node, agents::Set{Agent})
+    # sorts children by global clock, and if two children have the same clock, the one with the agent's decision comes last
+    sort(root.children, by = child -> (child.config.global_clock, child.reaching_decision.first in agents))
+end

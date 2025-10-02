@@ -139,16 +139,17 @@ function evaluate(formula::Strategy_Formula, node::Node, all_agents::Set{Agent})
             if length(node.children) == 0
                 return true
             end
+            children = sort_children_by_clock_agent(node, agents)
             agents_children = Vector{Node}()
             other_agents_children = Vector{Node}()
-            for child in node.children
+            for child in children
                 if child.reaching_decision.first in agents
                     if all(config -> evaluate(f, config), child.path_to_node) && evaluate(formula, child, all_agents)
                         return true
                     end
                     push!(agents_children, child)
                 else 
-                    if any(valuation -> ! evaluate(f, config), child.path_to_node) || ! evaluate(formula, child, all_agents)
+                    if any(config -> ! evaluate(f, config), child.path_to_node) || ! evaluate(formula, child, all_agents)
                         return false
                     end
                     push!(other_agents_children, child)
@@ -167,9 +168,10 @@ function evaluate(formula::Strategy_Formula, node::Node, all_agents::Set{Agent})
             if length(node.children) == 0
                 return false
             end
+            children = sort_children_by_clock_agent(node, agents)
             agents_children = Vector{Node}()
             other_agents_children = Vector{Node}()
-            for child in node.children
+            for child in children
                 if child.reaching_decision.first in agents
                     if any(config -> evaluate(f, config), child.path_to_node) || evaluate(formula, child, all_agents)
                         return true
