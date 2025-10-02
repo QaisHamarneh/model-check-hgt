@@ -1,7 +1,7 @@
 using DifferentialEquations
 include("../parsers/parse_constraint.jl")
 include("../essential_definitions/evolution.jl")
-include("configuration.jl")
+include("../game_semantics/configuration.jl")
 include("tree.jl")
 
 
@@ -10,7 +10,7 @@ function time_to_trigger(config::Configuration, trigger::Constraint, properties:
     unsatisfied_properties = unsatisfied_constraints(properties, config.valuation)
     zero_properties::Vector{ExprLike} = union_safe([get_zero(prop) for prop in unsatisfied_properties])
     zero_triggers = get_zero(trigger)
-    path_to_node::Vector{Configuration} = Vector() # time => (valuation, satisfied_properties)
+    path_to_trigger::Vector{Configuration} = Vector() # time => (valuation, satisfied_properties)
     function flowODE!(du, u, p, t)
         current_valuation = valuation_from_vector(config.valuation, u)
         for (i, (var, _)) in enumerate(config.valuation)
@@ -40,16 +40,16 @@ function time_to_trigger(config::Configuration, trigger::Constraint, properties:
             return
         end
         if any(zero_prop -> evaluate(zero_prop, current_valuation) == 0.0, zero_properties) && any(prop -> evaluate(prop, current_valuation), unsatisfied_properties)
-            push!(path_to_node, Configuration(config.location, current_valuation, config.global_clock + integrator.t))
+            push!(path_to_trigger, Configuration(config.location, current_valuation, config.global_clock + integrator.t))
             unsatisfied_properties = unsatisfied_constraints(properties, current_valuation)
             zero_properties = union_safe([get_zero(prop) for prop in unsatisfied_properties])
             # time = round5(integrator.t)
-            # if !haskey(path_to_node, time)
-            #     path_to_node[time] = Pair(current_valuation, Set{Constraint}())
+            # if !haskey(path_to_trigger, time)
+            #     path_to_trigger[time] = Pair(current_valuation, Set{Constraint}())
             # end
             # for prop in unsatisfied_properties
             #     if evaluate(prop, current_valuation)
-            #         push!(path_to_node[time].second, prop)
+            #         push!(path_to_trigger[time].second, prop)
             #     end
             # end
         end
@@ -64,7 +64,7 @@ function time_to_trigger(config::Configuration, trigger::Constraint, properties:
     sol = solve(prob, Tsit5(), callback = cbv, abstol=1e-6, reltol=1e-6)
     
     final_valuation = valuation_from_vector(config.valuation, sol[end])
-    return round5(final_valuation), round5(sol.t[end]), path_to_node
+    return round5(final_valuation), round5(sol.t[end]), path_to_trigger
 end
 
 

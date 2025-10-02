@@ -19,7 +19,7 @@ function enabled_actions(config, agent::Agent)::Vector{Action}
     actions::Vector{Action} = []
     for edge in config.location.edges
         if enabled(edge, config.valuation) && edge.decision.first == agent && ! (edge.decision.second in actions)
-            push!(actions, edge.decision[agent])
+            push!(actions, edge.decision.second)
         end
     end
     actions
