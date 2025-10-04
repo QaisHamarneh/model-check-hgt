@@ -57,67 +57,68 @@ struct CustomToken <: Token
     type::String
 end
 
+reserved_symbols::Set{Char} = Set(union(
+    collect(Iterators.flatten(collect(separators))),
+    collect(Iterators.flatten(collect(operators)))
+))
+
+unreserved_symbols::Set{Char} = Set(union(
+    collect(Iterators.map(x -> Char(x), 48:57)),
+    collect(Iterators.map(x -> Char(x), 65:90)),
+    collect(Iterators.map(x -> Char(x), 97:122)),
+    ['_']
+))
+
 function tokenize(input::String)::Vector{Token}
-    tokens::Vector{Token} = Vector{Token}(undef, 0)
     split_input::Vector{SubString{String}} = split(input)
 
     if length(split_input) != 1
+        tokens::Vector{Token} = Vector{Token}(undef, 0)
         for substring in split_input
             append!(tokens, tokenize(String(substring)))
         end
         return tokens
     end
-        
-    token_begin::Int = 1
 
-    for i = firstindex(input):lastindex(input)
-        current::String = string(input[i])
-        lookahead::String = ""
-        if i == length(input)
-            lookahead = string(input[i])
-        else
-            lookahead = input[i] * input[i + 1]
-        end
+    current_symbols::Set{Char} = Set{Char}([])
+    is_custom_token::Bool = false
 
-        if lookahead in separators
-            tokens = _append_previous_token(input, tokens, token_begin, i)
-            push!(tokens, SeparatorToken(lookahead))
-            i = i + 1
-            token_begin = i + 1
-        elseif lookahead in operators
-            tokens = _append_previous_token(input, tokens, token_begin, i)
-            push!(tokens, OperatorToken(lookahead))
-            i = i + 1
-            token_begin = i + 1
-        elseif current in separators
-            tokens = _append_previous_token(input, tokens, token_begin, i)
-            push!(tokens, SeparatorToken(current))
-            token_begin = i + 1
-        elseif current in operators
-            tokens = _append_previous_token(input, tokens, token_begin, i)
-            push!(tokens, OperatorToken(current))
-            token_begin = i + 1
+    if input[1] in reserved_symbols
+        current_symbols = reserved_symbols
+    elseif input[1] in unreserved_symbols
+        current_symbols = unreserved_symbols
+        is_custom_token = true
+    else
+        throw(ArgumentError("$(input[i]) is not a valid symbol."))
+    end
+
+    for i in firstindex(input) + 1:lastindex(input)
+        if !(input[i] in current_symbols)
+            try
+                return union(
+                Vector{Token}([_convert_to_token(input[1:i - 1], is_custom_token)]),
+                tokenize(input[i:end])
+                )
+            catch e
+                throw(e)
+            end
         end
     end
-    if token_begin <= lastindex(input)
-        token::String = input[token_begin:lastindex(input)]
-        if token in keywords
-            push!(tokens, KeywordToken(token))
-        else
-            push!(tokens, CustomToken(token))
-        end
-    end
-    return tokens
+    
+    return Vector{Token}([_convert_to_token(input, is_custom_token)])
 end
 
-function _append_previous_token(input::String, tokens::Vector{Token}, token_begin::Int, i::Int)::Vector{Token}
-    if token_begin != i
-        token::String = input[token_begin:i - 1]
-        if token in keywords
-            push!(tokens, KeywordToken(token))
+function _convert_to_token(token::String, is_custom_token::Bool)::Token
+    if is_custom_token && token in keywords
+        return KeywordToken(token)
+    elseif !is_custom_token
+        if token in operators
+            return OperatorToken(token)
+        elseif token in separators
+            return SeparatorToken(token)
         else
-            push!(tokens, CustomToken(token))
+            throw(ArgumentError("$token is an invalid sequence of symbols."))
         end
     end
-    return tokens
+    return CustomToken(token)
 end
