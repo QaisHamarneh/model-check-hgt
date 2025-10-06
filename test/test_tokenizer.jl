@@ -2,6 +2,8 @@ using Test
 
 include("../parsers/tokenizer.jl")
 
+@test tokenize("") == Vector{Token}(undef, 0)
+
 function test_a_plus_b(input::String)
     test_tokens::Vector{Token} = tokenize(input)
 
@@ -18,6 +20,7 @@ test_a_plus_b("a+b")
 test_a_plus_b("a + b")
 test_a_plus_b("    a+ b")
 test_a_plus_b("a +b    ")
+test_a_plus_b("a\n+\nb")
 
 test_tokens::Vector{Token} = tokenize("True && False")
 
@@ -28,3 +31,6 @@ test_tokens::Vector{Token} = tokenize("True && False")
 @test test_tokens[2].type == "&&"
 @test test_tokens[3] isa KeywordToken
 @test test_tokens[3].type == "False"
+
+@test_throws ArgumentError tokenize("a+-b")
+@test_throws ArgumentError tokenize("a?b")

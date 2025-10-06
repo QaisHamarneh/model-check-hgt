@@ -1,6 +1,11 @@
 abstract type Token
 end
 
+"""
+    SeparatorToken <: Token
+
+A token for all valid separators.
+"""
 struct SeparatorToken <: Token
     type::String
 end
@@ -14,6 +19,11 @@ separators::Set{String} = Set([
     "]]"
 ])
 
+"""
+    KeywordToken <: Token
+
+A token for all reserved keywords.
+"""
 struct KeywordToken <: Token
     type::String
 end
@@ -21,6 +31,10 @@ end
 keywords::Set{String} = Set([
     "F",
     "G",
+    "and",
+    "or",
+    "not",
+    "imply",
     "True",
     "False",
     "sin",
@@ -29,6 +43,11 @@ keywords::Set{String} = Set([
     "cot"
 ])
 
+"""
+    OperatorToken <: Token
+
+A token for all valid operators.
+"""
 struct OperatorToken <: Token
     type::String
 end
@@ -53,6 +72,12 @@ operators::Set{String} = Set([
     "->"
 ])
 
+
+"""
+    CustomToken <: Token
+
+A token for all user defined variables.
+"""
 struct CustomToken <: Token
     type::String
 end
@@ -69,8 +94,25 @@ unreserved_symbols::Set{Char} = Set(union(
     ['_']
 ))
 
-function tokenize(input::String)::Vector{Token}
-    split_input::Vector{SubString{String}} = split(input)
+"""
+    tokenize(str::String)
+
+Convert an input string str into ordered tokens.
+
+# Arguments
+- `str::String`: the string input to tokenize.
+
+# Examples
+```julia-repl
+julia> tokenize("a + b")
+3-element Vector{Token}:
+ CustomToken("a")
+ OperatorToken("+")
+ CustomToken("b")
+```
+"""
+function tokenize(str::String)::Vector{Token}
+    split_input::Vector{SubString{String}} = split(str)
 
     if length(split_input) != 1
         tokens::Vector{Token} = Vector{Token}(undef, 0)
@@ -83,21 +125,21 @@ function tokenize(input::String)::Vector{Token}
     current_symbols::Set{Char} = Set{Char}([])
     is_custom_token::Bool = false
 
-    if input[1] in reserved_symbols
+    if str[1] in reserved_symbols
         current_symbols = reserved_symbols
-    elseif input[1] in unreserved_symbols
+    elseif str[1] in unreserved_symbols
         current_symbols = unreserved_symbols
         is_custom_token = true
     else
-        throw(ArgumentError("$(input[i]) is not a valid symbol."))
+        throw(ArgumentError("$(str[1]) is not a valid symbol."))
     end
 
-    for i in firstindex(input) + 1:lastindex(input)
-        if !(input[i] in current_symbols)
+    for i in firstindex(str) + 1:lastindex(str)
+        if !(str[i] in current_symbols)
             try
                 return union(
-                Vector{Token}([_convert_to_token(input[1:i - 1], is_custom_token)]),
-                tokenize(input[i:end])
+                Vector{Token}([_convert_to_token(str[1:i - 1], is_custom_token)]),
+                tokenize(str[i:end])
                 )
             catch e
                 throw(e)
@@ -105,7 +147,7 @@ function tokenize(input::String)::Vector{Token}
         end
     end
     
-    return Vector{Token}([_convert_to_token(input, is_custom_token)])
+    return Vector{Token}([_convert_to_token(str, is_custom_token)])
 end
 
 function _convert_to_token(token::String, is_custom_token::Bool)::Token
