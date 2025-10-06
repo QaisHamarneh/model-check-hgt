@@ -82,16 +82,29 @@ struct CustomToken <: Token
     type::String
 end
 
+"""
+    NumericToken <: Token
+
+A token for all numeric values.
+"""
+struct NumericToken <: Token
+    type::String
+end
+
 reserved_symbols::Set{Char} = Set(union(
     collect(Iterators.flatten(collect(separators))),
     collect(Iterators.flatten(collect(operators)))
 ))
 
 unreserved_symbols::Set{Char} = Set(union(
-    collect(Iterators.map(x -> Char(x), 48:57)),
-    collect(Iterators.map(x -> Char(x), 65:90)),
-    collect(Iterators.map(x -> Char(x), 97:122)),
+    collect(Iterators.map(x -> Char(x), 65:90)),        # symbols A-Z
+    collect(Iterators.map(x -> Char(x), 97:122)),       # symbols a-z
     ['_']
+))
+
+numeric_symbols::Set{Char} = Set(union(
+    collect(Iterators.map(x -> Char(x), 48:57)),        # symbols 0-9
+    ['.']
 ))
 
 """
@@ -123,13 +136,17 @@ function tokenize(str::String)::Vector{Token}
     end
 
     current_symbols::Set{Char} = Set{Char}([])
-    is_custom_token::Bool = false
+    current_type::Type = Nothing
 
     if str[1] in reserved_symbols
         current_symbols = reserved_symbols
+        current_type = OperatorToken
     elseif str[1] in unreserved_symbols
-        current_symbols = unreserved_symbols
-        is_custom_token = true
+        current_symbols = union(unreserved_symbols, collect(Iterators.map(x -> Char(x), 48:57)))
+        current_type = CustomToken
+    elseif isnumeric(str[1])
+        current_symbols = numeric_symbols
+        current_type = NumericToken
     else
         throw(ArgumentError("$(str[1]) is not a valid symbol."))
     end
@@ -138,7 +155,7 @@ function tokenize(str::String)::Vector{Token}
         if !(str[i] in current_symbols)
             try
                 return union(
-                Vector{Token}([_convert_to_token(str[1:i - 1], is_custom_token)]),
+                Vector{Token}([_convert_to_token(str[1:i - 1], current_type)]),
                 tokenize(str[i:end])
                 )
             catch e
@@ -147,20 +164,21 @@ function tokenize(str::String)::Vector{Token}
         end
     end
     
-    return Vector{Token}([_convert_to_token(str, is_custom_token)])
+    return Vector{Token}([_convert_to_token(str, current_type)])
 end
 
-function _convert_to_token(token::String, is_custom_token::Bool)::Token
-    if is_custom_token && token in keywords
+function _convert_to_token(token::String, type::Type)::Token
+    if token in keywords
         return KeywordToken(token)
-    elseif !is_custom_token
-        if token in operators
-            return OperatorToken(token)
-        elseif token in separators
-            return SeparatorToken(token)
-        else
-            throw(ArgumentError("$token is an invalid sequence of symbols."))
-        end
+    elseif type == NumericToken
+        return NumericToken(token)
+    elseif type == CustomToken
+        return CustomToken(token)
+    elseif token in operators
+        return OperatorToken(token)
+    elseif token in separators
+        return SeparatorToken(token)
+    else
+        throw(ArgumentError("$token is an invalid sequence of symbols."))
     end
-    return CustomToken(token)
 end

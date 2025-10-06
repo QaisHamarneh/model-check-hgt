@@ -32,5 +32,18 @@ test_tokens::Vector{Token} = tokenize("True && False")
 @test test_tokens[3] isa KeywordToken
 @test test_tokens[3].type == "False"
 
+test_tokens = tokenize("10 <= c < 20")
+@test length(test_tokens) == 5
+@test test_tokens[1] isa NumericToken
+@test test_tokens[1].type == "10"
+@test test_tokens[2] isa OperatorToken
+@test test_tokens[2].type == "<="
+@test test_tokens[3] isa CustomToken
+@test test_tokens[3].type == "c"
+@test test_tokens[4] isa OperatorToken
+@test test_tokens[4].type == "<"
+@test test_tokens[5] isa NumericToken
+@test test_tokens[5].type == "20"
+
 @test_throws ArgumentError tokenize("a+-b")
 @test_throws ArgumentError tokenize("a?b")
