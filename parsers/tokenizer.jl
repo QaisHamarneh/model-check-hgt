@@ -10,68 +10,47 @@ struct SeparatorToken <: Token
     type::String
 end
 
-separators::Set{String} = Set([
-    "(",
-    ")",
-    "<<",
-    ">>",
-    "[[",
-    "]]"
-])
+abstract type KeywordToken <: Token
+end
 
-"""
-    KeywordToken <: Token
-
-A token for all reserved keywords.
-"""
-struct KeywordToken <: Token
+struct ConstraintConstantToken <: KeywordToken
     type::String
 end
 
-keywords::Set{String} = Set([
-    "F",
-    "G",
-    "and",
-    "or",
-    "not",
-    "imply",
-    "True",
-    "False",
-    "sin",
-    "cos",
-    "tan",
-    "cot"
-])
+abstract type OperatorToken <: Token
+end
 
-"""
-    OperatorToken <: Token
-
-A token for all valid operators.
-"""
-struct OperatorToken <: Token
+struct StrategyUnaryOperatorToken <: OperatorToken
     type::String
 end
 
-operators::Set{String} = Set([
-    "+",
-    "-",
-    "*",
-    "/",
-    "^",
+struct StrategyBinaryOperatorToken <: OperatorToken
+    type::String
+end
 
-    "<",
-    "<=",
-    ">",
-    ">=",
-    "==",
-    "!=",
+struct StateUnaryOperatorToken <: OperatorToken
+    type::String
+end
 
-    "!",
-    "&&",
-    "||",
-    "->"
-])
+struct StateBinaryOperatorToken <: OperatorToken
+    type::String
+end
 
+struct ConstraintUnaryOperatorToken <: OperatorToken
+    type::String
+end
+
+struct ConstraintBinaryOperatorToken <: OperatorToken
+    type::String
+end
+
+struct ExpressionUnaryOperatorToken <: OperatorToken
+    type::String
+end
+
+struct ExpressionBinaryOperatorToken <: OperatorToken
+    type::String
+end
 
 """
     CustomToken <: Token
@@ -91,9 +70,59 @@ struct NumericToken <: Token
     type::String
 end
 
+separators::Set{String} = Set([
+    "(",
+    ")",
+    "[[",
+    "]]"
+])
+
+keywords::Dict{String, Type} = Dict([
+    ("F",     StrategyBinaryOperatorToken),
+    ("G",     StrategyBinaryOperatorToken),
+    ("and",   StrategyBinaryOperatorToken),
+    ("or",    StrategyBinaryOperatorToken),
+    ("not",   StrategyBinaryOperatorToken),
+    ("imply", StrategyBinaryOperatorToken),
+
+    ("True",  ConstraintConstantToken),
+    ("False", ConstraintConstantToken),
+
+    ("sin",   ExpressionUnaryOperatorToken),
+    ("cos",   ExpressionUnaryOperatorToken),
+    ("tan",   ExpressionUnaryOperatorToken),
+    ("cot",   ExpressionUnaryOperatorToken)
+])
+
+operators::Dict{String, Type} = Dict([
+    ("+",  ExpressionBinaryOperatorToken),
+    ("-",  ExpressionBinaryOperatorToken),
+    ("*",  ExpressionBinaryOperatorToken),
+    ("/",  ExpressionBinaryOperatorToken),
+    ("^",  ExpressionBinaryOperatorToken),
+
+    ("<",  ConstraintBinaryOperatorToken),
+    ("<=", ConstraintBinaryOperatorToken),
+    (">",  ConstraintBinaryOperatorToken),
+    (">=", ConstraintBinaryOperatorToken),
+    ("==", ConstraintBinaryOperatorToken),
+    ("!=", ConstraintBinaryOperatorToken),
+    ("&&", ConstraintBinaryOperatorToken),
+    ("||", ConstraintBinaryOperatorToken),
+    ("->", ConstraintBinaryOperatorToken),
+
+    ("!",  ConstraintUnaryOperatorToken),
+
+    ("<<", SeparatorToken),
+    (">>", SeparatorToken),
+])
+
+separator_symbols::Set{Char} = Set(union(
+    collect(Iterators.flatten(collect(separators)))
+))
+
 reserved_symbols::Set{Char} = Set(union(
-    collect(Iterators.flatten(collect(separators))),
-    collect(Iterators.flatten(collect(operators)))
+    collect(Iterators.flatten(keys(operators)))
 ))
 
 unreserved_symbols::Set{Char} = Set(union(
@@ -138,7 +167,10 @@ function tokenize(str::String)::Vector{Token}
     current_symbols::Set{Char} = Set{Char}([])
     current_type::Type = Nothing
 
-    if str[1] in reserved_symbols
+    if str[1] in separator_symbols
+        current_symbols = separator_symbols
+        current_type = SeparatorToken
+    elseif str[1] in reserved_symbols
         current_symbols = reserved_symbols
         current_type = OperatorToken
     elseif str[1] in unreserved_symbols
@@ -168,16 +200,16 @@ function tokenize(str::String)::Vector{Token}
 end
 
 function _convert_to_token(token::String, type::Type)::Token
-    if token in keywords
-        return KeywordToken(token)
+    if token in separators
+        return SeparatorToken(token)
+    elseif haskey(keywords, token)
+        return get(keywords, token, Nothing)(token)
     elseif type == NumericToken
         return NumericToken(token)
     elseif type == CustomToken
         return CustomToken(token)
-    elseif token in operators
-        return OperatorToken(token)
-    elseif token in separators
-        return SeparatorToken(token)
+    elseif haskey(operators, token)
+        return get(operators, token, Nothing)(token)
     else
         throw(ArgumentError("$token is an invalid sequence of symbols."))
     end
