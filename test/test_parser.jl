@@ -2,18 +2,32 @@ using Test
 
 include("../parsers/parser.jl")
 
-ast::Vector{Union{Token, ExpressionNode}} = _parse_expressions(Vector{Union{Token, ExpressionNode}}(tokenize("a+b")))
-@test length(ast) == 1
-@test ast[1] == ExpressionBinaryOperation("+", VariableNode("a"), VariableNode("b"))
+# Test expressions
 
-ast = _parse_expressions(Vector{Union{Token, ExpressionNode}}(tokenize("a+b-c")))
-@test length(ast) == 1
-@test ast[1] == ExpressionBinaryOperation("-", ExpressionBinaryOperation("+", VariableNode("a"), VariableNode("b")), VariableNode("c"))
+ast::ASTNode = parse_tokens(Vector{Token}(tokenize("a+b")))
+@test ast == ExpressionBinaryOperation("+", VariableNode("a"), VariableNode("b"))
 
-ast = _parse_expressions(Vector{Union{Token, ExpressionNode}}(tokenize("a*sin(b)")))
-@test length(ast) == 1
-@test ast[1] == ExpressionBinaryOperation("*", VariableNode("a"), ExpressionUnaryOperation("sin", VariableNode("b")))
+ast = parse_tokens(Vector{Token}(tokenize("a+b-c")))
+@test ast == ExpressionBinaryOperation("-", ExpressionBinaryOperation("+", VariableNode("a"), VariableNode("b")), VariableNode("c"))
 
-ast = _parse_expressions(Vector{Union{Token, ExpressionNode}}(tokenize("cot(0)/10")))
-@test length(ast) == 1
-@test ast[1] == ExpressionBinaryOperation("/", ExpressionUnaryOperation("cot", ExpressionConstant(0.0)), ExpressionConstant(10.0))
+ast = parse_tokens(Vector{Token}(tokenize("a*sin(b)")))
+@test ast == ExpressionBinaryOperation("*", VariableNode("a"), ExpressionUnaryOperation("sin", VariableNode("b")))
+
+ast = parse_tokens(Vector{Token}(tokenize("cot(0)/10")))
+@test ast == ExpressionBinaryOperation("/", ExpressionUnaryOperation("cot", ExpressionConstant(0.0)), ExpressionConstant(10.0))
+
+# Test constraints
+
+ast = parse_tokens(Vector{Token}(tokenize("x < y + 10")))
+@test ast == ConstraintBinaryOperation("<", VariableNode("x"), ExpressionBinaryOperation("+", VariableNode("y"), ExpressionConstant(10.0)))
+
+ast = parse_tokens(Vector{Token}(tokenize("True && x < y")))
+@test ast == ConstraintBinaryOperation("&&", ConstraintConstant(true), ConstraintBinaryOperation("<", VariableNode("x"), VariableNode("y")))
+
+ast = parse_tokens(Vector{Token}(tokenize("x < 10 && False")))
+@test ast == ConstraintBinaryOperation("&&", ConstraintBinaryOperation("<", VariableNode("x"), ExpressionConstant(10.0)), ConstraintConstant(false))
+
+# Test strategies
+
+ast = parse_tokens(Vector{Token}(tokenize("<<a,b>> F True")))
+@test ast == Quantifier(false, false, AgentList(false, VariableList([VariableNode("a"), VariableNode("b")])), ConstraintConstant(true))

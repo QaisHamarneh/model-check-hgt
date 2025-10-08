@@ -25,25 +25,38 @@ test_a_plus_b("a\n+\nb")
 test_tokens::Vector{Token} = tokenize("True && False")
 
 @test length(test_tokens) == 3
-@test test_tokens[1] isa ConstraintConstantToken
+@test test_tokens[1] isa BooleanToken
 @test test_tokens[1].type == "True"
 @test test_tokens[2] isa ConstraintBinaryOperatorToken
 @test test_tokens[2].type == "&&"
-@test test_tokens[3] isa ConstraintConstantToken
+@test test_tokens[3] isa BooleanToken
 @test test_tokens[3].type == "False"
 
 test_tokens = tokenize("10 <= c < 20")
 @test length(test_tokens) == 5
 @test test_tokens[1] isa NumericToken
 @test test_tokens[1].type == "10"
-@test test_tokens[2] isa ConstraintBinaryOperatorToken
+@test test_tokens[2] isa ConstraintCompareToken
 @test test_tokens[2].type == "<="
 @test test_tokens[3] isa CustomToken
 @test test_tokens[3].type == "c"
-@test test_tokens[4] isa ConstraintBinaryOperatorToken
+@test test_tokens[4] isa ConstraintCompareToken
 @test test_tokens[4].type == "<"
 @test test_tokens[5] isa NumericToken
 @test test_tokens[5].type == "20"
+
+test_tokens = tokenize("<<a,b>>")
+@test length(test_tokens) == 5
+@test test_tokens[1] isa SeparatorToken
+@test test_tokens[1].type == "<<"
+@test test_tokens[2] isa CustomToken
+@test test_tokens[2].type == "a"
+@test test_tokens[3] isa SeparatorToken
+@test test_tokens[3].type == ","
+@test test_tokens[4] isa CustomToken
+@test test_tokens[4].type == "b"
+@test test_tokens[5] isa SeparatorToken
+@test test_tokens[5].type == ">>"
 
 @test_throws ArgumentError tokenize("a+-b")
 @test_throws ArgumentError tokenize("a?b")
