@@ -79,6 +79,39 @@ struct ExpressionBinaryOperation <: ExpressionNode
     right_child::ExpressionNode
 end
 
+struct GrammarRule
+    left_tokens::Vector{Union{Token, Type}}
+    right_tokens::Vector{Union{Token, Type}}
+    parse::Function
+end
+
+function _parse_numeric_expression(left_tokens::Vector{Union{Token, ExpressionNode}}, token::NumericToken, right_tokens::Vector{Union{Token, ExpressionNode}})::ExpressionNode
+    _check_token_count(0, 0, length(left_tokens), length(right_tokens))
+    return ExpressionConstant(Real(parse(Float64, token.type)))
+end
+
+function _parse_custom_expression(left_tokens::Vector{Union{Token, ExpressionNode}}, token::CustomToken, right_tokens::Vector{Union{Token, ExpressionNode}})::ExpressionNode
+    _check_token_count(0, 0, length(left_tokens), length(right_tokens))
+    return VariableNode(token.type)
+end
+
+function _parse_unary_expression(left_tokens::Vector{Union{Token, ExpressionNode}}, token::ExpressionUnaryOperatorToken, right_tokens::Vector{Union{Token, ExpressionNode}})::ExpressionNode
+    _check_token_count(0, 3, length(left_tokens), length(right_tokens))
+    return ExpressionUnaryOperation(token.type, right_tokens[2])
+end
+
+function _parse_binary_expression(left_tokens::Vector{Union{Token, ExpressionNode}}, token::ExpressionBinaryOperatorToken, right_tokens::Vector{Union{Token, ExpressionNode}})::ExpressionNode
+    _check_token_count(1, 1, length(left_tokens), length(right_tokens))
+    return ExpressionBinaryOperation(token.type, left_tokens[1], right_tokens[1])
+end
+
+expression_grammar::Dict{Type, Vector{GrammarRule}} = Dict([
+    (NumericToken, [GrammarRule([], [], _parse_numeric_expression)]),
+    (CustomToken, [GrammarRule([], [], _parse_custom_expression)]),
+    (ExpressionUnaryOperatorToken, [GrammarRule([], [SeparatorToken("("), ExpressionNode, SeparatorToken(")")], _parse_unary_expression)]),
+    (ExpressionBinaryOperatorToken, [GrammarRule([ExpressionNode], [ExpressionNode], _parse_binary_expression)])
+])
+
 function parse_tokens(tokens::Vector{Token})::StrategyNode
     expression_tokens::Vector{Union{Token, ExpressionNode}} = _parse_expressions(Vector{Union{Token, ExpressionNode}}(tokens))
     return expression_tokens
@@ -94,27 +127,24 @@ function _parse_expressions(tokens::Vector{Union{Token, ExpressionNode}})::Vecto
             continue
         end
 
-        if tokens[i] isa NumericToken
-            push!(expression_tokens, ExpressionConstant(Real(parse(Float64, tokens[i].type))))
-            parsed_expression = true
-        elseif tokens[i] isa CustomToken
-            push!(expression_tokens, VariableNode(tokens[i].type))
-            parsed_expression = true
-        elseif (tokens[i] isa ExpressionUnaryOperatorToken
-                && tokens[i + 1].type == "(" 
-                && tokens[i + 2] isa ExpressionNode
-                && tokens[i + 3].type == ")")
-            push!(expression_tokens, ExpressionUnaryOperation(tokens[i].type, tokens[i + 2]))
-            skips += 3
-            parsed_expression = true
-        elseif (tokens[i] isa ExpressionBinaryOperatorToken
-                && last(expression_tokens) isa ExpressionNode
-                && tokens[i + 1] isa ExpressionNode)
-            left_child_node::ExpressionNode = pop!(expression_tokens)
-            right_child_node::ExpressionNode = tokens[i + 1]
-            push!(expression_tokens, ExpressionBinaryOperation(tokens[i].type, left_child_node, right_child_node))
-            skips += 1
-            parsed_expression = true
+        if haskey(expression_grammar, typeof(tokens[i]))
+            rules::Vector{GrammarRule} = get(expression_grammar, typeof(tokens[i]), [])
+            matched::Bool = false
+            for rule in rules
+                if _match_grammar_rule(rule, Vector{Union{Token, StrategyNode}}(expression_tokens), Vector{Union{Token, StrategyNode}}(tokens[i + 1:end]))
+                    left_tokens::Vector{Union{Token, ExpressionNode}} = expression_tokens[end - length(rule.left_tokens) + 1:end]
+                    expression_tokens = expression_tokens[1:end - length(rule.left_tokens)]
+                    right_tokens::Vector{Union{Token, ExpressionNode}} = tokens[i + 1:i + length(rule.right_tokens)]
+                    push!(expression_tokens, rule.parse(left_tokens, tokens[i], right_tokens))
+                    skips += length(rule.right_tokens)
+                    parsed_expression = true
+                    matched = true
+                    break
+                end
+            end
+            if !matched
+                push!(expression_tokens, tokens[i])
+            end
         else
             push!(expression_tokens, tokens[i])
         end
@@ -128,6 +158,35 @@ function _parse_expressions(tokens::Vector{Union{Token, ExpressionNode}})::Vecto
         return _parse_expressions(expression_tokens)
     end
     return expression_tokens
+end
+
+function _match_grammar_rule(rule::GrammarRule, left_tokens::Vector{Union{Token, StrategyNode}}, right_tokens::Vector{Union{Token, StrategyNode}})::Bool
+    if length(rule.left_tokens) > length(left_tokens) || length(rule.right_tokens) > length(right_tokens)
+        return false
+    end
+    left_tokens = left_tokens
+    return _match_tokens(rule.left_tokens, left_tokens[end - length(rule.left_tokens) + 1:end]) && _match_tokens(rule.right_tokens, right_tokens[1:length(rule.right_tokens)])
+end
+
+function _match_tokens(rule::Vector{Union{Token, Type}}, tokens::Vector{Union{Token, StrategyNode}})::Bool
+    if length(rule) != length(tokens)
+        throw(ArgumentError("Argument counts not matching."))
+    end
+    for i in 1:length(rule)
+        if rule[i] isa Token && tokens[i] != rule[i]
+            return false
+        elseif rule[i] isa Type && !(tokens[i] isa rule[i])
+            return false
+        end
+    end
+    return true
+end
+
+function _check_token_count(l::Int, r::Int, provided_l::Int, provided_r::Int)
+    if l != provided_l || r != provided_r
+        throw(ParseError("Invalid amount of left or right tokens. Required: $l left, $r right. Provided: $(provided_l), $(provided_r)."))
+    end
+    return
 end
 
 struct ParseError <: Exception
