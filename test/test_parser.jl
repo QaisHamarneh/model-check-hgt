@@ -31,3 +31,28 @@ ast = parse_tokens(Vector{Token}(tokenize("x < 10 && False")))
 
 ast = parse_tokens(Vector{Token}(tokenize("<<a,b>> F True")))
 @test ast == Quantifier(false, false, AgentList(false, VariableList([VariableNode("a"), VariableNode("b")])), ConstraintConstant(true))
+
+ast = parse_tokens(Vector{Token}(tokenize("<< >> F x>5 and y<10")))
+@test ast == StrategyBinaryOperation(
+    "and",
+    Quantifier(
+        false, false, AgentList(false, VariableList([])),
+        ConstraintBinaryOperation(">", VariableNode("x"), ExpressionConstant(5.0))
+    ),
+    ConstraintBinaryOperation("<", VariableNode("y"), ExpressionConstant(10.0))
+)
+
+ast = parse_tokens(Vector{Token}(tokenize("<< >> F x>5 && y<10")))
+@test ast == Quantifier(
+    false,
+    false,
+    AgentList(false, VariableList([])),
+    ConstraintBinaryOperation(
+        "&&",
+        ConstraintBinaryOperation(">", VariableNode("x"), ExpressionConstant(5.0)),
+        ConstraintBinaryOperation("<", VariableNode("y"), ExpressionConstant(10.0)),
+    )
+)
+
+ast = parse_tokens(Vector{Token}(tokenize("not << >> F True")))
+@test ast == StrategyUnaryOperation("not", parse_tokens(Vector{Token}(tokenize("<< >> F True"))))

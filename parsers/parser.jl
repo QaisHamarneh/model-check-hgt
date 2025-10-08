@@ -49,11 +49,22 @@ struct StateUnaryOperation <: StateNode
     child::Union{StateNode, VariableNode}
 end
 
+Base.:(==)(x::StrategyUnaryOperation, y::StrategyUnaryOperation) = (
+    x.unary_operation == y.unary_operation 
+    && x.child == y.child
+)
+
 struct StateBinaryOperation <: StateNode
     binary_operation::String
     left_child::Union{StateNode, VariableNode}
     right_child::Union{StateNode, VariableNode}
 end
+
+Base.:(==)(x::StrategyBinaryOperation, y::StrategyBinaryOperation) = (
+    x.binary_operation == y.binary_operation 
+    && x.left_child == y.left_child 
+    && x.right_child == y.right_child
+)
 
 abstract type ConstraintNode <: StateNode
 end
@@ -92,6 +103,14 @@ struct Quantifier <: StrategyNode
     agent_list::AgentList
     child::StrategyNode
 end
+
+
+Base.:(==)(x::Quantifier, y::Quantifier) = (
+    x.for_all == y.for_all
+    && x.always == y.always
+    && x.agent_list == y.agent_list
+    && x.child == y.child
+)
 
 # Grammar definition
 
@@ -190,6 +209,11 @@ function _parse_quantifier_strategy(left_tokens::ParseVector, token::QuantifierT
     return Quantifier(left_tokens[1].for_all, token.type == "G", left_tokens[1], right_tokens[1])
 end
 
+function _parse_empty_quantifier_strategy(left_tokens::ParseVector, token::QuantifierToken, right_tokens::ParseVector)::Quantifier
+    _check_token_count(2, 1, left_tokens, right_tokens)
+    return Quantifier(left_tokens[1].type == "[[", token.type == "G", AgentList(left_tokens[1].type == "[[", VariableList([])), right_tokens[1])
+end
+
 function _parse_unary_strategy(left_tokens::ParseVector, token::StrategyUnaryOperatorToken, right_tokens::ParseVector)::StrategyUnaryOperation
     _check_token_count(0, 1, left_tokens, right_tokens)
     return StrategyUnaryOperation(token.type, right_tokens[1])
@@ -201,7 +225,9 @@ function _parse_binary_strategy(left_tokens::ParseVector, token::StrategyBinaryO
 end
 
 strategy_grammar::Dict{Type, Vector{GrammarRule}} = Dict([
-    (QuantifierToken, [GrammarRule([AgentList], [StrategyNode], _parse_quantifier_strategy)]),
+    (QuantifierToken, [GrammarRule([AgentList], [StrategyNode], _parse_quantifier_strategy),
+                       GrammarRule([SeparatorToken("<<"), SeparatorToken(">>")], [StrategyNode], _parse_empty_quantifier_strategy),
+                       GrammarRule([SeparatorToken("[["), SeparatorToken("]]")], [StrategyNode], _parse_empty_quantifier_strategy)]),
     (StrategyUnaryOperatorToken, [GrammarRule([], [StrategyNode], _parse_unary_strategy)]),
     (StrategyBinaryOperatorToken, [GrammarRule([StrategyNode], [StrategyNode], _parse_binary_strategy)])
 ])
@@ -300,7 +326,7 @@ end
 
 function _check_token_count(l::Int, r::Int, provided_l::Vector, provided_r::Vector)
     if l != length(provided_l) || r != length(provided_r)
-        throw(ParseError("Invalid amount of left or right tokens. Required: $l left, $r right. Provided: $(provided_l), $(provided_r)."))
+        throw(ParseError("Invalid amount of left or right tokens. Required: $l left, $r right. Provided: $(length(provided_l)), $(length(provided_r))."))
     end
     return
 end

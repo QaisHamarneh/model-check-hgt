@@ -201,9 +201,11 @@ separators::Set{String} = Set([
 keywords::Dict{String, Type} = Dict([
     ("F",     QuantifierToken),
     ("G",     QuantifierToken),
+
+    ("not",   StrategyUnaryOperatorToken),
+
     ("and",   StrategyBinaryOperatorToken),
     ("or",    StrategyBinaryOperatorToken),
-    ("not",   StrategyBinaryOperatorToken),
     ("imply", StrategyBinaryOperatorToken),
 
     ("True",  BooleanToken),
