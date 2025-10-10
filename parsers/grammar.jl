@@ -111,7 +111,7 @@ expression_grammar::Dict{Type, Vector{GrammarRule}} = Dict([
 # constr -> boolean
 function _parse_boolean_constraint(left_tokens::ParseVector, token::BooleanToken, right_tokens::ParseVector)::ConstraintConstant
     _check_token_count(0, 0, left_tokens, right_tokens)
-    return ConstraintConstant(token.type == "True")
+    return ConstraintConstant(token.type == "true")
 end
 
 # constr -> constr_unary_op constr

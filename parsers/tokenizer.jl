@@ -35,8 +35,8 @@ keywords::Dict{String, Type} = Dict([
     ("or",    StrategyBinaryOperatorToken),
     ("imply", StrategyBinaryOperatorToken),
 
-    ("True",  BooleanToken),
-    ("False", BooleanToken),
+    ("true",  BooleanToken),
+    ("false", BooleanToken),
 
     ("sin",   ExpressionUnaryOperatorToken),
     ("cos",   ExpressionUnaryOperatorToken),
