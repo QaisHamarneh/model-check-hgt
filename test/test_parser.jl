@@ -21,15 +21,15 @@ ast = parse_tokens(Vector{Token}(tokenize("cot(0)/10")))
 ast = parse_tokens(Vector{Token}(tokenize("x < y + 10")))
 @test ast == ConstraintBinaryOperation("<", VariableNode("x"), ExpressionBinaryOperation("+", VariableNode("y"), ExpressionConstant(10.0)))
 
-ast = parse_tokens(Vector{Token}(tokenize("True && x < y")))
+ast = parse_tokens(Vector{Token}(tokenize("true && x < y")))
 @test ast == ConstraintBinaryOperation("&&", ConstraintConstant(true), ConstraintBinaryOperation("<", VariableNode("x"), VariableNode("y")))
 
-ast = parse_tokens(Vector{Token}(tokenize("x < 10 && False")))
+ast = parse_tokens(Vector{Token}(tokenize("x < 10 && false")))
 @test ast == ConstraintBinaryOperation("&&", ConstraintBinaryOperation("<", VariableNode("x"), ExpressionConstant(10.0)), ConstraintConstant(false))
 
 # Test strategies
 
-ast = parse_tokens(Vector{Token}(tokenize("<<a,b>> F True")))
+ast = parse_tokens(Vector{Token}(tokenize("<<a,b>> F true")))
 @test ast == Quantifier(false, false, AgentList(false, VariableList([VariableNode("a"), VariableNode("b")])), ConstraintConstant(true))
 
 ast = parse_tokens(Vector{Token}(tokenize("<< >> F x>5 and y<10")))
@@ -54,12 +54,13 @@ ast = parse_tokens(Vector{Token}(tokenize("<< >> F x>5 && y<10")))
     )
 )
 
-ast = parse_tokens(Vector{Token}(tokenize("not << >> F True")))
-@test ast == StrategyUnaryOperation("not", parse_tokens(Vector{Token}(tokenize("<< >> F True"))))
+ast = parse_tokens(Vector{Token}(tokenize("not << >> F true")))
+@test ast == StrategyUnaryOperation("not", parse_tokens(Vector{Token}(tokenize("<< >> F true"))))
+
+ast = parse_tokens(Vector{Token}(tokenize("a and b")))
 
 # Test error handling
 
-@test_throws ParseError("Invalid sequence of tokens.") parse_tokens(Vector{Token}(tokenize("not")))
-@test_throws ParseError("Invalid sequence of tokens.") parse_tokens(Vector{Token}(tokenize("14 && True")))
-@test_throws ParseError("Invalid sequence of tokens.") parse_tokens(Vector{Token}(tokenize("<<a, >> F True")))
-@test_throws ParseError("Invalid sequence of tokens.") parse_tokens(Vector{Token}(tokenize("x < 5 && y")))
+@test_throws ParseError parse_tokens(Vector{Token}(tokenize("not")))
+@test_throws ParseError parse_tokens(Vector{Token}(tokenize("14 && true")))
+@test_throws ParseError parse_tokens(Vector{Token}(tokenize("<<a, >> F true")))

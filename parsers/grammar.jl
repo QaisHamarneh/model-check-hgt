@@ -143,6 +143,33 @@ const constraint_grammar::Dict{Type, Vector{GrammarRule}} = Dict([
     (ConstraintCompareToken, [GrammarRule([ExpressionNode], [ExpressionNode], _parse_compare_constraint)])
 ])
 
+# state -> location
+function _parse_location(left_tokens::ParseVector, token::VariableNode, right_tokens::ParseVector)::LocationNode
+    _check_token_count(0, 0, left_tokens, right_tokens)
+    return LocationNode(token.name)
+end
+
+# state -> state_unary_op state
+function _parse_unary_state(left_tokens::ParseVector, token::ConstraintUnaryOperatorToken, right_tokens::ParseVector)::StateUnaryOperation
+    _check_token_count(0, 1, left_tokens, right_tokens)
+    return StateUnaryOperation(token.type, right_tokens[1])
+end
+
+# state -> state state_binary_op state
+function _parse_binary_state(left_tokens::ParseVector, token::ConstraintBinaryOperatorToken, right_tokens::ParseVector)::StateBinaryOperation
+    _check_token_count(1, 1, left_tokens, right_tokens)
+    return StateBinaryOperation(token.type, left_tokens[1], right_tokens[1])
+end
+
+const state_grammar::Dict{Type, Vector{GrammarRule}} = Dict([
+    # state -> location
+    (VariableNode, [GrammarRule([], [], _parse_location)]),
+    # state -> state_unary_op state
+    (ConstraintUnaryOperatorToken, [GrammarRule([], [StateNode], _parse_unary_state)]),
+    # state -> state state_binary_op state
+    (ConstraintBinaryOperatorToken, [GrammarRule([StateNode], [StateNode], _parse_binary_state)])
+])
+
 # strat -> agent_list F strat | agent_list G strat
 function _parse_quantifier_strategy(left_tokens::ParseVector, token::QuantifierToken, right_tokens::ParseVector)::Quantifier
     _check_token_count(1, 1, left_tokens, right_tokens)

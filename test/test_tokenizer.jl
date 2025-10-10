@@ -24,14 +24,14 @@ _test_a_plus_b("a +b    ")
 _test_a_plus_b("a\n+\nb")
 
 # test keyword tokenization
-test_tokens::Vector{Token} = tokenize("True && False")
+test_tokens::Vector{Token} = tokenize("true && false")
 @test length(test_tokens) == 3
 @test test_tokens[1] isa BooleanToken
-@test test_tokens[1].type == "True"
+@test test_tokens[1].type == "true"
 @test test_tokens[2] isa ConstraintBinaryOperatorToken
 @test test_tokens[2].type == "&&"
 @test test_tokens[3] isa BooleanToken
-@test test_tokens[3].type == "False"
+@test test_tokens[3].type == "false"
 
 # test comparison tokenization
 test_tokens = tokenize("10 <= c < 20")

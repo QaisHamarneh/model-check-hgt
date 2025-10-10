@@ -36,11 +36,13 @@ function parse_tokens(tokens::Vector{Token})::ASTNode
     parsed_tokens = _parse_grammar(parsed_tokens, expression_grammar)
     # parse constraints
     parsed_tokens = _parse_grammar(parsed_tokens, constraint_grammar)
+    # parse states
+    parsed_tokens = _parse_grammar(parsed_tokens, state_grammar)
     # parse strategies
     parsed_tokens = _parse_grammar(parsed_tokens, strategy_grammar)
     
     if length(parsed_tokens) != 1 || !(parsed_tokens[1] isa ASTNode)
-        throw(ParseError("Invalid sequence of tokens."))
+        throw(ParseError("$parsed_tokens is an invalid sequence of tokens."))
     end
     return parsed_tokens[1]
 end

@@ -12,6 +12,7 @@ This file contains all definitions needed to parse tokens to an AST.
 - `StrategyUnaryOperation`: node for unary operations on strategies
 - `StrategyBinaryOperation`: node for binary operations on strategies
 - `StateNode`: abstract type for state nodes
+- `LocationNode`: node for locations
 - `StateUnaryOperation`: node for unary operations on states
 - `StateBinaryOperation`: node for binary operations on states
 - `ConstraintNode`: abstract type for constraint nodes
@@ -33,6 +34,7 @@ The types are hierarchically ordered as follows:
     |   |-- StrategyUnaryOperation
     |   |-- StrategyBinaryOperation
     |   |-- StateNode
+    |       |-- LocationNode
     |       |-- StateUnaryOperation
     |       |-- StateBinaryOperation
     |       |-- ConstraintNode
@@ -157,6 +159,19 @@ Base.:(==)(x::StrategyBinaryOperation, y::StrategyBinaryOperation) = (
 
 # abstract type for all state nodes
 abstract type StateNode <: StrategyNode
+end
+
+"""
+    LocationNode <: StateNode
+
+AST Node for locations.
+
+    LocationNode(name::String)
+
+Create a LocationNode for a location with name `name`.
+"""
+struct LocationNode <: StateNode
+    name::String
 end
 
 """
