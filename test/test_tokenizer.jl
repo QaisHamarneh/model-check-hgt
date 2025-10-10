@@ -4,7 +4,7 @@ include("../parsers/tokenizer.jl")
 
 @test tokenize("") == Vector{Token}(undef, 0)
 
-function test_a_plus_b(input::String)
+function _test_a_plus_b(input::String)
     test_tokens::Vector{Token} = tokenize(input)
 
     @test length(test_tokens) == 3
@@ -16,14 +16,15 @@ function test_a_plus_b(input::String)
     @test test_tokens[3].type == "b"
 end
 
-test_a_plus_b("a+b")
-test_a_plus_b("a + b")
-test_a_plus_b("    a+ b")
-test_a_plus_b("a +b    ")
-test_a_plus_b("a\n+\nb")
+# test different spacing
+_test_a_plus_b("a+b")
+_test_a_plus_b("a + b")
+_test_a_plus_b("    a+ b")
+_test_a_plus_b("a +b    ")
+_test_a_plus_b("a\n+\nb")
 
+# test keyword tokenization
 test_tokens::Vector{Token} = tokenize("True && False")
-
 @test length(test_tokens) == 3
 @test test_tokens[1] isa BooleanToken
 @test test_tokens[1].type == "True"
@@ -32,6 +33,7 @@ test_tokens::Vector{Token} = tokenize("True && False")
 @test test_tokens[3] isa BooleanToken
 @test test_tokens[3].type == "False"
 
+# test comparison tokenization
 test_tokens = tokenize("10 <= c < 20")
 @test length(test_tokens) == 5
 @test test_tokens[1] isa NumericToken
@@ -45,6 +47,7 @@ test_tokens = tokenize("10 <= c < 20")
 @test test_tokens[5] isa NumericToken
 @test test_tokens[5].type == "20"
 
+# test separator tokenization
 test_tokens = tokenize("<<a,b>>")
 @test length(test_tokens) == 5
 @test test_tokens[1] isa SeparatorToken
@@ -58,5 +61,12 @@ test_tokens = tokenize("<<a,b>>")
 @test test_tokens[5] isa SeparatorToken
 @test test_tokens[5].type == ">>"
 
-@test_throws ArgumentError tokenize("a+-b")
-@test_throws ArgumentError tokenize("a?b")
+# test numeric tokenization
+@test tokenize("10") == [NumericToken("10")]
+@test tokenize("10.0") == [NumericToken("10.0")]
+@test tokenize("10.01") == [NumericToken("10.01")]
+
+# test error handling
+@test_throws TokenizeError("10. is an invalid number.") tokenize("10.")
+@test_throws TokenizeError("+- is an invalid sequence of symbols.") tokenize("a+-b")
+@test_throws TokenizeError("' is an invalid symbol.") tokenize("a'b")

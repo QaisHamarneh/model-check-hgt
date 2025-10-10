@@ -56,3 +56,10 @@ ast = parse_tokens(Vector{Token}(tokenize("<< >> F x>5 && y<10")))
 
 ast = parse_tokens(Vector{Token}(tokenize("not << >> F True")))
 @test ast == StrategyUnaryOperation("not", parse_tokens(Vector{Token}(tokenize("<< >> F True"))))
+
+# Test error handling
+
+@test_throws ParseError("Invalid sequence of tokens.") parse_tokens(Vector{Token}(tokenize("not")))
+@test_throws ParseError("Invalid sequence of tokens.") parse_tokens(Vector{Token}(tokenize("14 && True")))
+@test_throws ParseError("Invalid sequence of tokens.") parse_tokens(Vector{Token}(tokenize("<<a, >> F True")))
+@test_throws ParseError("Invalid sequence of tokens.") parse_tokens(Vector{Token}(tokenize("x < 5 && y")))
