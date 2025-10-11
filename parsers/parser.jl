@@ -51,23 +51,25 @@ function _parse_grammar(tokens::ParseVector, grammar::Dict{Type, Vector{GrammarR
     parsed_tokens::ParseVector = ParseVector(undef, 0)
     parsed::Bool = false
     skips::Int = 0
-    for i in 1:length(tokens)
+    for i in eachindex(tokens)
         # skip tokens that have been consumed by a grammar rule
         if skips > 0
             skips -= 1
             continue
         end
 
-        # check if grammar rule can be applied to token
+        # check if grammar rules can be applied to token
         if haskey(grammar, typeof(tokens[i]))
             rules::Vector{GrammarRule} = get(grammar, typeof(tokens[i]), [])
             matched::Bool = false
             for rule in rules
-                if _match_grammar_rule(rule, ParseVector(parsed_tokens), ParseVector(tokens[i + 1:end]))
-                    # apply rule
-                    left_tokens::ParseVector = parsed_tokens[end - length(rule.left_tokens) + 1:end]
-                    parsed_tokens = parsed_tokens[1:end - length(rule.left_tokens)]
-                    right_tokens::ParseVector = tokens[i + 1:i + length(rule.right_tokens)]
+                # apply rule if applicable
+                if _match_grammar_rule(rule, ParseVector(parsed_tokens), ParseVector(tokens[(i + 1):end]))
+                    # consume tokens/nodes
+                    left_tokens::ParseVector = parsed_tokens[(end - length(rule.left_tokens) + 1):end]
+                    parsed_tokens = parsed_tokens[1:(end - length(rule.left_tokens))]
+                    right_tokens::ParseVector = tokens[(i + 1):(i + length(rule.right_tokens))]
+
                     push!(parsed_tokens, rule.parse(left_tokens, tokens[i], right_tokens))
                     skips += length(rule.right_tokens)
                     parsed = true
@@ -83,10 +85,6 @@ function _parse_grammar(tokens::ParseVector, grammar::Dict{Type, Vector{GrammarR
         end
     end
 
-    if skips > 0
-        throw(ParseError("Missing argument."))
-    end
-
     if parsed
         return _parse_grammar(parsed_tokens, grammar)
     end
@@ -97,15 +95,16 @@ function _match_grammar_rule(rule::GrammarRule, left_tokens::ParseVector, right_
     if length(rule.left_tokens) > length(left_tokens) || length(rule.right_tokens) > length(right_tokens)
         return false
     end
-    left_tokens = left_tokens
-    return _match_tokens(rule.left_tokens, left_tokens[end - length(rule.left_tokens) + 1:end]) && _match_tokens(rule.right_tokens, right_tokens[1:length(rule.right_tokens)])
+    return _match_tokens(rule.left_tokens, left_tokens[(end - length(rule.left_tokens) + 1):end]) && _match_tokens(rule.right_tokens, right_tokens[1:length(rule.right_tokens)])
 end
 
 function _match_tokens(rule::Vector{Union{Token, Type}}, tokens::ParseVector)::Bool
     if length(rule) != length(tokens)
         throw(ArgumentError("Argument counts not matching."))
     end
-    for i in 1:length(rule)
+
+
+    for i in eachindex(rule)
         if rule[i] isa Token && tokens[i] != rule[i]
             return false
         elseif rule[i] isa Type && !(tokens[i] isa rule[i])

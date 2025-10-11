@@ -138,11 +138,11 @@ function tokenize(str::String)::Vector{Token}
     end
 
     # get longest substring of symbols in the current set of symbols
-    for i in firstindex(str) + 1:lastindex(str)
+    for i in (firstindex(str) + 1):lastindex(str)
         if !(str[i] in current_symbols)
             try
                 return union(
-                Vector{Token}([_convert_to_token(str[1:i - 1], current_type)]),
+                Vector{Token}([_convert_to_token(str[1:(i - 1)], current_type)]),
                 tokenize(str[i:end])
                 )
             catch e
@@ -161,7 +161,9 @@ function _convert_to_token(token::String, type::Type)::Token
         return get(keywords, token, Nothing)(token)
     elseif haskey(operators, token)
         return get(operators, token, Nothing)(token)
-    elseif type == NumericToken
+    end
+
+    if type == NumericToken
         if _is_valid_numeric(token)
             return NumericToken(token)
         else
