@@ -36,6 +36,8 @@ struct GrammarRule
     parse::Function
 end
 
+
+
 # var -> string
 function _parse_custom_expression(left_tokens::ParseVector, token::CustomToken, right_tokens::ParseVector)::VariableNode
     _check_token_count(0, 0, left_tokens, right_tokens)
@@ -81,6 +83,8 @@ const agent_grammar::Dict{Type, Vector{GrammarRule}} = Dict([
                     GrammarRule([SeparatorToken("[[")], [SeparatorToken("]]")], _parse_agent_list)])
 ])
 
+
+
 # expr -> number
 function _parse_numeric_expression(left_tokens::ParseVector, token::NumericToken, right_tokens::ParseVector)::ExpressionConstant
     _check_token_count(0, 0, left_tokens, right_tokens)
@@ -107,6 +111,8 @@ expression_grammar::Dict{Type, Vector{GrammarRule}} = Dict([
     # expr -> expr expr_binary_op expr
     (ExpressionBinaryOperatorToken, [GrammarRule([ExpressionNode], [ExpressionNode], _parse_binary_expression)])
 ])
+
+
 
 # constr -> boolean
 function _parse_boolean_constraint(left_tokens::ParseVector, token::BooleanToken, right_tokens::ParseVector)::ConstraintConstant
@@ -143,6 +149,8 @@ const constraint_grammar::Dict{Type, Vector{GrammarRule}} = Dict([
     (ConstraintCompareToken, [GrammarRule([ExpressionNode], [ExpressionNode], _parse_compare_constraint)])
 ])
 
+
+
 # state -> location
 function _parse_location(left_tokens::ParseVector, token::VariableNode, right_tokens::ParseVector)::LocationNode
     _check_token_count(0, 0, left_tokens, right_tokens)
@@ -170,6 +178,8 @@ const state_grammar::Dict{Type, Vector{GrammarRule}} = Dict([
     (ConstraintBinaryOperatorToken, [GrammarRule([StateNode], [StateNode], _parse_binary_state)])
 ])
 
+
+
 # strat -> agent_list F strat | agent_list G strat
 function _parse_quantifier_strategy(left_tokens::ParseVector, token::QuantifierToken, right_tokens::ParseVector)::Quantifier
     _check_token_count(1, 1, left_tokens, right_tokens)
@@ -194,6 +204,8 @@ function _parse_binary_strategy(left_tokens::ParseVector, token::StrategyBinaryO
     return StrategyBinaryOperation(token.type, left_tokens[1], right_tokens[1])
 end
 
+
+
 const strategy_grammar::Dict{Type, Vector{GrammarRule}} = Dict([
     # strat -> agent_list F strat | agent_list G strat
     (QuantifierToken, [GrammarRule([AgentList], [StrategyNode], _parse_quantifier_strategy),
@@ -206,6 +218,8 @@ const strategy_grammar::Dict{Type, Vector{GrammarRule}} = Dict([
     # strat -> strat strat_binary_op strat
     (StrategyBinaryOperatorToken, [GrammarRule([StrategyNode], [StrategyNode], _parse_binary_strategy)])
 ])
+
+
 
 function _check_token_count(l::Int, r::Int, provided_l::ParseVector, provided_r::ParseVector)
     if l != length(provided_l) || r != length(provided_r)

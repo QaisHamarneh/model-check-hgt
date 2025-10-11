@@ -58,6 +58,7 @@ ast = parse_tokens(Vector{Token}(tokenize("not << >> F true")))
 @test ast == StrategyUnaryOperation("not", parse_tokens(Vector{Token}(tokenize("<< >> F true"))))
 
 ast = parse_tokens(Vector{Token}(tokenize("a and b")))
+@test ast == StrategyBinaryOperation("and", LocationNode("a"), LocationNode("b"))
 
 # Test error handling
 
