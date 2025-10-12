@@ -19,9 +19,7 @@ include("tokens.jl")
 separators::Set{String} = Set([
     ",",
     "(",
-    ")",
-    "[[",
-    "]]"
+    ")"
 ])
 
 # mapping of all keywords to their type of token
@@ -65,7 +63,9 @@ operators::Dict{String, Type} = Dict([
     ("!",  ConstraintUnaryOperatorToken),
 
     ("<<", SeparatorToken),
-    (">>", SeparatorToken)
+    (">>", SeparatorToken),
+    ("[[", SeparatorToken),
+    ("]]", SeparatorToken)
 ])
 
 # all symbols that occur in separators
