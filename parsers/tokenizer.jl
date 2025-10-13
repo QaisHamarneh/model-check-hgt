@@ -81,8 +81,7 @@ operator_symbols::Set{Char} = Set(union(
 # all allowed symbols for custom tokens
 unreserved_symbols::Set{Char} = Set(union(
     collect(Iterators.map(x -> Char(x), 65:90)),        # symbols A-Z
-    collect(Iterators.map(x -> Char(x), 97:122)),       # symbols a-z
-    ['_']
+    collect(Iterators.map(x -> Char(x), 97:122))        # symbols a-z
 ))
 
 # numeric symbols
@@ -128,13 +127,13 @@ function tokenize(str::String)::Vector{Token}
         current_symbols = operator_symbols
         current_type = OperatorToken
     elseif str[1] in unreserved_symbols
-        current_symbols = union(unreserved_symbols, collect(Iterators.map(x -> Char(x), 48:57)))
+        current_symbols = union(unreserved_symbols, numeric_symbols, ['_'])
         current_type = CustomToken
     elseif isnumeric(str[1])
         current_symbols = union(numeric_symbols, ['.'])
         current_type = NumericToken
     else
-        throw(TokenizeError("$(str[1]) is an invalid symbol."))
+        throw(TokenizeError("$(str[1]) is an invalid starting symbol."))
     end
 
     # get longest substring of symbols in the current set of symbols

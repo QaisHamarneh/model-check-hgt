@@ -69,4 +69,5 @@ test_tokens = tokenize("<<a,b>>")
 # test error handling
 @test_throws TokenizeError("10. is an invalid number.") tokenize("10.")
 @test_throws TokenizeError("+- is an invalid sequence of symbols.") tokenize("a+-b")
-@test_throws TokenizeError("' is an invalid symbol.") tokenize("a'b")
+@test_throws TokenizeError("' is an invalid starting symbol.") tokenize("a'b")
+@test_throws TokenizeError("_ is an invalid starting symbol.") tokenize("a && _b")
