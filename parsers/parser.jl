@@ -59,7 +59,7 @@ function _parse_grammar(tokens::ParseVector, grammar::Dict{Type, Vector{GrammarR
         end
 
         # check if grammar rules can be applied to token
-        if haskey(grammar, typeof(tokens[i]))
+        if haskey(grammar, typeof(tokens[i])) && !parsed
             rules::Vector{GrammarRule} = get(grammar, typeof(tokens[i]), [])
             matched::Bool = false
             for rule in rules

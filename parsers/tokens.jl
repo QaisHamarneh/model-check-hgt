@@ -100,6 +100,19 @@ struct BooleanToken <: KeywordToken
 end
 
 """
+    StateConstantToken <: KeywordToken
+
+A token for state constants like `deadlock`.
+
+    StateConstantToken(type::String)
+
+Create a StateConstantToken of type `type`.
+"""
+struct StateConstantToken <: KeywordToken
+    type::String
+end
+
+"""
     QuantifierToken <: KeywordToken
 
 A token for quantifier keywords.

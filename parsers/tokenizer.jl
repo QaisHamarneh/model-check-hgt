@@ -33,6 +33,8 @@ keywords::Dict{String, Type} = Dict([
     ("or",    StrategyBinaryOperatorToken),
     ("imply", StrategyBinaryOperatorToken),
 
+    ("deadlock", StateConstantToken),
+
     ("true",  BooleanToken),
     ("false", BooleanToken),
 
@@ -121,7 +123,7 @@ function tokenize(str::String)::Vector{Token}
     current_symbols::Set{Char} = Set{Char}([])
     current_type::Type = Nothing
     if str[1] in separator_symbols
-        current_symbols = separator_symbols
+        current_symbols = Set([])
         current_type = SeparatorToken
     elseif str[1] in operator_symbols
         current_symbols = operator_symbols
@@ -140,10 +142,7 @@ function tokenize(str::String)::Vector{Token}
     for i in (firstindex(str) + 1):lastindex(str)
         if !(str[i] in current_symbols)
             try
-                return union(
-                Vector{Token}([_convert_to_token(str[1:(i - 1)], current_type)]),
-                tokenize(str[i:end])
-                )
+                return Vector{Token}([_convert_to_token(str[1:(i - 1)], current_type); tokenize(str[i:end])])
             catch e
                 throw(e)
             end

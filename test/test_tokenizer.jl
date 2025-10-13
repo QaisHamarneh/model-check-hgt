@@ -24,14 +24,14 @@ _test_a_plus_b("a +b    ")
 _test_a_plus_b("a\n+\nb")
 
 # test keyword tokenization
-test_tokens::Vector{Token} = tokenize("true && false")
+test_tokens::Vector{Token} = tokenize("true && deadlock")
 @test length(test_tokens) == 3
 @test test_tokens[1] isa BooleanToken
 @test test_tokens[1].type == "true"
 @test test_tokens[2] isa ConstraintBinaryOperatorToken
 @test test_tokens[2].type == "&&"
-@test test_tokens[3] isa BooleanToken
-@test test_tokens[3].type == "false"
+@test test_tokens[3] isa StateConstantToken
+@test test_tokens[3].type == "deadlock"
 
 # test comparison tokenization
 test_tokens = tokenize("10 <= c < 20")
@@ -60,6 +60,13 @@ test_tokens = tokenize("<<a,b>>")
 @test test_tokens[4].type == "b"
 @test test_tokens[5] isa SeparatorToken
 @test test_tokens[5].type == ">>"
+
+test_tokens = tokenize("))")
+@test length(test_tokens) == 2
+@test test_tokens[1] isa SeparatorToken
+@test test_tokens[1].type == ")"
+@test test_tokens[2] isa SeparatorToken
+@test test_tokens[2].type == ")"
 
 # test numeric tokenization
 @test tokenize("10") == [NumericToken("10")]

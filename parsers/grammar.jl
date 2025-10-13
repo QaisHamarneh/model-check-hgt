@@ -37,6 +37,12 @@ struct GrammarRule
 end
 
 
+# any -> any
+function _parse_bracket(left_tokens::ParseVector, token::ASTNode, right_tokens::ParseVector)::ASTNode
+    _check_token_count(1, 1, left_tokens, right_tokens)
+    return token
+end
+
 
 # var -> string
 function _parse_custom_expression(left_tokens::ParseVector, token::CustomToken, right_tokens::ParseVector)::VariableNode
@@ -91,10 +97,10 @@ function _parse_numeric_expression(left_tokens::ParseVector, token::NumericToken
     return ExpressionConstant(Real(parse(Float64, token.type)))
 end
 
-# expr -> expr_unary_op ( expr ) 
+# expr -> expr_unary_op expr 
 function _parse_unary_expression(left_tokens::ParseVector, token::ExpressionUnaryOperatorToken, right_tokens::ParseVector)::ExpressionUnaryOperation
-    _check_token_count(0, 3, left_tokens, right_tokens)
-    return ExpressionUnaryOperation(token.type, right_tokens[2])
+    _check_token_count(0, 1, left_tokens, right_tokens)
+    return ExpressionUnaryOperation(token.type, right_tokens[1])
 end
 
 # expr -> expr expr_binary_op expr
@@ -104,10 +110,20 @@ function _parse_binary_expression(left_tokens::ParseVector, token::ExpressionBin
 end
 
 expression_grammar::Dict{Type, Vector{GrammarRule}} = Dict([
+    # expr -> ( expr )
+    (VariableNode, [GrammarRule([SeparatorToken("(")], [SeparatorToken(")")], _parse_bracket)]),
+    # expr -> ( expr )
+    (ExpressionConstant, [GrammarRule([SeparatorToken("(")], [SeparatorToken(")")], _parse_bracket)]),
+    # expr -> ( expr )
+    (ExpressionUnaryOperation, [GrammarRule([SeparatorToken("(")], [SeparatorToken(")")], _parse_bracket)]),
+    # expr -> ( expr )
+    (ExpressionBinaryOperation, [GrammarRule([SeparatorToken("(")], [SeparatorToken(")")], _parse_bracket)]),
+    # expr -> var
+    (CustomToken, [GrammarRule([], [], _parse_custom_expression)]),
     # expr -> number
     (NumericToken, [GrammarRule([], [], _parse_numeric_expression)]),
-    # expr -> expr_unary_op ( expr ) 
-    (ExpressionUnaryOperatorToken, [GrammarRule([], [SeparatorToken("("), ExpressionNode, SeparatorToken(")")], _parse_unary_expression)]),
+    # expr -> expr_unary_op expr 
+    (ExpressionUnaryOperatorToken, [GrammarRule([], [ExpressionNode], _parse_unary_expression)]),
     # expr -> expr expr_binary_op expr
     (ExpressionBinaryOperatorToken, [GrammarRule([ExpressionNode], [ExpressionNode], _parse_binary_expression)])
 ])
@@ -139,6 +155,12 @@ function _parse_compare_constraint(left_tokens::ParseVector, token::ConstraintCo
 end
 
 const constraint_grammar::Dict{Type, Vector{GrammarRule}} = Dict([
+    # constr -> ( constr )
+    (ConstraintConstant, [GrammarRule([SeparatorToken("(")], [SeparatorToken(")")], _parse_bracket)]),
+    # constr -> ( constr )
+    (ConstraintUnaryOperation, [GrammarRule([SeparatorToken("(")], [SeparatorToken(")")], _parse_bracket)]),
+    # constr -> ( constr )
+    (ConstraintBinaryOperation, [GrammarRule([SeparatorToken("(")], [SeparatorToken(")")], _parse_bracket)]),
     # constr -> boolean
     (BooleanToken, [GrammarRule([], [], _parse_boolean_constraint)]),
     # constr -> constr_unary_op constr
@@ -170,6 +192,12 @@ function _parse_binary_state(left_tokens::ParseVector, token::ConstraintBinaryOp
 end
 
 const state_grammar::Dict{Type, Vector{GrammarRule}} = Dict([
+    # state -> ( state )
+    (LocationNode, [GrammarRule([SeparatorToken("(")], [SeparatorToken(")")], _parse_bracket)]),
+    # state -> ( state )
+    (StateUnaryOperation, [GrammarRule([SeparatorToken("(")], [SeparatorToken(")")], _parse_bracket)]),
+    # state -> ( state )
+    (StateBinaryOperation, [GrammarRule([SeparatorToken("(")], [SeparatorToken(")")], _parse_bracket)]),
     # state -> location
     (VariableNode, [GrammarRule([], [], _parse_location)]),
     # state -> state_unary_op state
@@ -207,6 +235,12 @@ end
 
 
 const strategy_grammar::Dict{Type, Vector{GrammarRule}} = Dict([
+    # strat -> ( strat )
+    (Quantifier, [GrammarRule([SeparatorToken("(")], [SeparatorToken(")")], _parse_bracket)]),
+    # strat -> ( strat )
+    (StrategyUnaryOperation, [GrammarRule([SeparatorToken("(")], [SeparatorToken(")")], _parse_bracket)]),
+    # strat -> ( strat )
+    (StrategyBinaryOperation, [GrammarRule([SeparatorToken("(")], [SeparatorToken(")")], _parse_bracket)]),
     # strat -> agent_list F strat | agent_list G strat
     (QuantifierToken, [GrammarRule([AgentList], [StrategyNode], _parse_quantifier_strategy),
     # strat -> << >> F strat | << >> G strat
