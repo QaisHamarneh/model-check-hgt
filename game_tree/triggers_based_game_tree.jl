@@ -1,7 +1,7 @@
 include("time_to_trigger.jl")
 include("../game_semantics/transitions.jl")
 include("tree.jl")
-include("../STL/logic.jl")
+include("../logic/formulae.jl")
 
 using IterTools
 using Match

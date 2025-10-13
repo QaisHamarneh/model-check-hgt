@@ -9,6 +9,12 @@ function parse_game(json_file)
         FileDict = JSON3.read(json_string)
         GameDict = FileDict["Game"]
         game_name = GameDict["name"]
+        agents = Set{Agent}([Symbol(agent) for agent in GameDict["agents"]])
+        actions = Set{Action}([Symbol(action) for action in GameDict["actions"]])
+        initial_valuation::Valuation = Dict{Symbol, Float64}()
+        if ! isempty(GameDict["initial_valuation"])
+            initial_valuation = OrderedDict(Symbol(var) => value for (var, value) in GameDict["initial_valuation"])
+        end
         locations = Location[]
         initial_location = nothing
         for loc in GameDict["locations"]
@@ -23,12 +29,6 @@ function parse_game(json_file)
                 initial_location = location
             end
             push!(locations, location)
-        end
-        agents = Set{Agent}([Symbol(agent) for agent in GameDict["agents"]])
-        actions = Set{Action}([Symbol(action) for action in GameDict["actions"]])
-        initial_valuation::Valuation = Dict{Symbol, Float64}()
-        if ! isempty(GameDict["initial_valuation"])
-            initial_valuation = OrderedDict(Symbol(var) => value for (var, value) in GameDict["initial_valuation"])
         end
         edges = Edge[]
         for edge in GameDict["edges"]
