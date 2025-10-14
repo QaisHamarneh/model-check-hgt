@@ -15,6 +15,18 @@ ast::ASTNode = parse_tokens(tokenize("a+b"))
 @test_throws ParseError parse_tokens(tokenize("a()+b"))
 @test_throws ParseError parse_tokens(tokenize("a+b)"))
 
+ast = parse_tokens(tokenize("-a"))
+@test ast == ExpressionUnaryOperation("-", VariableNode("a"))
+@test ast == parse_tokens(tokenize("-(a)"))
+@test ast == parse_tokens(tokenize("(-(a))"))
+@test_throws ParseError parse_tokens(tokenize("(-)(a)"))
+
+ast = parse_tokens(tokenize("b+(-a)"))
+@test ast == ExpressionBinaryOperation("+", VariableNode("b"), ExpressionUnaryOperation("-", VariableNode("a")))
+@test ast == parse_tokens(tokenize("b+ -a"))
+@test ast == parse_tokens(tokenize("(b+(-a))"))
+@test_throws TokenizeError parse_tokens(tokenize("a+-b"))
+
 ast = parse_tokens(tokenize("a+b-c"))
 @test ast == ExpressionBinaryOperation("-", ExpressionBinaryOperation("+", VariableNode("a"), VariableNode("b")), VariableNode("c"))
 

@@ -50,10 +50,11 @@ keywords::Dict{String, Type} = Dict([
 # mapping of all operators to their type of token
 operators::Dict{String, Type} = Dict([
     ("+",  ExpressionBinaryOperatorToken),
-    ("-",  ExpressionBinaryOperatorToken),
     ("*",  ExpressionBinaryOperatorToken),
     ("/",  ExpressionBinaryOperatorToken),
     ("^",  ExpressionBinaryOperatorToken),
+
+    ("-",  ExpressionUnBinaryOperatorToken),
 
     ("<",  ConstraintCompareToken),
     ("<=", ConstraintCompareToken),

@@ -34,6 +34,7 @@ The types are hierarchically ordered as follows:
         |-- ...UnaryOperatorToken
         |-- ...BinaryOperatorToken
         |-- ConstraintCompareToken
+        |-- ExpressionUnBinaryOperatorToken
 
 # Authors:
 - Moritz Maas
@@ -255,5 +256,18 @@ A token for binary operators on expressions.
 Create a ExpressionBinaryOperatorToken of type `type`.
 """
 struct ExpressionBinaryOperatorToken <: OperatorToken
+    type::String
+end
+
+"""
+    ExpressionUnBinaryOperatorToken <: OperatorToken
+
+A token for ambiguous unary and binary operators on expressions.
+
+    ExpressionUnBinaryOperatorToken(type::String)
+
+Create a ExpressionUnBinaryOperatorToken of type `type`.
+"""
+struct ExpressionUnBinaryOperatorToken <: OperatorToken
     type::String
 end

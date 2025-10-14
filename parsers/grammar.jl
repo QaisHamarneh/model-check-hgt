@@ -109,13 +109,13 @@ function _parse_numeric_expression(left_tokens::ParseVector, token::NumericToken
 end
 
 # expr -> expr_unary_op expr 
-function _parse_unary_expression(left_tokens::ParseVector, token::ExpressionUnaryOperatorToken, right_tokens::ParseVector)::ExpressionUnaryOperation
+function _parse_unary_expression(left_tokens::ParseVector, token::OperatorToken, right_tokens::ParseVector)::ExpressionUnaryOperation
     _check_token_count(0, 1, left_tokens, right_tokens)
     return ExpressionUnaryOperation(token.type, right_tokens[1])
 end
 
 # expr -> expr expr_binary_op expr
-function _parse_binary_expression(left_tokens::ParseVector, token::ExpressionBinaryOperatorToken, right_tokens::ParseVector)::ExpressionBinaryOperation
+function _parse_binary_expression(left_tokens::ParseVector, token::OperatorToken, right_tokens::ParseVector)::ExpressionBinaryOperation
     _check_token_count(1, 1, left_tokens, right_tokens)
     return ExpressionBinaryOperation(token.type, left_tokens[1], right_tokens[1])
 end
@@ -136,7 +136,11 @@ expression_grammar::Dict{Type, Vector{GrammarRule}} = Dict([
     # expr -> expr_unary_op expr 
     (ExpressionUnaryOperatorToken, [GrammarRule([], [ExpressionNode], _parse_unary_expression)]),
     # expr -> expr expr_binary_op expr
-    (ExpressionBinaryOperatorToken, [GrammarRule([ExpressionNode], [ExpressionNode], _parse_binary_expression)])
+    (ExpressionBinaryOperatorToken, [GrammarRule([ExpressionNode], [ExpressionNode], _parse_binary_expression)]),
+    # expr -> expr - expr
+    (ExpressionUnBinaryOperatorToken, [GrammarRule([ExpressionNode], [ExpressionNode], _parse_binary_expression),
+    # expr -> - expr
+                                       GrammarRule([], [ExpressionNode], _parse_unary_expression)])
 ])
 
 
