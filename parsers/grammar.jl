@@ -9,10 +9,17 @@ This file contains all grammar rules needed to parse a strategy formula.
 
 # Constants:
 - `ParseVector`: type of array of partially parsed tokens
-- `agent_grammar`: grammar rules for variable and agent lists
+- `pre_parse_grammar`: grammar rules for pre parsing
 - `expression_grammar`: grammar rules for expressions
 - `constraint_grammar`: grammar rules for constraints
+- `location_grammar`: grammar rules for locations
+- `state_grammar`: grammar rules for states
+- `agent_grammar`: grammar rules for variable and agent lists
 - `strategy_grammar`: grammar rules for strategies
+- `expression_operator_strength`: operator binding strength for expressions
+- `constraint_operator_strength`: operator binding strength for constraints
+- `strategy_operator_strength`: operator binding strength for strategies
+- `operator_type_to_strength`: maps types of operators to their strength rankings
 
 # Authors:
 - Moritz Maas
@@ -39,6 +46,12 @@ struct GrammarRule
     parse::Function
 end
 
+# redefine comparison
+Base.:(==)(x::GrammarRule, y::GrammarRule) = (
+    x.parse == y.parse
+)
+
+
 
 # any -> any
 function _parse_bracket(left_tokens::ParseVector, token::ASTNode, right_tokens::ParseVector)::ASTNode
@@ -52,6 +65,137 @@ function _parse_custom_expression(left_tokens::ParseVector, token::CustomToken, 
     _check_token_count(0, 0, left_tokens, right_tokens)
     return VariableNode(token.type)
 end
+
+# expr -> number
+function _parse_numeric_expression(left_tokens::ParseVector, token::NumericToken, right_tokens::ParseVector)::ExpressionConstant
+    _check_token_count(0, 0, left_tokens, right_tokens)
+    return ExpressionConstant(Real(parse(Float64, token.type)))
+end
+
+# constr -> boolean
+function _parse_boolean_constraint(left_tokens::ParseVector, token::BooleanToken, right_tokens::ParseVector)::ConstraintConstant
+    _check_token_count(0, 0, left_tokens, right_tokens)
+    return ConstraintConstant(token.type == "true")
+end
+
+pre_parse_grammar::Dict{Type, Vector{GrammarRule}} = Dict([
+    # var -> string
+    (CustomToken, [GrammarRule([], [], _parse_custom_expression)]),
+    # expr -> number
+    (NumericToken, [GrammarRule([], [], _parse_numeric_expression)]),
+    # constr -> boolean
+    (BooleanToken, [GrammarRule([], [], _parse_boolean_constraint)])
+])
+
+
+
+# state -> location
+function _parse_location(left_tokens::ParseVector, token::VariableNode, right_tokens::ParseVector)::LocationNode
+    _check_token_count(0, 0, left_tokens, right_tokens)
+    return LocationNode(token.name)
+end
+
+location_grammar::Dict{Type, Vector{GrammarRule}} = Dict([
+    # state -> location
+    (VariableNode, [GrammarRule([], [], _parse_location)]),
+])
+
+
+
+# expr -> expr_unary_op expr 
+function _parse_unary_expression(left_tokens::ParseVector, token::OperatorToken, right_tokens::ParseVector)::ExpressionUnaryOperation
+    _check_token_count(0, 1, left_tokens, right_tokens)
+    return ExpressionUnaryOperation(token.type, right_tokens[1])
+end
+
+# expr -> expr expr_binary_op expr
+function _parse_binary_expression(left_tokens::ParseVector, token::OperatorToken, right_tokens::ParseVector)::ExpressionBinaryOperation
+    _check_token_count(1, 1, left_tokens, right_tokens)
+    return ExpressionBinaryOperation(token.type, left_tokens[1], right_tokens[1])
+end
+
+expression_grammar::Dict{Type, Vector{GrammarRule}} = Dict([
+    # expr -> ( expr )
+    (VariableNode, [GrammarRule([SeparatorToken("(")], [SeparatorToken(")")], _parse_bracket)]),
+    # expr -> ( expr )
+    (ExpressionConstant, [GrammarRule([SeparatorToken("(")], [SeparatorToken(")")], _parse_bracket)]),
+    # expr -> ( expr )
+    (ExpressionUnaryOperation, [GrammarRule([SeparatorToken("(")], [SeparatorToken(")")], _parse_bracket)]),
+    # expr -> ( expr )
+    (ExpressionBinaryOperation, [GrammarRule([SeparatorToken("(")], [SeparatorToken(")")], _parse_bracket)]),
+    # expr -> expr_unary_op expr 
+    (ExpressionUnaryOperatorToken, [GrammarRule([], [ExpressionNode], _parse_unary_expression)]),
+    # expr -> expr expr_binary_op expr
+    (ExpressionBinaryOperatorToken, [GrammarRule([ExpressionNode], [ExpressionNode], _parse_binary_expression)]),
+    # expr -> expr - expr
+    (ExpressionUnBinaryOperatorToken, [GrammarRule([ExpressionNode], [ExpressionNode], _parse_binary_expression),
+    # expr -> - expr
+                                       GrammarRule([], [ExpressionNode], _parse_unary_expression)])
+])
+
+
+
+# constr -> constr_unary_op constr
+function _parse_unary_constraint(left_tokens::ParseVector, token::ConstraintUnaryOperatorToken, right_tokens::ParseVector)::ConstraintUnaryOperation
+    _check_token_count(0, 1, left_tokens, right_tokens)
+    return ConstraintUnaryOperation(token.type, right_tokens[1])
+end
+
+# constr -> constr constr_binary_op constr
+function _parse_binary_constraint(left_tokens::ParseVector, token::ConstraintBinaryOperatorToken, right_tokens::ParseVector)::ConstraintBinaryOperation
+    _check_token_count(1, 1, left_tokens, right_tokens)
+    return ConstraintBinaryOperation(token.type, left_tokens[1], right_tokens[1])
+end
+
+# constr -> expr constr_compare_op expr
+function _parse_compare_constraint(left_tokens::ParseVector, token::ConstraintCompareToken, right_tokens::ParseVector)::ConstraintBinaryOperation
+    _check_token_count(1, 1, left_tokens, right_tokens)
+    return ConstraintBinaryOperation(token.type, left_tokens[1], right_tokens[1])
+end
+
+const constraint_grammar::Dict{Type, Vector{GrammarRule}} = Dict([
+    # constr -> ( constr )
+    (ConstraintConstant, [GrammarRule([SeparatorToken("(")], [SeparatorToken(")")], _parse_bracket)]),
+    # constr -> ( constr )
+    (ConstraintUnaryOperation, [GrammarRule([SeparatorToken("(")], [SeparatorToken(")")], _parse_bracket)]),
+    # constr -> ( constr )
+    (ConstraintBinaryOperation, [GrammarRule([SeparatorToken("(")], [SeparatorToken(")")], _parse_bracket)]),
+    # constr -> constr_unary_op constr
+    (ConstraintUnaryOperatorToken, [GrammarRule([], [ConstraintNode], _parse_unary_constraint)]),
+    # constr -> constr constr_binary_op constr
+    (ConstraintBinaryOperatorToken, [GrammarRule([ConstraintNode], [ConstraintNode], _parse_binary_constraint)]),
+    # constr -> expr constr_compare_op expr
+    (ConstraintCompareToken, [GrammarRule([ExpressionNode], [ExpressionNode], _parse_compare_constraint)])
+])
+
+
+
+# state -> state_unary_op state
+function _parse_unary_state(left_tokens::ParseVector, token::ConstraintUnaryOperatorToken, right_tokens::ParseVector)::StateUnaryOperation
+    _check_token_count(0, 1, left_tokens, right_tokens)
+    return StateUnaryOperation(token.type, right_tokens[1])
+end
+
+# state -> state state_binary_op state
+function _parse_binary_state(left_tokens::ParseVector, token::ConstraintBinaryOperatorToken, right_tokens::ParseVector)::StateBinaryOperation
+    _check_token_count(1, 1, left_tokens, right_tokens)
+    return StateBinaryOperation(token.type, left_tokens[1], right_tokens[1])
+end
+
+const state_grammar::Dict{Type, Vector{GrammarRule}} = Dict([
+    # state -> ( state )
+    (LocationNode, [GrammarRule([SeparatorToken("(")], [SeparatorToken(")")], _parse_bracket)]),
+    # state -> ( state )
+    (StateUnaryOperation, [GrammarRule([SeparatorToken("(")], [SeparatorToken(")")], _parse_bracket)]),
+    # state -> ( state )
+    (StateBinaryOperation, [GrammarRule([SeparatorToken("(")], [SeparatorToken(")")], _parse_bracket)]),
+    # state -> state_unary_op state
+    (ConstraintUnaryOperatorToken, [GrammarRule([], [StateNode], _parse_unary_state)]),
+    # state -> state state_binary_op state
+    (ConstraintBinaryOperatorToken, [GrammarRule([StateNode], [StateNode], _parse_binary_state)])
+])
+
+
 
 # var_list -> var , var
 function _parse_variable_list_1(left_tokens::ParseVector, token::VariableNode, right_tokens::ParseVector)::VariableList
@@ -98,127 +242,6 @@ const agent_grammar::Dict{Type, Vector{GrammarRule}} = Dict([
                     GrammarRule([SeparatorToken("[[")], [SeparatorToken("]]")], _parse_agent_list)]),
     # agent_list -> << >> | [[ ]]
     (EmptyListToken, [GrammarRule([], [], _parse_empty_list)])
-])
-
-
-
-# expr -> number
-function _parse_numeric_expression(left_tokens::ParseVector, token::NumericToken, right_tokens::ParseVector)::ExpressionConstant
-    _check_token_count(0, 0, left_tokens, right_tokens)
-    return ExpressionConstant(Real(parse(Float64, token.type)))
-end
-
-# expr -> expr_unary_op expr 
-function _parse_unary_expression(left_tokens::ParseVector, token::OperatorToken, right_tokens::ParseVector)::ExpressionUnaryOperation
-    _check_token_count(0, 1, left_tokens, right_tokens)
-    return ExpressionUnaryOperation(token.type, right_tokens[1])
-end
-
-# expr -> expr expr_binary_op expr
-function _parse_binary_expression(left_tokens::ParseVector, token::OperatorToken, right_tokens::ParseVector)::ExpressionBinaryOperation
-    _check_token_count(1, 1, left_tokens, right_tokens)
-    return ExpressionBinaryOperation(token.type, left_tokens[1], right_tokens[1])
-end
-
-expression_grammar::Dict{Type, Vector{GrammarRule}} = Dict([
-    # expr -> ( expr )
-    (VariableNode, [GrammarRule([SeparatorToken("(")], [SeparatorToken(")")], _parse_bracket)]),
-    # expr -> ( expr )
-    (ExpressionConstant, [GrammarRule([SeparatorToken("(")], [SeparatorToken(")")], _parse_bracket)]),
-    # expr -> ( expr )
-    (ExpressionUnaryOperation, [GrammarRule([SeparatorToken("(")], [SeparatorToken(")")], _parse_bracket)]),
-    # expr -> ( expr )
-    (ExpressionBinaryOperation, [GrammarRule([SeparatorToken("(")], [SeparatorToken(")")], _parse_bracket)]),
-    # expr -> var
-    (CustomToken, [GrammarRule([], [], _parse_custom_expression)]),
-    # expr -> number
-    (NumericToken, [GrammarRule([], [], _parse_numeric_expression)]),
-    # expr -> expr_unary_op expr 
-    (ExpressionUnaryOperatorToken, [GrammarRule([], [ExpressionNode], _parse_unary_expression)]),
-    # expr -> expr expr_binary_op expr
-    (ExpressionBinaryOperatorToken, [GrammarRule([ExpressionNode], [ExpressionNode], _parse_binary_expression)]),
-    # expr -> expr - expr
-    (ExpressionUnBinaryOperatorToken, [GrammarRule([ExpressionNode], [ExpressionNode], _parse_binary_expression),
-    # expr -> - expr
-                                       GrammarRule([], [ExpressionNode], _parse_unary_expression)])
-])
-
-
-
-# constr -> boolean
-function _parse_boolean_constraint(left_tokens::ParseVector, token::BooleanToken, right_tokens::ParseVector)::ConstraintConstant
-    _check_token_count(0, 0, left_tokens, right_tokens)
-    return ConstraintConstant(token.type == "true")
-end
-
-# constr -> constr_unary_op constr
-function _parse_unary_constraint(left_tokens::ParseVector, token::ConstraintUnaryOperatorToken, right_tokens::ParseVector)::ConstraintUnaryOperation
-    _check_token_count(0, 1, left_tokens, right_tokens)
-    return ConstraintUnaryOperation(token.type, right_tokens[1])
-end
-
-# constr -> constr constr_binary_op constr
-function _parse_binary_constraint(left_tokens::ParseVector, token::ConstraintBinaryOperatorToken, right_tokens::ParseVector)::ConstraintBinaryOperation
-    _check_token_count(1, 1, left_tokens, right_tokens)
-    return ConstraintBinaryOperation(token.type, left_tokens[1], right_tokens[1])
-end
-
-# constr -> expr constr_compare_op expr
-function _parse_compare_constraint(left_tokens::ParseVector, token::ConstraintCompareToken, right_tokens::ParseVector)::ConstraintBinaryOperation
-    _check_token_count(1, 1, left_tokens, right_tokens)
-    return ConstraintBinaryOperation(token.type, left_tokens[1], right_tokens[1])
-end
-
-const constraint_grammar::Dict{Type, Vector{GrammarRule}} = Dict([
-    # constr -> ( constr )
-    (ConstraintConstant, [GrammarRule([SeparatorToken("(")], [SeparatorToken(")")], _parse_bracket)]),
-    # constr -> ( constr )
-    (ConstraintUnaryOperation, [GrammarRule([SeparatorToken("(")], [SeparatorToken(")")], _parse_bracket)]),
-    # constr -> ( constr )
-    (ConstraintBinaryOperation, [GrammarRule([SeparatorToken("(")], [SeparatorToken(")")], _parse_bracket)]),
-    # constr -> boolean
-    (BooleanToken, [GrammarRule([], [], _parse_boolean_constraint)]),
-    # constr -> constr_unary_op constr
-    (ConstraintUnaryOperatorToken, [GrammarRule([], [ConstraintNode], _parse_unary_constraint)]),
-    # constr -> constr constr_binary_op constr
-    (ConstraintBinaryOperatorToken, [GrammarRule([ConstraintNode], [ConstraintNode], _parse_binary_constraint)]),
-    # constr -> expr constr_compare_op expr
-    (ConstraintCompareToken, [GrammarRule([ExpressionNode], [ExpressionNode], _parse_compare_constraint)])
-])
-
-
-
-# state -> location
-function _parse_location(left_tokens::ParseVector, token::VariableNode, right_tokens::ParseVector)::LocationNode
-    _check_token_count(0, 0, left_tokens, right_tokens)
-    return LocationNode(token.name)
-end
-
-# state -> state_unary_op state
-function _parse_unary_state(left_tokens::ParseVector, token::ConstraintUnaryOperatorToken, right_tokens::ParseVector)::StateUnaryOperation
-    _check_token_count(0, 1, left_tokens, right_tokens)
-    return StateUnaryOperation(token.type, right_tokens[1])
-end
-
-# state -> state state_binary_op state
-function _parse_binary_state(left_tokens::ParseVector, token::ConstraintBinaryOperatorToken, right_tokens::ParseVector)::StateBinaryOperation
-    _check_token_count(1, 1, left_tokens, right_tokens)
-    return StateBinaryOperation(token.type, left_tokens[1], right_tokens[1])
-end
-
-const state_grammar::Dict{Type, Vector{GrammarRule}} = Dict([
-    # state -> ( state )
-    (LocationNode, [GrammarRule([SeparatorToken("(")], [SeparatorToken(")")], _parse_bracket)]),
-    # state -> ( state )
-    (StateUnaryOperation, [GrammarRule([SeparatorToken("(")], [SeparatorToken(")")], _parse_bracket)]),
-    # state -> ( state )
-    (StateBinaryOperation, [GrammarRule([SeparatorToken("(")], [SeparatorToken(")")], _parse_bracket)]),
-    # state -> location
-    (VariableNode, [GrammarRule([], [], _parse_location)]),
-    # state -> state_unary_op state
-    (ConstraintUnaryOperatorToken, [GrammarRule([], [StateNode], _parse_unary_state)]),
-    # state -> state state_binary_op state
-    (ConstraintBinaryOperatorToken, [GrammarRule([StateNode], [StateNode], _parse_binary_state)])
 ])
 
 
@@ -276,6 +299,38 @@ function _check_token_count(l::Int, r::Int, provided_l::ParseVector, provided_r:
     end
     return
 end
+
+
+
+const expression_operator_strength::Dict{String, Int} = Dict([
+    ("^", 20),
+    ("*", 10),
+    ("/", 10),
+    ("+", 0),
+    ("-", 0)
+])
+
+const constraint_operator_strength::Dict{String, Int} = Dict([
+    ("&&", 20),
+    ("||", 10),
+    ("->", 0)
+])
+
+const strategy_operator_strength::Dict{String, Int} = Dict([
+    ("and", 20),
+    ("or", 10),
+    ("imply", 0)
+])
+
+const operator_type_to_strength::Dict{Type, Dict{String, Int}} = Dict([
+    (ExpressionUnBinaryOperatorToken, expression_operator_strength),
+    (ExpressionBinaryOperatorToken, expression_operator_strength),
+    (ConstraintBinaryOperatorToken, constraint_operator_strength),
+    (StateBinaryOperatorToken, constraint_operator_strength),
+    (StrategyBinaryOperatorToken, strategy_operator_strength)
+])
+
+
 
 """
     ParseError <: Exception

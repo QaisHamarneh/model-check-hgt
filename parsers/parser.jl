@@ -33,12 +33,16 @@ ExpressionBinaryOperation("+", VariableNode("a"), VariableNode("b"))
 ```
 """
 function parse_tokens(tokens::Vector{Token})::ASTNode
+    # pre-parse
+    parsed_tokens::ParseVector = _parse_grammar(ParseVector(tokens), pre_parse_grammar)
     # parse agent lists
-    parsed_tokens::ParseVector = _parse_grammar(ParseVector(tokens), agent_grammar)
+    parsed_tokens = _parse_grammar(parsed_tokens, agent_grammar)
     # parse expressions
     parsed_tokens = _parse_grammar(parsed_tokens, expression_grammar)
     # parse constraints
     parsed_tokens = _parse_grammar(parsed_tokens, constraint_grammar)
+    # parse locations
+    parsed_tokens = _parse_grammar(parsed_tokens, location_grammar)
     # parse states
     parsed_tokens = _parse_grammar(parsed_tokens, state_grammar)
     # parse strategies
@@ -63,8 +67,8 @@ function _parse_grammar(tokens::ParseVector, grammar::Dict{Type, Vector{GrammarR
 
         # check if grammar rules can be applied to token
         if haskey(grammar, typeof(tokens[i])) && !parsed
-            consumable_tokens::Dict{Int, GrammarRule} = _get_consumable_tokens(typeof(tokens[i]), tokens, get(grammar, typeof(tokens[i]), []))
-            if haskey(consumable_tokens, i)
+            consumable_tokens::Dict{Int, GrammarRule} = _get_consumable_tokens(i, tokens, grammar)
+            if haskey(consumable_tokens, i) && _is_strongest_operator(typeof(tokens[i]), i, sort(collect(keys(consumable_tokens))), tokens)
                 rule::GrammarRule = get(consumable_tokens, i , Nothing)
                 left_tokens::ParseVector = parsed_tokens[(end - length(rule.left_tokens) + 1):end]
                 parsed_tokens = parsed_tokens[1:(end - length(rule.left_tokens))]
@@ -87,15 +91,20 @@ function _parse_grammar(tokens::ParseVector, grammar::Dict{Type, Vector{GrammarR
     return parsed_tokens
 end
 
-function _get_consumable_tokens(type::Type, tokens::ParseVector, rules::Vector{GrammarRule})::Dict{Int, GrammarRule}
+function _get_consumable_tokens(current_index::Int, tokens::ParseVector, grammar::Dict{Type, Vector{GrammarRule}})::Dict{Int, GrammarRule}
+    first_rule::GrammarRule = GrammarRule([], [], get)
+    for rule in get(grammar, typeof(tokens[current_index]), [])
+        if _match_grammar_rule(rule, ParseVector(tokens[begin:(current_index - 1)]), ParseVector(tokens[(current_index + 1):end]))
+            first_rule = rule
+            break
+        end 
+    end
     consumable_tokens::Dict{Int, GrammarRule} = Dict([])
     for i in eachindex(tokens)
-        if typeof(tokens[i]) == type
-            for rule in rules
-                if _match_grammar_rule(rule, ParseVector(tokens[begin:(i - 1)]), ParseVector(tokens[(i + 1):end]))
-                    consumable_tokens[i] = rule
-                    break
-                end
+        for rule in get(grammar, typeof(tokens[i]), [])
+            if rule == first_rule && _match_grammar_rule(rule, ParseVector(tokens[begin:(i - 1)]), ParseVector(tokens[(i + 1):end]))
+                consumable_tokens[i] = rule
+                break
             end
         end
     end
@@ -123,4 +132,23 @@ function _match_tokens(rule::Vector{Union{Token, Type}}, tokens::ParseVector)::B
         end
     end
     return true
+end
+
+function _is_strongest_operator(type::Type, i::Int, indexes::Vector{Int}, tokens::ParseVector)::Bool
+    if length(indexes) == 0
+        throw(ArgumentError("Index vector cannot be empty."))
+    end
+    strongest_index::Int = -1
+    highest_strength::Int = -1
+    if !haskey(operator_type_to_strength, type)
+        return true
+    end
+    binding_strengths::Dict{String, Int} = get(operator_type_to_strength, type, Dict([]))
+    for index in indexes
+        if get(binding_strengths, tokens[index].type, -1) > highest_strength
+            strongest_index = index
+            highest_strength = get(binding_strengths, tokens[index].type, -1)
+        end
+    end
+    return strongest_index == i
 end
