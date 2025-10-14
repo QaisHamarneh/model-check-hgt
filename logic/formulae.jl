@@ -88,6 +88,106 @@ function get_all_properties(formulae::Vector{Logic_Formula})::Set{Constraint}
 end
 
 
+function evaluate(formula::Logic_Formula, node::Node, all_agents::Set{Agent})::Bool
+    @match formula begin
+        Truth_Formula(value) => value
+        Location_Formula(loc) => loc == node.config.location.name
+        Constraint_Formula(constraint) => evaluate(constraint, node.config.valuation)
+        Not_Formula(f) => ! evaluate(f, node, all_agents)
+        And_Formula(left, right) => evaluate(left, node, all_agents) && evaluate(right, node, all_agents)
+        Or_Formula(left, right) => evaluate(left, node, all_agents) || evaluate(right, node, all_agents)
+        Imply_Formula(left, right) => ! evaluate(left, node, all_agents) || evaluate(right, node, all_agents)
+        Until(left, right) => begin
+            if evaluate(right, node, all_agents)
+                return true
+            end
+            if length(node.children) == 0 || node.terminal_node
+                return false
+            end
+            if ! evaluate(left, node, all_agents)
+                return false
+            end
+            for child in node.children
+                if ! evaluate(formula, child, all_agents)
+                    return false
+                end
+            end
+            return true
+        end
+        Eventually(f) => evaluate(Until(Truth_Formula(true), f), node, all_agents)
+        Globally(f) => ! evaluate(Eventually(Not_Formula(f)), node, all_agents)
+        Exist_Strategy(agents, f) => begin
+            if evaluate(f, node, all_agents)
+                return true
+            end
+            if length(node.children) == 0 || node.terminal_node
+                return true
+            end
+            if node.passive_node
+                return evaluate(formula, node.children[1], all_agents)
+            end
+            children = sort_children_by_clock!(node).children
+            agents_children = Vector{Node}()
+            other_agents_children = Vector{Node}()
+            for child in children
+                if child.reaching_decision.first in agents
+                    if evaluate(formula, child, all_agents)
+                        return true
+                    end
+                    push!(agents_children, child)
+                else 
+                    if ! evaluate(formula, child, all_agents)
+                        return false
+                    end
+                    push!(other_agents_children, child)
+                end
+            end
+            if length(agents_children) > 0 && (length(other_agents_children) == 0 || last(agents_children).global_clock < last(other_agents_children).global_clock)
+                return false
+            else
+                return true
+            end
+        end
+
+#         Exist_Always(agents, f) => begin
+#             if ! evaluate(f, node, all_agents)
+#                 return false
+#             end
+#             if length(node.children) == 0 || node.terminal_node
+#                 return true
+#             end
+#             if node.passive_node
+#                 return evaluate(formula, node.children[1], all_agents)
+#             end
+#             children = sort_children_by_clock_agent(node, agents)
+#             agents_children = Vector{Node}()
+#             other_agents_children = Vector{Node}()
+#             for child in children
+#                 if child.reaching_decision.first in agents
+#                     if evaluate(formula, child, all_agents)
+#                         return true
+#                     end
+#                     push!(agents_children, child)
+#                 else 
+#                     if ! evaluate(formula, child, all_agents)
+#                         return false
+#                     end
+#                     push!(other_agents_children, child)
+#                 end
+#             end
+#             if length(agents_children) > 0 && (length(other_agents_children) == 0 || last(agents_children).global_clock < last(other_agents_children).global_clock)
+#                 return false
+#             else
+#                 return true
+#             end
+#         end
+        Forall_Strategy(agents, f) => ! evaluate(Exist_Strategy(setdiff(all_agents, agents), Not_Formula(f)), node, all_agents)
+    end
+end
+
+
+
+
 # function evaluate(formula::State_Formula, config::Configuration)::Bool
 #     @match formula begin
 #         State_Truth(value) => value
