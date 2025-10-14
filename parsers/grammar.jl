@@ -74,6 +74,12 @@ function _parse_agent_list(left_tokens::ParseVector, token::VariableList, right_
     return AgentList(left_tokens[1].type == "[[", token)
 end
 
+# # agent_list -> << >> | [[ ]]
+function _parse_empty_list(left_tokens::ParseVector, token::EmptyListToken, right_tokens::ParseVector)::AgentList
+    _check_token_count(0, 0, left_tokens, right_tokens)
+    return AgentList(token.type == "[[]]", VariableList([]))
+end
+
 const agent_grammar::Dict{Type, Vector{GrammarRule}} = Dict([
     # var -> string
     (CustomToken, [GrammarRule([], [], _parse_custom_expression)]),
@@ -86,7 +92,9 @@ const agent_grammar::Dict{Type, Vector{GrammarRule}} = Dict([
     # agent_list -> << var_list >>
                     GrammarRule([SeparatorToken("<<")], [SeparatorToken(">>")], _parse_agent_list),
     # agent_list -> [[ var_list ]]
-                    GrammarRule([SeparatorToken("[[")], [SeparatorToken("]]")], _parse_agent_list)])
+                    GrammarRule([SeparatorToken("[[")], [SeparatorToken("]]")], _parse_agent_list)]),
+    # agent_list -> << >> | [[ ]]
+    (EmptyListToken, [GrammarRule([], [], _parse_empty_list)])
 ])
 
 

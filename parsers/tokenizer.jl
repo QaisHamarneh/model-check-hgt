@@ -67,7 +67,9 @@ operators::Dict{String, Type} = Dict([
     ("<<", SeparatorToken),
     (">>", SeparatorToken),
     ("[[", SeparatorToken),
-    ("]]", SeparatorToken)
+    ("]]", SeparatorToken),
+    ("<<>>", EmptyListToken),
+    ("[[]]", EmptyListToken)
 ])
 
 # all symbols that occur in separators

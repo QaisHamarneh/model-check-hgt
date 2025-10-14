@@ -61,6 +61,7 @@ ast = parse_tokens(tokenize("<< >> F x>5 and y<10"))
     ConstraintBinaryOperation("<", VariableNode("y"), ExpressionConstant(10.0))
 )
 @test ast == parse_tokens(tokenize("((<< >> F x>5) and (y<10))"))
+@test ast == parse_tokens(tokenize("((<<>> F x>5) and (y<10))"))
 
 ast = parse_tokens(tokenize("<< >> F x>5 && y<10"))
 @test ast == Quantifier(
@@ -74,6 +75,7 @@ ast = parse_tokens(tokenize("<< >> F x>5 && y<10"))
     )
 )
 @test ast == parse_tokens(tokenize("(<< >> F (x>5 && y<10))"))
+@test ast == parse_tokens(tokenize("(<<>> F (x>5 && y<10))"))
 
 ast = parse_tokens(tokenize("not << >> F true"))
 @test ast == StrategyUnaryOperation("not", parse_tokens((tokenize("<< >> F true"))))

@@ -59,6 +59,19 @@ struct SeparatorToken <: Token
     type::String
 end
 
+"""
+    EmptyListToken <: Token
+
+A token for empty lists.
+
+    EmptyListToken(type::String)
+
+Create a EmptyListToken of type `type`.
+"""
+struct EmptyListToken <: Token
+    type::String
+end
+
 
 """
     CustomToken <: Token
