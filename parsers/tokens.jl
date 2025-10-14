@@ -34,6 +34,9 @@ The types are hierarchically ordered as follows:
         |-- ...UnaryOperatorToken
         |-- ...BinaryOperatorToken
         |-- ConstraintCompareToken
+
+# Authors:
+- Moritz Maas
 """
 
 # abstract types for all tokens

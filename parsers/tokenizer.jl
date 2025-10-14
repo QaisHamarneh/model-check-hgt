@@ -11,6 +11,9 @@ Uses tokens defined by [`tokens.jl`].
 
 # Types:
 - `TokenizeError`: describes an error that occured while tokenizing
+
+# Authors:
+- Moritz Maas
 """
 
 include("tokens.jl")

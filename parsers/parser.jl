@@ -8,6 +8,9 @@ Uses tokens defined by [`tokenizer.jl`], [`grammar.jl`].
 
 # Functions:
 - `parse_tokens(tokens::Vector{Token})::ASTNode`: returns the root of the parsed AST
+
+# Authors:
+- Moritz Maas
 """
 
 include("tokenizer.jl")

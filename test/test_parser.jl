@@ -43,6 +43,11 @@ ast = parse_tokens(tokenize("true && x < y"))
 ast = parse_tokens(tokenize("x < 10 && false"))
 @test ast == ConstraintBinaryOperation("&&", ConstraintBinaryOperation("<", VariableNode("x"), ExpressionConstant(10.0)), ConstraintConstant(false))
 
+# Test states
+
+ast = parse_tokens(tokenize("true && var"))
+@test ast == StateBinaryOperation("&&", ConstraintConstant(true), LocationNode("var"))
+
 # Test strategies
 
 ast = parse_tokens(tokenize("<<a,b>> F true"))

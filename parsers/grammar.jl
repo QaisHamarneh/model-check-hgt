@@ -13,6 +13,9 @@ This file contains all grammar rules needed to parse a strategy formula.
 - `expression_grammar`: grammar rules for expressions
 - `constraint_grammar`: grammar rules for constraints
 - `strategy_grammar`: grammar rules for strategies
+
+# Authors:
+- Moritz Maas
 """
 
 include("ast_nodes.jl")
