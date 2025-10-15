@@ -17,14 +17,15 @@ include("tokenizer.jl")
 include("grammar.jl")
 
 """
-    parse_tokens(tokens::Vector{Token})
+    parse_tokens(tokens::Vector{Token}; level::ParseLevel = strategy)::Union{ASTNode, Nothing}
 
-Convert a vector of tokens into an abstract syntax tree.
+Convert a vector of tokens into an abstract syntax tree using the given parse level.
 
 See also [`tokenize`]
 
 # Arguments
-- `tokens::Vector{Token}`: the tokens to parse.
+- `tokens::Vector{Token}`: the tokens to parse
+- `level::ParseLevel`: the parse level to use, default is the strategy level
 
 # Examples
 ```julia-repl
@@ -32,29 +33,25 @@ julia> parse_tokens(tokenize("a + b"))
 ExpressionBinaryOperation("+", VariableNode("a"), VariableNode("b"))
 ```
 """
-function parse_tokens(tokens::Vector{Token})::ASTNode
-    # pre-parse
-    parsed_tokens::ParseVector = _parse_grammar(ParseVector(tokens), pre_parse_grammar)
-    # parse agent lists
-    parsed_tokens = _parse_grammar(parsed_tokens, agent_grammar)
-    # parse expressions
-    parsed_tokens = _parse_grammar(parsed_tokens, expression_grammar)
-    # parse constraints
-    parsed_tokens = _parse_grammar(parsed_tokens, constraint_grammar)
-    # parse locations
-    parsed_tokens = _parse_grammar(parsed_tokens, location_grammar)
-    # parse states
-    parsed_tokens = _parse_grammar(parsed_tokens, state_grammar)
-    # parse strategies
-    parsed_tokens = _parse_grammar(parsed_tokens, strategy_grammar)
+function parse_tokens(tokens::Vector{Token}, level::ParseLevel = strategy)::Union{ASTNode, Nothing}
+    if length(tokens) == 0
+        return Nothing
+    end
     
-    if length(parsed_tokens) != 1 || !(parsed_tokens[1] isa ASTNode)
-        throw(ParseError("$parsed_tokens is an invalid sequence of tokens."))
+    parsed_tokens::ParseVector = ParseVector(tokens)
+    for grammar in get(level_to_grammar, level, [])
+        parsed_tokens = _parse_grammar(parsed_tokens, grammar)
+    end
+
+    if length(parsed_tokens) > 1
+        throw(ParseError("Cannot parse tokens between '$(to_string(parsed_tokens[1]))' and '$(to_string(parsed_tokens[2]))'."))
+    elseif length(parsed_tokens) == 1 && !(parsed_tokens[1] isa ASTNode)
+        throw(ParseError("Unparsed token at '$(to_string(parsed_tokens[1]))'."))
     end
     return parsed_tokens[1]
 end
 
-function _parse_grammar(tokens::ParseVector, grammar::Dict{Type, Vector{GrammarRule}})::ParseVector
+function _parse_grammar(tokens::ParseVector, grammar::Grammar)::ParseVector
     parsed_tokens::ParseVector = ParseVector(undef, 0)
     parsed::Bool = false
     skips::Int = 0
@@ -91,7 +88,7 @@ function _parse_grammar(tokens::ParseVector, grammar::Dict{Type, Vector{GrammarR
     return parsed_tokens
 end
 
-function _get_consumable_tokens(current_index::Int, tokens::ParseVector, grammar::Dict{Type, Vector{GrammarRule}})::Dict{Int, GrammarRule}
+function _get_consumable_tokens(current_index::Int, tokens::ParseVector, grammar::Grammar)::Dict{Int, GrammarRule}
     first_rule::GrammarRule = GrammarRule([], [], get)
     for rule in get(grammar, typeof(tokens[current_index]), [])
         if _match_grammar_rule(rule, ParseVector(tokens[begin:(current_index - 1)]), ParseVector(tokens[(current_index + 1):end]))

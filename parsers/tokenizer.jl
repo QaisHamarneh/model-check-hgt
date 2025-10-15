@@ -98,9 +98,9 @@ numeric_symbols::Set{Char} = Set(union(
 ))
 
 """
-    tokenize(str::String)
+    tokenize(str::String)::Vector{Token}
 
-Convert an input string str into ordered tokens.
+Convert an input string `str` into ordered tokens.
 
 # Arguments
 - `str::String`: the string input to tokenize.

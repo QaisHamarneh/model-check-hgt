@@ -3,6 +3,9 @@
 
 This file contains all definitions needed to parse tokens to an AST.
 
+# Functions:
+- `to_string(node::ASTNode)::String`: convert a node to a string
+
 # Types:
 - `ASTNode`: abstract type for all nodes
 - `VariableList`: node for variable lists
@@ -74,12 +77,12 @@ end
 
 AST Node for user defined variables.
 
-    VariableNode(name::String)
+    VariableNode(value::String)
 
-Create a VariableNode for a variable with name `name`.
+Create a VariableNode for a variable with name `value`.
 """
 struct VariableNode <: ExpressionNode
-    name::String
+    value::String
 end
 
 """
@@ -168,10 +171,10 @@ AST Node for locations.
 
     LocationNode(name::String)
 
-Create a LocationNode for a location with name `name`.
+Create a LocationNode for a location with name `value`.
 """
 struct LocationNode <: StateNode
-    name::String
+    value::String
 end
 
 """
@@ -305,3 +308,129 @@ Base.:(==)(x::Quantifier, y::Quantifier) = (
     && x.agent_list == y.agent_list
     && x.child == y.child
 )
+
+# group operation types
+const ConstantOperation = Union{LocationNode, ConstraintConstant, ExpressionConstant, VariableNode}
+const UnaryOperation = Union{StrategyUnaryOperation, StateUnaryOperation, ConstraintUnaryOperation, ExpressionUnaryOperation}
+const BinaryOperation = Union{StrategyBinaryOperation, StateBinaryOperation, ConstraintBinaryOperation, ExpressionBinaryOperation}
+
+"""
+    to_string(node::ConstantOperation)::String
+
+Convert a ConstantOperation `node` to a string.
+
+# Arguments
+- `node::ConstantOperation`: node to convert.
+
+# Examples
+```julia-repl
+julia> to_string(ExpressionConstant(10.0))
+"10.0"
+```
+"""
+function to_string(node::ConstantOperation)::String
+    return "$(node.value)"
+end
+
+"""
+    to_string(node::UnaryOperation)::String
+
+Convert a UnaryOperation `node` to a string.
+
+# Arguments
+- `node::UnaryOperation`: node to convert.
+
+# Examples
+```julia-repl
+julia> to_string(ExpressionUnaryOperation("-", VariableNode("x")))
+"-(x)"
+```
+"""
+function to_string(node::UnaryOperation)::String
+    return "$(node.unary_operation)($(to_string(node.child)))"
+end
+
+"""
+    to_string(node::BinaryOperation)::String
+
+Convert a BinaryOperation `node` to a string.
+
+# Arguments
+- `node::BinaryOperation`: node to convert.
+
+# Examples
+```julia-repl
+julia> to_string(ExpressionBinaryOperation("+", VariableNode("x"), VariableNode("y")))
+"(x)+(y)"
+```
+"""
+function to_string(node::BinaryOperation)::String
+    return "($(to_string(node.left_child)))$(node.binary_operation)($(to_string(node.right_child)))"
+end
+
+"""
+    to_string(node::VariableList)::String
+
+Convert a VariableList `node` to a string.
+
+# Arguments
+- `node::VariableList`: node to convert.
+
+# Examples
+```julia-repl
+julia> to_string(VariableList([VariableNode("x"), VariableNode("y")]))
+"x,y"
+```
+"""
+function to_string(node::VariableList)::String
+    if length(node.variables) == 0
+        return ""
+    end
+    output::String = to_string(node.variables[1])
+    for i in 2:length(node.variables)
+        output = output * ",$(to_string(node.variables[i]))"
+    end
+    return output
+end
+
+"""
+    to_string(node::AgentList)::String
+
+Convert a AgentList `node` to a string.
+
+# Arguments
+- `node::AgentList`: node to convert.
+
+# Examples
+```julia-repl
+julia> to_string(AgentList(true, VariableList([VariableNode("x"), VariableNode("y")])))
+"[[x,y]]"
+```
+"""
+function to_string(node::AgentList)::String
+    if node.for_all
+        return "[[$(to_string(node.agents))]]"
+    end
+    return "<<$(to_string(node.agents))>>"
+end
+
+"""
+    to_string(node::Quantifier)::String
+
+Convert a Quantifier `node` to a string.
+
+# Arguments
+- `node::Quantifier`: node to convert.
+
+# Examples
+```julia-repl
+julia> to_string(Quantifier(true, true, AgentList(true, VariableList([VariableNode("x"), VariableNode("y")])), LocationNode("loc")))
+"[[x,y]]G(loc)"
+```
+"""
+function to_string(node::Quantifier)::String
+    if node.always
+        return "$(to_string(node.agent_list))G($(to_string(node.child)))"
+    end
+    return "$(to_string(node.agent_list))F($(to_string(node.child)))"
+end

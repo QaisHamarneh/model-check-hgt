@@ -9,6 +9,8 @@ This file contains all grammar rules needed to parse a strategy formula.
 
 # Constants:
 - `ParseVector`: type of array of partially parsed tokens
+- `Grammar`: type of map from token or node types to derivation rules 
+- `level_to_grammar`: map parse levels to grammars
 - `pre_parse_grammar`: grammar rules for pre parsing
 - `expression_grammar`: grammar rules for expressions
 - `constraint_grammar`: grammar rules for constraints
@@ -26,9 +28,6 @@ This file contains all grammar rules needed to parse a strategy formula.
 """
 
 include("ast_nodes.jl")
-
-# parse vectors are arrays of partially parsed tokens 
-const ParseVector = Vector{Union{Token, ASTNode}}
 
 """
     GrammarRule
@@ -50,6 +49,11 @@ end
 Base.:(==)(x::GrammarRule, y::GrammarRule) = (
     x.parse == y.parse
 )
+
+# parse vectors are arrays of partially parsed tokens
+const ParseVector = Vector{Union{Token, ASTNode}}
+# grammars map token and node types to derivation rules
+const Grammar = Dict{Type, Vector{GrammarRule}}
 
 
 
@@ -78,7 +82,7 @@ function _parse_boolean_constraint(left_tokens::ParseVector, token::BooleanToken
     return ConstraintConstant(token.type == "true")
 end
 
-pre_parse_grammar::Dict{Type, Vector{GrammarRule}} = Dict([
+pre_parse_grammar::Grammar = Dict([
     # var -> string
     (CustomToken, [GrammarRule([], [], _parse_custom_expression)]),
     # expr -> number
@@ -92,10 +96,10 @@ pre_parse_grammar::Dict{Type, Vector{GrammarRule}} = Dict([
 # state -> location
 function _parse_location(left_tokens::ParseVector, token::VariableNode, right_tokens::ParseVector)::LocationNode
     _check_token_count(0, 0, left_tokens, right_tokens)
-    return LocationNode(token.name)
+    return LocationNode(token.value)
 end
 
-location_grammar::Dict{Type, Vector{GrammarRule}} = Dict([
+location_grammar::Grammar = Dict([
     # state -> location
     (VariableNode, [GrammarRule([], [], _parse_location)]),
 ])
@@ -114,7 +118,7 @@ function _parse_binary_expression(left_tokens::ParseVector, token::OperatorToken
     return ExpressionBinaryOperation(token.type, left_tokens[1], right_tokens[1])
 end
 
-expression_grammar::Dict{Type, Vector{GrammarRule}} = Dict([
+expression_grammar::Grammar = Dict([
     # expr -> ( expr )
     (VariableNode, [GrammarRule([SeparatorToken("(")], [SeparatorToken(")")], _parse_bracket)]),
     # expr -> ( expr )
@@ -153,7 +157,7 @@ function _parse_compare_constraint(left_tokens::ParseVector, token::ConstraintCo
     return ConstraintBinaryOperation(token.type, left_tokens[1], right_tokens[1])
 end
 
-const constraint_grammar::Dict{Type, Vector{GrammarRule}} = Dict([
+const constraint_grammar::Grammar = Dict([
     # constr -> ( constr )
     (ConstraintConstant, [GrammarRule([SeparatorToken("(")], [SeparatorToken(")")], _parse_bracket)]),
     # constr -> ( constr )
@@ -182,7 +186,7 @@ function _parse_binary_state(left_tokens::ParseVector, token::ConstraintBinaryOp
     return StateBinaryOperation(token.type, left_tokens[1], right_tokens[1])
 end
 
-const state_grammar::Dict{Type, Vector{GrammarRule}} = Dict([
+const state_grammar::Grammar = Dict([
     # state -> ( state )
     (LocationNode, [GrammarRule([SeparatorToken("(")], [SeparatorToken(")")], _parse_bracket)]),
     # state -> ( state )
@@ -227,7 +231,7 @@ function _parse_empty_list(left_tokens::ParseVector, token::EmptyListToken, righ
     return AgentList(token.type == "[[]]", VariableList([]))
 end
 
-const agent_grammar::Dict{Type, Vector{GrammarRule}} = Dict([
+const agent_grammar::Grammar = Dict([
     # var -> string
     (CustomToken, [GrammarRule([], [], _parse_custom_expression)]),
     # var_list -> var , var
@@ -272,7 +276,7 @@ end
 
 
 
-const strategy_grammar::Dict{Type, Vector{GrammarRule}} = Dict([
+const strategy_grammar::Grammar = Dict([
     # strat -> ( strat )
     (Quantifier, [GrammarRule([SeparatorToken("(")], [SeparatorToken(")")], _parse_bracket)]),
     # strat -> ( strat )
@@ -328,6 +332,48 @@ const operator_type_to_strength::Dict{Type, Dict{String, Int}} = Dict([
     (ConstraintBinaryOperatorToken, constraint_operator_strength),
     (StateBinaryOperatorToken, constraint_operator_strength),
     (StrategyBinaryOperatorToken, strategy_operator_strength)
+])
+
+
+
+"""
+    ParseLevel
+
+Enum for all levels of parsing
+"""
+@enum ParseLevel begin
+    expression
+    constraint
+    state
+    strategy
+end
+
+level_to_grammar::Dict{ParseLevel, Vector{Grammar}} = Dict([
+    (expression, [
+        pre_parse_grammar,
+        expression_grammar
+    ]),
+    (constraint, [
+        pre_parse_grammar,
+        expression_grammar, 
+        constraint_grammar
+    ]),
+    (state, [
+        pre_parse_grammar,
+        expression_grammar,
+        constraint_grammar,
+        location_grammar,
+        state_grammar
+    ]),
+    (strategy, [
+        pre_parse_grammar,
+        agent_grammar,
+        expression_grammar,
+        constraint_grammar,
+        location_grammar,
+        state_grammar,
+        strategy_grammar
+    ])
 ])
 
 

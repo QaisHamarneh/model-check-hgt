@@ -3,6 +3,9 @@
 
 This file contains all token definitions needed to convert a string into an array of tokens.
 
+# Functions:
+- `to_string(token::Token)::String`: convert a token to a string
+
 # Types:
 - `Token`: abstract type for all tokens
 - `KeywordToken`: abstract type for all keywords
@@ -270,4 +273,22 @@ Create a ExpressionUnBinaryOperatorToken of type `type`.
 """
 struct ExpressionUnBinaryOperatorToken <: OperatorToken
     type::String
+end
+
+"""
+    to_string(token::Token)::String
+
+Convert a Token `token` to a string.
+
+# Arguments
+- `token::Token`: token to convert.
+
+# Examples
+```julia-repl
+julia> to_string(CustomToken("example"))
+"example"
+```
+"""
+function to_string(token::Token)::String
+    return token.type
 end
