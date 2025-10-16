@@ -139,20 +139,20 @@ ast = parse_tokens(tokenize("<<a,b>> F true"))
 @test to_string(ast) == "<<a,b>>F(true)"
 @test ast == parse_tokens(tokenize("(<<a,b>> F (true))"), strategy)
 @test_throws ParseError("Cannot parse tokens between '<<' and '('.") parse_tokens(tokenize("<<(a,b)>> F true"))
-@test_throws ParseError("Cannot parse tokens between '<<' and 'a'.") parse_tokens(tokenize("<<(a),(b)>> F true"))
+@test_throws ParseError("Cannot parse tokens between '(' and '<<'.") parse_tokens(tokenize("(<<(a),(b)>> F (true))"))
 
-ast = parse_tokens(tokenize("<< >> F x>5 and y<10"))
+ast = parse_tokens(tokenize("<<a>> F x>5 and y<10"))
 @test ast == StrategyBinaryOperation(
     "and",
     Quantifier(
-        false, false, AgentList(false, VariableList([])),
+        false, false, AgentList(false, VariableList([VariableNode("a")])),
         ConstraintBinaryOperation(">", VariableNode("x"), ExpressionConstant(5.0))
     ),
     ConstraintBinaryOperation("<", VariableNode("y"), ExpressionConstant(10.0))
 )
-@test to_string(ast) == "(<<>>F((x)>(5.0)))and((y)<(10.0))"
-@test ast == parse_tokens(tokenize("((<< >> F x>5) and (y<10))"))
-@test ast == parse_tokens(tokenize("((<<>> F x>5) and (y<10))"))
+@test to_string(ast) == "(<<a>>F((x)>(5.0)))and((y)<(10.0))"
+@test ast == parse_tokens(tokenize("((<< a >> F x>5) and (y<10))"))
+@test ast == parse_tokens(tokenize("((<<a>> F x>5) and (y<10))"))
 
 ast = parse_tokens(tokenize("<< >> F x>5 && y<10"))
 @test ast == Quantifier(

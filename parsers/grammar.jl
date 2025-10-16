@@ -214,20 +214,20 @@ function _parse_variable_list_1(left_tokens::ParseVector, token::VariableNode, r
     return VariableList([token, right_tokens[2]])
 end
 
-# var_list -> var , var_list
+# var_list -> var_list , var
 function _parse_variable_list_2(left_tokens::ParseVector, token::VariableList, right_tokens::ParseVector)::VariableList
     _check_token_count(0, 2, left_tokens, right_tokens)
-    return VariableList([token, right_tokens[2].variables])
+    return VariableList([token.variables; right_tokens[2]])
 end
 
-# var_list -> var_list , var_list
-function _parse_variable_list_3(left_tokens::ParseVector, token::VariableList, right_tokens::ParseVector)::VariableList
-    _check_token_count(0, 2, left_tokens, right_tokens)
-    return VariableList([token.variables, right_tokens[2].variables])
+# agent_list -> << var >> | [[ var ]]
+function _parse_agent_list_1(left_tokens::ParseVector, token::VariableNode, right_tokens::ParseVector)::AgentList
+    _check_token_count(1, 1, left_tokens, right_tokens)
+    return AgentList(left_tokens[1].type == "[[", VariableList([token]))
 end
 
 # agent_list -> << var_list >> | [[ var_list ]]
-function _parse_agent_list(left_tokens::ParseVector, token::VariableList, right_tokens::ParseVector)::AgentList
+function _parse_agent_list_2(left_tokens::ParseVector, token::VariableList, right_tokens::ParseVector)::AgentList
     _check_token_count(1, 1, left_tokens, right_tokens)
     return AgentList(left_tokens[1].type == "[[", token)
 end
@@ -242,15 +242,17 @@ const agent_grammar::Grammar = Dict([
     # var -> string
     (CustomToken, [GrammarRule([], [], _parse_custom_expression)]),
     # var_list -> var , var
-    (VariableNode, [GrammarRule([], [SeparatorToken(","), VariableNode], _parse_variable_list_1)]),
-    # var_list -> var , var_list
+    (VariableNode, [GrammarRule([], [SeparatorToken(","), VariableNode], _parse_variable_list_1),
+    # agent_list -> << var >>
+                    GrammarRule([SeparatorToken("<<")], [SeparatorToken(">>")], _parse_agent_list_1),
+    # agent_list -> [[ var ]]
+                    GrammarRule([SeparatorToken("[[")], [SeparatorToken("]]")], _parse_agent_list_1)]),
+    # var_list -> var_list , var
     (VariableList, [GrammarRule([], [SeparatorToken(","), VariableNode], _parse_variable_list_2),
-    # var_list -> var_list , var_list
-                    GrammarRule([], [SeparatorToken(","), VariableList], _parse_variable_list_3),
     # agent_list -> << var_list >>
-                    GrammarRule([SeparatorToken("<<")], [SeparatorToken(">>")], _parse_agent_list),
+                    GrammarRule([SeparatorToken("<<")], [SeparatorToken(">>")], _parse_agent_list_2),
     # agent_list -> [[ var_list ]]
-                    GrammarRule([SeparatorToken("[[")], [SeparatorToken("]]")], _parse_agent_list)]),
+                    GrammarRule([SeparatorToken("[[")], [SeparatorToken("]]")], _parse_agent_list_2)]),
     # agent_list -> << >> | [[ ]]
     (EmptyListToken, [GrammarRule([], [], _parse_empty_list)])
 ])
