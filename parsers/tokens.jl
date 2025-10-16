@@ -14,6 +14,7 @@ This file contains all token definitions needed to convert a string into an arra
 - `CustomToken`: token for all user defined variables
 - `NumericToken`: token for all numeric values
 - `BooleanToken`: token for all boolean values
+- `StateConstantToken`: token for deadlocks
 - `QuantifierToken`: token for quantifier keywords
 - `StrategyUnaryOperatorToken`: token for unary operations on strategies
 - `StrategyBinaryOperatorToken`: token for binary operations on strategies
@@ -32,6 +33,7 @@ The types are hierarchically ordered as follows:
     |-- NumericToken
     |-- KeywordToken
     |   |-- BooleanToken
+    |   |-- StateConstantToken
     |   |-- QuantifierToken
     |-- OperatorToken
         |-- ...UnaryOperatorToken

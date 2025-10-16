@@ -62,6 +62,7 @@ operators::Dict{String, Type} = Dict([
     (">=", ConstraintCompareToken),
     ("==", ConstraintCompareToken),
     ("!=", ConstraintCompareToken),
+
     ("&&", ConstraintBinaryOperatorToken),
     ("||", ConstraintBinaryOperatorToken),
     ("->", ConstraintBinaryOperatorToken),
