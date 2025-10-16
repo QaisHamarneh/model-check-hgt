@@ -82,6 +82,9 @@ struct State_Imply <: State_Formula
     right::State_Formula
 end
 
+struct State_Deadlock <: State_Formula
+end
+
 
 function get_all_properties(formula::State_Formula)::Set{Constraint}
     @match formula begin
@@ -92,6 +95,7 @@ function get_all_properties(formula::State_Formula)::Set{Constraint}
         State_Or(left, right) => get_all_properties(left) ∪ get_all_properties(right)
         State_Not(f) => get_all_properties(f)
         State_Imply(left, right) => get_all_properties(left) ∪ get_all_properties(right)
+        State_Deadlock() => Set{State_Formula}()
     end
 end
 
@@ -117,21 +121,28 @@ function get_all_properties(formulae::Vector{Strategy_Formula})::Set{Constraint}
     return props
 end
 
-function evaluate(formula::State_Formula, config::Configuration)::Bool
+function evaluate(formula::State_Formula, node::Node)::Bool
     @match formula begin
         State_Truth(value) => value
-        State_Location(loc) => loc == config.location
-        State_Constraint(constraint) => evaluate(constraint, config.valuation)
-        State_And(left, right) => evaluate(left, config) && evaluate(right, config)
-        State_Or(left, right) => evaluate(left, config) || evaluate(right, config)
-        State_Not(f) => ! evaluate(f, config)
-        State_Imply(left, right) => ! evaluate(left, config) || evaluate(right, config)
+        State_Location(loc) => loc == node.config.location
+        State_Constraint(constraint) => evaluate(constraint, node.config.valuation)
+        State_And(left, right) => evaluate(left, node.config) && evaluate(right, node.config)
+        State_Or(left, right) => evaluate(left, node.config) || evaluate(right, node.config)
+        State_Not(f) => ! evaluate(f, node.config)
+        State_Imply(left, right) => ! evaluate(left, node.config) || evaluate(right, node.config)
+        State_Deadlock() => ! node.terminal_node && length(node.children) == 0
     end
 end
 
 function evaluate(formula::Strategy_Formula, node::Node, all_agents::Set{Agent})::Bool
     @match formula begin
-        Strategy_to_State(f) => evaluate(f, node.config)
+        Strategy_to_State(f) => evaluate(f, node)
+        All_Always(agents, f) => ! evaluate(Exist_Eventually(setdiff(all_agents, agents), State_Not(f)), node, all_agents)
+        All_Eventually(agents, f) => ! evaluate(Exist_Always(setdiff(all_agents, agents), State_Not(f)), node, all_agents)
+        Strategy_And(left, right) => evaluate(left, node, all_agents) && evaluate(right, node, all_agents)
+        Strategy_Or(left, right) => evaluate(left, node, all_agents) || evaluate(right, node, all_agents)
+        Strategy_Not(f) => ! evaluate(f, node, all_agents)
+        Strategy_Imply(left, right) => ! evaluate(left, node, all_agents) || evaluate(right, node, all_agents)
         Exist_Always(agents, f) => begin
             if ! evaluate(f, node, all_agents)
                 return false
@@ -196,12 +207,6 @@ function evaluate(formula::Strategy_Formula, node::Node, all_agents::Set{Agent})
                 return true
             end
         end
-        All_Always(agents, f) => ! evaluate(Exist_Eventually(setdiff(all_agents, agents), State_Not(f)), node, all_agents)
-        All_Eventually(agents, f) => ! evaluate(Exist_Always(setdiff(all_agents, agents), State_Not(f)), node, all_agents)
-        Strategy_And(left, right) => evaluate(left, node) && evaluate(right, node)
-        Strategy_Or(left, right) => evaluate(left, node) || evaluate(right, node)
-        Strategy_Not(f) => ! evaluate(f, node)
-        Strategy_Imply(left, right) => ! evaluate(left, node) || evaluate(right, node)
     end
 end
 

@@ -26,14 +26,14 @@ function build_triggers_game_tree(game::Game,
         current_config = initial_configuration(game)
     end
 
-    if global_clock >= termination_conditions["time-bound"] || 
-        total_steps >= termination_conditions["max-steps"] #||
-        # evaluate(termination_conditions["state_formula"], current_config)
-        return Node(parent, reaching_decision, false, current_config, true, [])
-    end
-
     remaining_time = termination_conditions["time-bound"] - global_clock
     current_node = Node(parent, reaching_decision, false, current_config, false, [])
+
+    if global_clock >= termination_conditions["time-bound"] || 
+        total_steps >= termination_conditions["max-steps"] #||
+        # evaluate(termination_conditions["state_formula"], current_node)
+        return Node(parent, reaching_decision, false, current_node, true, [])
+    end
 
     _, location_invariant, _ = time_to_trigger(current_config, Not(current_config.location.invariant), Set{Constraint}(), remaining_time)
 
@@ -56,8 +56,8 @@ function build_triggers_game_tree(game::Game,
                     config_after_edge = discrete_transition(config_after_trigger, edge)
                     path_node = current_node
                     for path_config in trigger_path.path_to_trigger
-                        if global_clock >= termination_conditions["time-bound"] # &&
-                            # evaluate(termination_conditions["state_formula"], current_config)
+                        if path_config.global_clock >= termination_conditions["time-bound"] # &&
+                            # evaluate(termination_conditions["state_formula"], path_node)
                             child_node = Node(path_node, Pair(agent, action), true, path_config, true, [])
                         else
                             child_node = Node(path_node, Pair(agent, action), true, path_config, false, [])
