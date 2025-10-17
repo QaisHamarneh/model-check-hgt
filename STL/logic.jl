@@ -51,10 +51,6 @@ struct Strategy_Imply <: Strategy_Formula
     right::Strategy_Formula
 end
 
-struct State_Truth <: State_Formula
-    value::Bool
-end
-
 struct State_Location <: State_Formula
     proposition::Symbol
 end
@@ -88,7 +84,6 @@ end
 
 function get_all_properties(formula::State_Formula)::Set{Constraint}
     @match formula begin
-        State_Truth(_) => Set{State_Formula}()
         State_Location(_) => Set{State_Formula}()
         State_Constraint(constraint) => Set([constraint, Not(constraint)])
         State_And(left, right) => get_all_properties(left) ∪ get_all_properties(right)
@@ -123,7 +118,6 @@ end
 
 function evaluate(formula::State_Formula, node::Node)::Bool
     @match formula begin
-        State_Truth(value) => value
         State_Location(loc) => loc == node.config.location
         State_Constraint(constraint) => evaluate(constraint, node.config.valuation)
         State_And(left, right) => evaluate(left, node.config) && evaluate(right, node.config)

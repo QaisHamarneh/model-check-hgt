@@ -1,7 +1,8 @@
 using JSON3
 using DataStructures
 include("../game_syntax/game.jl")
-include("../parsers/parse_constraint.jl")
+include("parse_constraint.jl")
+include("parser.jl")
 
 function parse_game(json_file)
     open(json_file,"r") do f
@@ -59,17 +60,17 @@ function parse_game(json_file)
 
         game = Game(game_name, locations, initial_location, initial_valuation, agents, actions, edges, triggers, true)
 
-        termination_conditions = FileDict["termination-conditions"]
-        # max_time::Float64 = FileDict["time-bound"]
-        # max_steps::Int64 = FileDict["max-steps"]
-        # queries::Vector{Strategy_Formula} = Strategy_Formula[parse_strategy_formula(query) for query in FileDict["queries"]]
-        queries = FileDict["queries"]
+        termination_conditions = Dict{String, Any}()
+        termination_conditions["max-time"] = Float64(FileDict["termination-conditions"]["time-bound"])
+        termination_conditions["max-steps"] = Int64(FileDict["termination-conditions"]["max-steps"])
+        termination_conditions["state-formula"] = to_logic(parse_tokens(tokenize(FileDict["termination-conditions"]["state-formula"]), state))
+        queries::Vector{Strategy_Formula} = State_Formula[to_logic(parse_tokens(tokenize(query), strategy)) for query in FileDict["queries"]]
         return game, termination_conditions, queries
 
     end
 end
 
 
-game, termination_conditions, queries = parse_game("examples/3_players_1_ball.json")
+# game, termination_conditions, queries = parse_game("examples/3_players_1_ball.json")
 
-println("********************")
+# println("********************")
