@@ -1,7 +1,6 @@
 using JSON3
 using DataStructures
 include("../game_syntax/game.jl")
-include("parse_constraint.jl")
 include("parser.jl")
 
 function parse_game(json_file)
@@ -14,10 +13,11 @@ function parse_game(json_file)
         initial_location = nothing
         for loc in GameDict["locations"]
             name = Symbol(loc["name"])
-            invariant::Constraint = parse_constraint(loc["invariant"])
+            invariant::Constraint = to_logic(parse_tokens(tokenize(loc["invariant"]), constraint))
             flow::ReAssignment = Dict{Symbol, ExprLike}()
             if ! isempty(loc["flow"])
-                flow = Dict(Symbol(var) => parse_expression(flow) for (var, flow) in loc["flow"])
+                flow = Dict(Symbol(var) => to_logic(parse_tokens(tokenize((flow)), expression))
+                                            for (var, flow) in loc["flow"])
             end
             location = Location(name, invariant, flow)
             if haskey(loc, "initial") && loc["initial"]
@@ -48,15 +48,18 @@ function parse_game(json_file)
             if length(decisions) != 1
                 error("Edge $(name) must have exactly one decision (agent-action pair). Found: ", decisions)
             end
-            guard::Constraint = parse_constraint(edge["guard"])
+            guard::Constraint = to_logic(parse_tokens(tokenize(edge["guard"]), constraint))
             jump::ReAssignment = Dict{Symbol, ExprLike}()
             if ! isempty(edge["jump"])
-                jump = Dict(Symbol(var) => parse_expression(jump) for (var, jump) in edge["jump"])
+                jump = Dict(Symbol(var) => to_logic(parse_tokens(tokenize(jump), expression))
+                            for (var, jump) in edge["jump"])
             end
             push!(edges, Edge(name, start_location, target_location, guard, decisions[1], jump))
         end
-        # triggers::Vector{Constraint} = Constraint[parse_constraint(trigger) for trigger in GameDict["triggers"]]
-        triggers::Dict{Agent, Vector{Constraint}} = Dict(Symbol(agent) => Constraint[parse_constraint(trigger) for trigger in agents_triggers] for (agent, agents_triggers) in GameDict["triggers"])
+        triggers::Dict{Agent, Vector{Constraint}} = Dict(Symbol(agent) => 
+            Constraint[to_logic(parse_tokens(tokenize(trigger), constraint))
+                for trigger in agents_triggers] 
+                for (agent, agents_triggers) in GameDict["triggers"])
 
         game = Game(game_name, locations, initial_location, initial_valuation, agents, actions, edges, triggers, true)
 

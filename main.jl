@@ -11,21 +11,20 @@ t1 = time();
 example = 3
 
 if example == 1
-    game, termination_conditions, _ = parse_game("examples/bouncing_ball.json")
+    game, termination_conditions, queries = parse_game("examples/bouncing_ball.json")
     queries = Strategy_Formula[ Exist_Eventually(Set([:α]), Strategy_to_State(State_Constraint(parse_constraint("pos < 0 || pos > 1000"))))]
 elseif example == 2
-    game, termination_conditions, _ = parse_game("examples/3_players_1_ball.json")
+    game, termination_conditions, queries = parse_game("examples/3_players_1_ball.json")
     queries = Strategy_Formula[ Exist_Eventually(Set([:A]), Exist_Eventually(Set([:A]), Strategy_to_State(State_Constraint(parse_constraint("y > 8"))))), 
                                 Exist_Eventually(Set([:A, :B]), Exist_Eventually(Set([:A, :B]), Strategy_to_State(State_Constraint(parse_constraint("y > 8")))))]
 elseif example == 3
-    game, termination_conditions, _ = parse_game("examples/player_in_middle.json")
+    game, termination_conditions, queries = parse_game("examples/player_in_middle.json")
     queries = Strategy_Formula[ Exist_Always(Set([:A, :B]), Strategy_to_State(State_Not(State_Location(:Caught))))]
 end
 
 t2 = time();
 
-# properties = Set{Constraint}()
-properties = get_all_properties(queries)
+properties = get_all_properties(queries ∪ Set([termination_conditions["state-formula"]]))
 
 game_tree::Node = build_triggers_game_tree(game, properties, termination_conditions)
 

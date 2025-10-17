@@ -185,3 +185,78 @@ ast = parse_tokens(tokenize("p or q and w"))
 @test_throws ParseError("Cannot parse tokens between '<<' and 'a'.") parse_tokens(tokenize("<<a, >> F true"))
 @test_throws ParseError("Cannot parse tokens between 'true' and '&&'.") parse_tokens(tokenize("true && false"), expression)
 @test_throws ParseError("Cannot parse tokens between 'true' and '&&'.") parse_tokens(tokenize("true && var"), constraint)
+
+
+
+#################################
+# Comprehensive tests for to_logic function
+#################################
+expr1 = to_logic(parse_tokens(tokenize("x + y * z")))
+@test expr1 == Add(Var(:x), Mul(Var(:y), Var(:z)))
+constr1 = to_logic(parse_tokens(tokenize("x + y * z > 0"), constraint))
+@test constr1 == Greater(Add(Var(:x), Mul(Var(:y), Var(:z))), Const(0.0))
+constr2 = to_logic(parse_tokens(tokenize("x + y * z > 0 && z > 0"), constraint))
+@test constr2 == And(
+    Greater(Add(Var(:x), Mul(Var(:y), Var(:z))), Const(0.0)),
+    Greater(Var(:z), Const(0.0))
+)
+state1 = to_logic(parse_tokens(tokenize("x + y * z > 0"), state))
+@test state1 == State_Constraint(Greater(Add(Var(:x), Mul(Var(:y), Var(:z))), Const(0.0)))
+state2 = to_logic(parse_tokens(tokenize("x + y * z > 0 && z > 0"), state))
+@test state2 == State_Constraint(
+    And(
+        Greater(Add(Var(:x), Mul(Var(:y), Var(:z))), Const(0.0)),
+        Greater(Var(:z), Const(0.0))
+    )
+)
+state3 = to_logic(parse_tokens(tokenize("x + y * z > 0 || z > 0"), state))
+@test state3 == State_Constraint(
+    Or(
+        Greater(Add(Var(:x), Mul(Var(:y), Var(:z))), Const(0.0)),
+        Greater(Var(:z), Const(0.0))
+    )
+)
+state4 = to_logic(parse_tokens(tokenize("x + y * z > 0 && loc1"), state))
+@test state4 == State_And(
+    State_Constraint(Greater(Add(Var(:x), Mul(Var(:y), Var(:z))), Const(0.0))),
+    State_Location(:loc1)
+)
+state5 = to_logic(parse_tokens(tokenize("true"), state))
+@test state5 == State_Constraint(Truth(true))
+strategy1 = to_logic(parse_tokens(tokenize("true"), strategy))
+@test strategy1 == Strategy_to_State(State_Constraint(Truth(true)))
+strategy2 = to_logic(parse_tokens(tokenize("<<>> F true"), strategy))
+@test strategy2 == Exist_Eventually(Set{Symbol}(), Strategy_to_State(State_Constraint(Truth(true))))
+strategy3 = to_logic(parse_tokens(tokenize("<<A>> F true"), strategy))
+@test strategy3 == Exist_Eventually(Set([:A]), Strategy_to_State(State_Constraint(Truth(true))))
+strategy4 = to_logic(parse_tokens(tokenize("<<A, B, C , D>> F x + y * z > 0 && loc1"), strategy))
+@test strategy4 == 
+    Exist_Eventually(Set([:A, :D, :B, :C]), 
+        Strategy_to_State(State_And(
+            State_Constraint(Greater(Add(Var(:x), Mul(Var(:y), Var(:z))), Const(0.0))), 
+            State_Location(:loc1)
+        )
+    ))
+strategy5 = to_logic(parse_tokens(tokenize("<<A, B, C , D>> F x + y * z > 0 and loc1"), strategy))
+@test strategy5 == 
+    Strategy_And(
+        Exist_Eventually(Set([:A, :D, :B, :C]), 
+            Strategy_to_State(State_Constraint(Greater(Add(Var(:x), Mul(Var(:y), Var(:z))), Const(0.0))))), 
+        Strategy_to_State(State_Location(:loc1))
+    )
+strategy6 = to_logic(parse_tokens(tokenize("<<A, B, C , D>> F <<A, B, C , D>> F x + y * z > 0 and loc1"), strategy))
+@test strategy6 == 
+    Strategy_And(
+        Exist_Eventually(Set([:A, :D, :B, :C]), 
+            Exist_Eventually(Set([:A, :D, :B, :C]), 
+                Strategy_to_State(State_Constraint(Greater(Add(Var(:x), Mul(Var(:y), Var(:z))), Const(0.0)))))), 
+        Strategy_to_State(State_Location(:loc1))
+    )
+strategy7 = to_logic(parse_tokens(tokenize("loc1 imply <<A, B, C , D>> F <<A, B, C , D>> F x + y * z > 0"), strategy))
+@test strategy7 == 
+    Strategy_Imply(
+        Strategy_to_State(State_Location(:loc1)), 
+        Exist_Eventually(Set([:A, :D, :B, :C]), 
+            Exist_Eventually(Set([:A, :D, :B, :C]), 
+                Strategy_to_State(State_Constraint(Greater(Add(Var(:x), Mul(Var(:y), Var(:z))), Const(0.0))))))
+    )
