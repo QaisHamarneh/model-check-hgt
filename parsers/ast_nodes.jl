@@ -452,7 +452,7 @@ function to_string(node::Quantifier)::String
     return "$(to_string(node.agents))F($(to_string(node.child)))"
 end
 
-function to_logic(node::ConstantOperation)::Union{State_Location, Truth, Const, Var}
+function to_logic(node::ConstantOperation)::Union{State_Location, State_Deadlock, Truth, Const, Var}
     @match node begin
         LocationNode(value) => State_Location(Symbol(value))
         StateConstant(value) => State_Deadlock()

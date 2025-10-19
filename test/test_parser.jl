@@ -193,6 +193,7 @@ ast = _parse_tokens(tokenize("p or q and w", Bindings(Set([]), Set(["p", "q", "w
 
 expr1 = parse("x + y * z", Bindings(Set([]), Set([]), Set(["x", "y", "z"])), expression)
 @test expr1 == Add(Var(:x), Mul(Var(:y), Var(:z)))
+
 constr1 = parse("x + y * z > 0", Bindings(Set([]), Set([]), Set(["x", "y", "z"])), constraint)
 @test constr1 == Greater(Add(Var(:x), Mul(Var(:y), Var(:z))), Const(0.0))
 constr2 = parse("x + y * z > 0 && z > 0", Bindings(Set([]), Set([]), Set(["x", "y", "z"])), constraint)
@@ -200,6 +201,7 @@ constr2 = parse("x + y * z > 0 && z > 0", Bindings(Set([]), Set([]), Set(["x", "
     Greater(Add(Var(:x), Mul(Var(:y), Var(:z))), Const(0.0)),
     Greater(Var(:z), Const(0.0))
 )
+
 state1 = parse("x + y * z > 0", Bindings(Set([]), Set([]), Set(["x", "y", "z"])), state)
 @test state1 == State_Constraint(Greater(Add(Var(:x), Mul(Var(:y), Var(:z))), Const(0.0)))
 state2 = parse("x + y * z > 0 && z > 0", Bindings(Set([]), Set([]), Set(["x", "y", "z"])), state)
@@ -223,6 +225,9 @@ state4 = parse("x + y * z > 0 && loc1", Bindings(Set([]), Set(["loc1"]), Set(["x
 )
 state5 = parse("true", Bindings(Set([]), Set([]), Set([])), state)
 @test state5 == State_Constraint(Truth(true))
+state6 = parse("deadlock", Bindings(Set([]), Set([]), Set([])), state)
+@test state6 == State_Deadlock()
+
 strategy1 = parse("true", Bindings(Set([]), Set([]), Set([])), strategy)
 @test strategy1 == Strategy_to_State(State_Constraint(Truth(true)))
 strategy2 = parse("<<>> F true", Bindings(Set([]), Set([]), Set([])), strategy)
