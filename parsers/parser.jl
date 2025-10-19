@@ -7,7 +7,7 @@ The tokens are parsed according to the set of grammar rules for strategy formula
 Uses tokens defined by [`tokenizer.jl`], [`grammar.jl`].
 
 # Functions:
-- `parse_tokens(tokens::Vector{Token})::ASTNode`: returns the root of the parsed AST
+- `parse(str::String, bindings::Bindings, level::ParseLevel)`: returns the parsed logic formula
 
 # Authors:
 - Moritz Maas
@@ -16,9 +16,25 @@ Uses tokens defined by [`tokenizer.jl`], [`grammar.jl`].
 include("tokenizer.jl")
 include("grammar.jl")
 
-# TODO doc
-function parse(input::String, bindings::Bindings, level::ParseLevel)::Union{Strategy_Formula, State_Formula, Constraint, ExprLike, Nothing}
-    ast::Union{ASTNode, Nothing} = _parse_tokens(tokenize(input, bindings), level)
+"""
+    parse(str::String, bindings::Bindings, level::ParseLevel)::Union{Strategy_Formula, State_Formula, Constraint, ExprLike, Nothing}
+
+Convert an input string `str` into a parsed logic formula.
+Calls `tokenize`, `_parse_tokens` and `to_logic`.
+
+# Arguments
+- `str::String`: the string input to parse
+- `bindings::Bindings`: sets of all user-binded words
+- `level::ParseLevel`: defines level on which to parse
+
+# Examples
+```julia-repl
+julia> parse("a + b", Bindings(Set([]), Set([]), Set(["a", "b"])), expression)
+Add(Var(:a), Var(:b))
+```
+"""
+function parse(str::String, bindings::Bindings, level::ParseLevel)::Union{Strategy_Formula, State_Formula, Constraint, ExprLike, Nothing}
+    ast::Union{ASTNode, Nothing} = _parse_tokens(tokenize(str, bindings), level)
     if isnothing(ast)
         return Nothing()
     end
