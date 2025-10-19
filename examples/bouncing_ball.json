@@ -20,7 +20,7 @@
                 "spd": 0,
                 "acc": -10
             },
-        "agents": ["α"],
+        "agents": ["A"],
         "actions": ["up"],
         "edges": 
         [
@@ -41,16 +41,16 @@
         ],
         "triggers": 
         {
-            "α": ["pos <= 0"]
+            "A": ["pos <= 0"]
         }
     },
     "termination-conditions": {
-        "time-bound": 100.0,
+        "time-bound": 1000.0,
         "max-steps": 6,
         "state-formula": "false"
     },
     "queries": 
     [
-        "<<α>> F pos <= 0 || pos >= 1000"
+        "<<A>> F pos <= 0 || pos >= 1000"
     ]
 }

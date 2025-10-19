@@ -4,8 +4,9 @@ include("../game_tree/tree.jl")
 using Match
 using DataStructures
 
-abstract type Strategy_Formula end
-abstract type State_Formula  end
+abstract type Logic_formula end
+abstract type Strategy_Formula <: Logic_formula end
+abstract type State_Formula <: Logic_formula end
 
 
 struct Strategy_to_State <: Strategy_Formula
@@ -155,7 +156,7 @@ function get_all_properties(formula::Strategy_Formula)::Set{Constraint}
     end
 end
 
-function get_all_properties(formulae::Vector{Strategy_Formula})::Set{Constraint}
+function get_all_properties(formulae::Vector{Logic_formula})::Set{Constraint}
     props = Set{Constraint}()
     for formula in formulae
         props = props ∪ get_all_properties(formula)
