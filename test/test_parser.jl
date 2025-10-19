@@ -193,6 +193,7 @@ ast = _parse_tokens(tokenize("p or q and w", Bindings(Set([]), Set(["p", "q", "w
 
 expr1 = parse("x + y * z", Bindings(Set([]), Set([]), Set(["x", "y", "z"])), expression)
 @test expr1 == Add(Var(:x), Mul(Var(:y), Var(:z)))
+@test_throws ParseError("Cannot parse empty expressions or strategies.") parse("", Bindings(Set([]), Set([]), Set([])), expression)
 
 constr1 = parse("x + y * z > 0", Bindings(Set([]), Set([]), Set(["x", "y", "z"])), constraint)
 @test constr1 == Greater(Add(Var(:x), Mul(Var(:y), Var(:z))), Const(0.0))
@@ -201,6 +202,8 @@ constr2 = parse("x + y * z > 0 && z > 0", Bindings(Set([]), Set([]), Set(["x", "
     Greater(Add(Var(:x), Mul(Var(:y), Var(:z))), Const(0.0)),
     Greater(Var(:z), Const(0.0))
 )
+constr3 = parse("", Bindings(Set([]), Set([]), Set([])), constraint)
+@test constr3 == Truth(true)
 
 state1 = parse("x + y * z > 0", Bindings(Set([]), Set([]), Set(["x", "y", "z"])), state)
 @test state1 == State_Constraint(Greater(Add(Var(:x), Mul(Var(:y), Var(:z))), Const(0.0)))
@@ -227,6 +230,8 @@ state5 = parse("true", Bindings(Set([]), Set([]), Set([])), state)
 @test state5 == State_Constraint(Truth(true))
 state6 = parse("deadlock", Bindings(Set([]), Set([]), Set([])), state)
 @test state6 == State_Deadlock()
+state7 = parse("", Bindings(Set([]), Set([]), Set([])), state)
+@test state7 == State_Constraint(Truth(false))
 
 strategy1 = parse("true", Bindings(Set([]), Set([]), Set([])), strategy)
 @test strategy1 == Strategy_to_State(State_Constraint(Truth(true)))
@@ -265,3 +270,4 @@ strategy7 = parse("loc1 imply <<A, B, C , D>> F <<A, B, C , D>> F x + y * z > 0"
             Exist_Eventually(Set([:A, :D, :B, :C]), 
                 Strategy_to_State(State_Constraint(Greater(Add(Var(:x), Mul(Var(:y), Var(:z))), Const(0.0))))))
     )
+@test_throws ParseError("Cannot parse empty expressions or strategies.") parse("", Bindings(Set([]), Set([]), Set([])), strategy)

@@ -33,10 +33,16 @@ julia> parse("a + b", Bindings(Set([]), Set([]), Set(["a", "b"])), expression)
 Add(Var(:a), Var(:b))
 ```
 """
-function parse(str::String, bindings::Bindings, level::ParseLevel)::Union{Strategy_Formula, State_Formula, Constraint, ExprLike, Nothing}
+function parse(str::String, bindings::Bindings, level::ParseLevel)::Union{Strategy_Formula, State_Formula, Constraint, ExprLike}
     ast::Union{ASTNode, Nothing} = _parse_tokens(tokenize(str, bindings), level)
     if isnothing(ast)
-        return Nothing()
+        if level == constraint
+            return Truth(true)
+        elseif level == state
+            return State_Constraint(Truth(false))
+        else
+            throw(ParseError("Cannot parse empty expressions or strategies."))
+        end
     end
     formula = to_logic(ast)
 
