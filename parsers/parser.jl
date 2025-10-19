@@ -16,26 +16,47 @@ Uses tokens defined by [`tokenizer.jl`], [`grammar.jl`].
 include("tokenizer.jl")
 include("grammar.jl")
 
-"""
-    parse_tokens(tokens::Vector{Token}; level::ParseLevel = strategy)::Union{ASTNode, Nothing}
+# TODO doc
+function parse(input::String, bindings::Bindings, level::ParseLevel)::Union{Strategy_Formula, State_Formula, Constraint, ExprLike, Nothing}
+    ast::Union{ASTNode, Nothing} = _parse_tokens(tokenize(input, bindings), level)
+    if isnothing(ast)
+        return Nothing()
+    end
+    formula = to_logic(ast)
 
-Convert a vector of tokens into an abstract syntax tree using the given parse level.
+    if level == expression 
+        if !(formula isa ExprLike)
+            throw(ParseError("Formula is not an expression."))
+        end
+        return formula
+    elseif formula isa ExprLike
+        throw(ParseError("Formula is not a $level."))
+    end
 
-See also [`tokenize`]
+    if level == constraint
+        if !(formula isa Constraint)
+            throw(ParseError("Formula is not a constraint."))
+        end
+        return formula
+    elseif formula isa Constraint
+        formula = State_Constraint(formula)
+    end
 
-# Arguments
-- `tokens::Vector{Token}`: the tokens to parse
-- `level::ParseLevel`: the parse level to use, default is the strategy level
+    if level == state
+        if !(formula isa State_Formula)
+            throw(ParseError("Formula is not a state."))
+        end
+        return formula
+    elseif formula isa State_Formula
+        formula = Strategy_to_State(formula)
+    end
 
-# Examples
-```julia-repl
-julia> parse_tokens(tokenize("a + b"))
-ExpressionBinaryOperation("+", VariableNode("a"), VariableNode("b"))
-```
-"""
-function parse_tokens(tokens::Vector{Token}, level::ParseLevel = strategy)::Union{ASTNode, Nothing}
-    if length(tokens) == 0
-        return Nothing
+    return formula
+end
+
+function _parse_tokens(tokens::Vector{Token}, level::ParseLevel = strategy)::Union{ASTNode, Nothing}
+    if isnothing(tokens) || length(tokens) == 0
+        return Nothing()
     end
     
     parsed_tokens::ParseVector = ParseVector(tokens)

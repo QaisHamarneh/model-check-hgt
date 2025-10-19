@@ -27,6 +27,7 @@ This file contains all grammar rules needed to parse a strategy formula.
 - Moritz Maas
 """
 
+include("tokens.jl")
 include("ast_nodes.jl")
 
 """
@@ -63,17 +64,28 @@ function _parse_bracket(left_tokens::ParseVector, token::ASTNode, right_tokens::
     return token
 end
 
-
-# var -> string
-function _parse_custom_expression(left_tokens::ParseVector, token::CustomToken, right_tokens::ParseVector)::VariableNode
+# expr -> var
+function _parse_variable(left_tokens::ParseVector, token::VariableToken, right_tokens::ParseVector)::VariableNode
     _check_token_count(0, 0, left_tokens, right_tokens)
     return VariableNode(token.type)
+end
+
+# state -> location
+function _parse_location(left_tokens::ParseVector, token::LocationToken, right_tokens::ParseVector)::LocationNode
+    _check_token_count(0, 0, left_tokens, right_tokens)
+    return LocationNode(token.type)
+end
+
+# agent -> string
+function _parse_agent(left_tokens::ParseVector, token::AgentToken, right_tokens::ParseVector)::AgentList
+    _check_token_count(0, 0, left_tokens, right_tokens)
+    return AgentList([token.type])
 end
 
 # expr -> number
 function _parse_numeric_expression(left_tokens::ParseVector, token::NumericToken, right_tokens::ParseVector)::ExpressionConstant
     _check_token_count(0, 0, left_tokens, right_tokens)
-    return ExpressionConstant(Real(parse(Float64, token.type)))
+    return ExpressionConstant(Real(Base.parse(Float64, token.type)))
 end
 
 # constr -> boolean
@@ -88,27 +100,18 @@ function _parse_deadlock_state(left_tokens::ParseVector, token::StateConstantTok
 end
 
 pre_parse_grammar::Grammar = Dict([
-    # var -> string
-    (CustomToken, [GrammarRule([], [], _parse_custom_expression)]),
+    # expr -> var
+    (VariableToken, [GrammarRule([], [], _parse_variable)]),
+    # state -> location
+    (LocationToken, [GrammarRule([], [], _parse_location)]),
+    # agent_list -> agent
+    (AgentToken, [GrammarRule([], [], _parse_agent)]),
     # expr -> number
     (NumericToken, [GrammarRule([], [], _parse_numeric_expression)]),
     # constr -> boolean
     (BooleanToken, [GrammarRule([], [], _parse_boolean_constraint)]),
     # state -> deadlock
     (StateConstantToken, [GrammarRule([], [], _parse_deadlock_state)])
-])
-
-
-
-# state -> location
-function _parse_location(left_tokens::ParseVector, token::VariableNode, right_tokens::ParseVector)::LocationNode
-    _check_token_count(0, 0, left_tokens, right_tokens)
-    return LocationNode(token.value)
-end
-
-location_grammar::Grammar = Dict([
-    # state -> location
-    (VariableNode, [GrammarRule([], [], _parse_location)]),
 ])
 
 
@@ -208,51 +211,31 @@ const state_grammar::Grammar = Dict([
 
 
 
-# var_list -> var , var
-function _parse_variable_list_1(left_tokens::ParseVector, token::VariableNode, right_tokens::ParseVector)::VariableList
+# agent_list -> agent_list, agent_list
+function _parse_agent_list(left_tokens::ParseVector, token::AgentList, right_tokens::ParseVector)::AgentList
     _check_token_count(0, 2, left_tokens, right_tokens)
-    return VariableList([token, right_tokens[2]])
+    return AgentList([token.agents; right_tokens[2].agents])
 end
 
-# var_list -> var_list , var
-function _parse_variable_list_2(left_tokens::ParseVector, token::VariableList, right_tokens::ParseVector)::VariableList
-    _check_token_count(0, 2, left_tokens, right_tokens)
-    return VariableList([token.variables; right_tokens[2]])
-end
-
-# agent_list -> << var >> | [[ var ]]
-function _parse_agent_list_1(left_tokens::ParseVector, token::VariableNode, right_tokens::ParseVector)::AgentList
+# agents -> << agent_list >> | [[ agent_list ]]
+function _parse_agents(left_tokens::ParseVector, token::AgentList, right_tokens::ParseVector)::Agents
     _check_token_count(1, 1, left_tokens, right_tokens)
-    return AgentList(left_tokens[1].type == "[[", VariableList([token]))
+    return Agents(left_tokens[1].type == "[[", token)
 end
 
-# agent_list -> << var_list >> | [[ var_list ]]
-function _parse_agent_list_2(left_tokens::ParseVector, token::VariableList, right_tokens::ParseVector)::AgentList
-    _check_token_count(1, 1, left_tokens, right_tokens)
-    return AgentList(left_tokens[1].type == "[[", token)
-end
-
-# # agent_list -> << >> | [[ ]]
-function _parse_empty_list(left_tokens::ParseVector, token::EmptyListToken, right_tokens::ParseVector)::AgentList
+# agents -> << >> | [[ ]]
+function _parse_empty_list(left_tokens::ParseVector, token::EmptyListToken, right_tokens::ParseVector)::Agents
     _check_token_count(0, 0, left_tokens, right_tokens)
-    return AgentList(token.type == "[[]]", VariableList([]))
+    return Agents(token.type == "[[]]", AgentList([]))
 end
 
 const agent_grammar::Grammar = Dict([
-    # var -> string
-    (CustomToken, [GrammarRule([], [], _parse_custom_expression)]),
-    # var_list -> var , var
-    (VariableNode, [GrammarRule([], [SeparatorToken(","), VariableNode], _parse_variable_list_1),
-    # agent_list -> << var >>
-                    GrammarRule([SeparatorToken("<<")], [SeparatorToken(">>")], _parse_agent_list_1),
-    # agent_list -> [[ var ]]
-                    GrammarRule([SeparatorToken("[[")], [SeparatorToken("]]")], _parse_agent_list_1)]),
-    # var_list -> var_list , var
-    (VariableList, [GrammarRule([], [SeparatorToken(","), VariableNode], _parse_variable_list_2),
-    # agent_list -> << var_list >>
-                    GrammarRule([SeparatorToken("<<")], [SeparatorToken(">>")], _parse_agent_list_2),
-    # agent_list -> [[ var_list ]]
-                    GrammarRule([SeparatorToken("[[")], [SeparatorToken("]]")], _parse_agent_list_2)]),
+    # agent_list -> agent_list , agent_list
+    (AgentList, [GrammarRule([], [SeparatorToken(","), AgentList], _parse_agent_list),
+    # agents -> << agent_list >>
+                    GrammarRule([SeparatorToken("<<")], [SeparatorToken(">>")], _parse_agents),
+    # agents -> [[ agent_list ]]
+                    GrammarRule([SeparatorToken("[[")], [SeparatorToken("]]")], _parse_agents)]),
     # agent_list -> << >> | [[ ]]
     (EmptyListToken, [GrammarRule([], [], _parse_empty_list)])
 ])
@@ -268,7 +251,7 @@ end
 # strat -> << >> F strat | << >> G strat | [[ ]] F strat | [[ ]] G strat
 function _parse_empty_quantifier_strategy(left_tokens::ParseVector, token::QuantifierToken, right_tokens::ParseVector)::Quantifier
     _check_token_count(2, 1, left_tokens, right_tokens)
-    return Quantifier(left_tokens[1].type == "[[", token.type == "G", AgentList(left_tokens[1].type == "[[", VariableList([])), right_tokens[1])
+    return Quantifier(left_tokens[1].type == "[[", token.type == "G", Agents(left_tokens[1].type == "[[", AgentList([])), right_tokens[1])
 end
 
 # strat -> strat_unary_op strat
@@ -283,8 +266,6 @@ function _parse_binary_strategy(left_tokens::ParseVector, token::StrategyBinaryO
     return StrategyBinaryOperation(token.type, left_tokens[1], right_tokens[1])
 end
 
-
-
 const strategy_grammar::Grammar = Dict([
     # strat -> ( strat )
     (Quantifier, [GrammarRule([SeparatorToken("(")], [SeparatorToken(")")], _parse_bracket)]),
@@ -293,7 +274,7 @@ const strategy_grammar::Grammar = Dict([
     # strat -> ( strat )
     (StrategyBinaryOperation, [GrammarRule([SeparatorToken("(")], [SeparatorToken(")")], _parse_bracket)]),
     # strat -> agent_list F strat | agent_list G strat
-    (QuantifierToken, [GrammarRule([AgentList], [StrategyNode], _parse_quantifier_strategy),
+    (QuantifierToken, [GrammarRule([Agents], [StrategyNode], _parse_quantifier_strategy),
     # strat -> << >> F strat | << >> G strat
                        GrammarRule([SeparatorToken("<<"), SeparatorToken(">>")], [StrategyNode], _parse_empty_quantifier_strategy),
     # strat -> [[ ]] F strat | [[ ]] G strat
@@ -371,16 +352,14 @@ level_to_grammar::Dict{ParseLevel, Vector{Grammar}} = Dict([
         pre_parse_grammar,
         expression_grammar,
         constraint_grammar,
-        location_grammar,
         state_grammar
     ]),
     (strategy, [
         pre_parse_grammar,
-        agent_grammar,
         expression_grammar,
         constraint_grammar,
-        location_grammar,
         state_grammar,
+        agent_grammar,
         strategy_grammar
     ])
 ])

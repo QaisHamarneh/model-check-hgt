@@ -8,8 +8,8 @@ This file contains all definitions needed to parse tokens to an AST.
 
 # Types:
 - `ASTNode`: abstract type for all nodes
-- `VariableList`: node for variable lists
 - `AgentList`: node for agent lists
+- `Agents`: node for agent lists
 - `StrategyNode`: abstract type for strategy nodes
 - `Quantifier`: node for quantified strategies
 - `StrategyUnaryOperation`: node for unary operations on strategies
@@ -31,8 +31,8 @@ This file contains all definitions needed to parse tokens to an AST.
 
 The types are hierarchically ordered as follows:
     ASTNode
-    |-- VariableList
     |-- AgentList
+    |-- Agents
     |-- StrategyNode
     |   |-- Quantifier
     |   |-- StrategyUnaryOperation
@@ -270,51 +270,51 @@ struct ConstraintBinaryOperation <: ConstraintNode
 end
 
 """
-    VariableList <: ASTNode
-
-AST Node for lists of variables.
-
-    VariableList(variables::Vector{VariableNode})
-
-Create a VariableList of variables `variables`.
-"""
-struct VariableList <: ASTNode
-    variables::Vector{VariableNode}
-end
-
-# redefine comparison
-Base.:(==)(x::VariableList, y::VariableList) = x.variables == y.variables
-
-"""
     AgentList <: ASTNode
 
 AST Node for lists of agents.
 
-    AgentList(for_all::Bool, agents::VariableList)
+    AgentList(agents::Vector{String})
 
-Create a AgentList of agents `agents` and if quantifier is `for_all`.
+Create an AgentList of agents `agents`.
 """
 struct AgentList <: ASTNode
-    for_all::Bool
-    agents::VariableList
+    agents::Vector{String}
 end
 
 # redefine comparison
-Base.:(==)(x::AgentList, y::AgentList) = x.for_all == y.for_all && x.agents == y.agents
+Base.:(==)(x::AgentList, y::AgentList) = x.agents == y.agents
+
+"""
+    Agents <: ASTNode
+
+AST Node for sets of agents.
+
+    Agents(for_all::Bool, agents::AgentList)
+
+Create an Agents node of agents `agents` and if quantifier is `for_all`.
+"""
+struct Agents <: ASTNode
+    for_all::Bool
+    agents::AgentList
+end
+
+# redefine comparison
+Base.:(==)(x::Agents, y::Agents) = x.for_all == y.for_all && x.agents == y.agents
 
 """
     Quantifier <: StrategyNode
 
 AST Node for quantified strategies.
 
-    Quantifier(for_all::Bool, always::Bool, agent_list::AgentList, child::StrategyNode)
+    Quantifier(for_all::Bool, always::Bool, agents::Agents, child::StrategyNode)
 
-Create a Quantifier on strategy `child` for agents `agent_list`, if quantifier is `for_all` and if strategy must `always` be true.
+Create a Quantifier on strategy `child` for agents `agents`, if quantifier is `for_all` and if strategy must `always` be true.
 """
 struct Quantifier <: StrategyNode
     for_all::Bool
     always::Bool
-    agent_list::AgentList
+    agents::Agents
     child::StrategyNode
 end
 
@@ -322,7 +322,7 @@ end
 Base.:(==)(x::Quantifier, y::Quantifier) = (
     x.for_all == y.for_all
     && x.always == y.always
-    && x.agent_list == y.agent_list
+    && x.agents == y.agents
     && x.child == y.child
 )
 
@@ -386,31 +386,6 @@ function to_string(node::BinaryOperation)::String
 end
 
 """
-    to_string(node::VariableList)::String
-
-Convert a VariableList `node` to a string.
-
-# Arguments
-- `node::VariableList`: node to convert.
-
-# Examples
-```julia-repl
-julia> to_string(VariableList([VariableNode("x"), VariableNode("y")]))
-"x,y"
-```
-"""
-function to_string(node::VariableList)::String
-    if length(node.variables) == 0
-        return ""
-    end
-    output::String = to_string(node.variables[1])
-    for i in 2:length(node.variables)
-        output = output * ",$(to_string(node.variables[i]))"
-    end
-    return output
-end
-
-"""
     to_string(node::AgentList)::String
 
 Convert a AgentList `node` to a string.
@@ -420,11 +395,36 @@ Convert a AgentList `node` to a string.
 
 # Examples
 ```julia-repl
-julia> to_string(AgentList(true, VariableList([VariableNode("x"), VariableNode("y")])))
-"[[x,y]]"
+julia> to_string(AgentList(["x", "y"]))
+"x,y"
 ```
 """
 function to_string(node::AgentList)::String
+    if length(node.agents) == 0
+        return ""
+    end
+    output::String = node.agents[1]
+    for i in 2:length(node.agents)
+        output = output * ",$(node.agents[i])"
+    end
+    return output
+end
+
+"""
+    to_string(node::Agents)::String
+
+Convert an Agents node `node` to a string.
+
+# Arguments
+- `node::Agents`: node to convert.
+
+# Examples
+```julia-repl
+julia> to_string(Agents(true, AgentList(["x", "y"])))
+"[[x,y]]"
+```
+"""
+function to_string(node::Agents)::String
     if node.for_all
         return "[[$(to_string(node.agents))]]"
     end
@@ -441,21 +441,21 @@ Convert a Quantifier `node` to a string.
 
 # Examples
 ```julia-repl
-julia> to_string(Quantifier(true, true, AgentList(true, VariableList([VariableNode("x"), VariableNode("y")])), LocationNode("loc")))
+julia> to_string(Quantifier(true, true, Agents(true, AgentList([VariableNode("x"), VariableNode("y")])), LocationNode("loc")))
 "[[x,y]]G(loc)"
 ```
 """
 function to_string(node::Quantifier)::String
     if node.always
-        return "$(to_string(node.agent_list))G($(to_string(node.child)))"
+        return "$(to_string(node.agents))G($(to_string(node.child)))"
     end
-    return "$(to_string(node.agent_list))F($(to_string(node.child)))"
+    return "$(to_string(node.agents))F($(to_string(node.child)))"
 end
 
 function to_logic(node::ConstantOperation)::Union{State_Location, Truth, Const, Var}
     @match node begin
         LocationNode(value) => State_Location(Symbol(value))
-        # StateConstant(value) => Deadlock()
+        StateConstant(value) => State_Deadlock()
         ConstraintConstant(value) => Truth(value)
         ExpressionConstant(value) => Const(value)
         VariableNode(value) => Var(Symbol(value))
@@ -498,7 +498,7 @@ function to_logic(node::ConstraintBinaryOperation)::Constraint
         "!=" => NotEqual(to_logic(node.left_child), to_logic(node.right_child))
         "&&" => And(to_logic(node.left_child), to_logic(node.right_child))
         "||" => Or(to_logic(node.left_child), to_logic(node.right_child))
-        # "->" => Imply(to_logic(node.left_child), to_logic(node.right_child))
+        "->" => Imply(to_logic(node.left_child), to_logic(node.right_child))
     end
 end
 
@@ -579,27 +579,27 @@ function to_logic(node::Quantifier)::Strategy_Formula
     end
     if node.always
         if node.for_all
-            return All_Always(to_logic(node.agent_list), child)
+            return All_Always(to_logic(node.agents), child)
         else
-            return Exist_Always(to_logic(node.agent_list), child)
+            return Exist_Always(to_logic(node.agents), child)
         end
     else
         if node.for_all
-            return All_Eventually(to_logic(node.agent_list), child)
+            return All_Eventually(to_logic(node.agents), child)
         else
-            return Exist_Eventually(to_logic(node.agent_list), child)
+            return Exist_Eventually(to_logic(node.agents), child)
         end
     end
 end
 
-function to_logic(node::AgentList)::Set{Agent}
+function to_logic(node::Agents)::Set{Agent}
     return to_logic(node.agents)
 end
 
-function to_logic(node::VariableList)::Set{Agent}
+function to_logic(node::AgentList)::Set{Agent}
     agents::Set{Agent} = Set([])
-    for variable in node.variables
-        push!(agents, Agent(Symbol(variable.value)))
+    for agent in node.agents
+        push!(agents, Agent(Symbol(agent)))
     end
     return agents
 end

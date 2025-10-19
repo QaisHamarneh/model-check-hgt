@@ -11,7 +11,7 @@ This file contains all token definitions needed to convert a string into an arra
 - `KeywordToken`: abstract type for all keywords
 - `OperatorToken`: abstract type for all operators
 - `SeparatorToken`: token for all valid separators
-- `CustomToken`: token for all user defined variables
+- `CustomToken`: abstract type for all custom names
 - `NumericToken`: token for all numeric values
 - `BooleanToken`: token for all boolean values
 - `StateConstantToken`: token for deadlocks
@@ -30,6 +30,9 @@ The types are hierarchically ordered as follows:
     Token
     |-- SeparatorToken
     |-- CustomToken
+    |   |-- AgentToken
+    |   |-- LocationToken
+    |   |-- VariableToken
     |-- NumericToken
     |-- KeywordToken
     |   |-- BooleanToken
@@ -81,17 +84,45 @@ struct EmptyListToken <: Token
     type::String
 end
 
+abstract type CustomToken <: Token
+end
 
 """
-    CustomToken <: Token
+    AgentToken <: Token
+
+A token for all user defined agents.
+
+    AgentToken(type::String)
+
+Create a AgentToken of type `type`.
+"""
+struct AgentToken <: Token
+    type::String
+end
+
+"""
+    LocationToken <: Token
+
+A token for all user defined locations.
+
+    LocationToken(type::String)
+
+Create a LocationToken of type `type`.
+"""
+struct LocationToken <: Token
+    type::String
+end
+
+"""
+    VariableToken <: Token
 
 A token for all user defined variables.
 
-    CustomToken(type::String)
+    VariableToken(type::String)
 
-Create a CustomToken of type `type`.
+Create a VariableToken of type `type`.
 """
-struct CustomToken <: Token
+struct VariableToken <: Token
     type::String
 end
 

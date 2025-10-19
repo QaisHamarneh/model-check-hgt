@@ -12,35 +12,76 @@ struct Strategy_to_State <: Strategy_Formula
     formula::State_Formula
 end
 
+# redefine comparison
+Base.:(==)(x::Strategy_to_State, y::Strategy_to_State) = (
+    x.formula == y.formula
+)
+
 struct Exist_Always <: Strategy_Formula
     agents::Set{Agent}
     formula::Strategy_Formula
 end
+
+# redefine comparison
+Base.:(==)(x::Exist_Always, y::Exist_Always) = (
+    x.agents == y.agents &&
+    x.formula == y.formula
+)
 
 struct Exist_Eventually <: Strategy_Formula
     agents::Set{Agent}
     formula::Strategy_Formula
 end
 
+# redefine comparison
+Base.:(==)(x::Exist_Eventually, y::Exist_Eventually) = (
+    x.agents == y.agents &&
+    x.formula == y.formula
+)
+
 struct All_Always <: Strategy_Formula
     agents::Set{Agent}
     formula::Strategy_Formula
 end
+
+# redefine comparison
+Base.:(==)(x::All_Always, y::All_Always) = (
+    x.agents == y.agents &&
+    x.formula == y.formula
+)
 
 struct All_Eventually <: Strategy_Formula
     agents::Set{Agent}
     formula::Strategy_Formula
 end
 
+# redefine comparison
+Base.:(==)(x::All_Eventually, y::All_Eventually) = (
+    x.agents == y.agents &&
+    x.formula == y.formula
+)
+
 struct Strategy_And <: Strategy_Formula
     left::Strategy_Formula
     right::Strategy_Formula
 end
 
+# redefine comparison
+Base.:(==)(x::Strategy_And, y::Strategy_And) = (
+    x.left == y.left &&
+    x.right == y.right
+)
+
 struct Strategy_Or <: Strategy_Formula
     left::Strategy_Formula
     right::Strategy_Formula
 end
+
+# redefine comparison
+Base.:(==)(x::Strategy_Or, y::Strategy_Or) = (
+    x.left == y.left &&
+    x.right == y.right
+)
 
 struct Strategy_Not <: Strategy_Formula
     formula::Strategy_Formula
@@ -50,6 +91,12 @@ struct Strategy_Imply <: Strategy_Formula
     left::Strategy_Formula
     right::Strategy_Formula
 end
+
+# redefine comparison
+Base.:(==)(x::Strategy_Imply, y::Strategy_Imply) = (
+    x.left == y.left &&
+    x.right == y.right
+)
 
 struct State_Location <: State_Formula
     proposition::Symbol

@@ -7,9 +7,10 @@ The tokens are created according to the set of grammar rules for strategy formul
 Uses tokens defined by [`tokens.jl`].
 
 # Functions:
-- `tokenize(str::String)::Vector{Token}`: returns the tokenized string as an array of tokens
+- `tokenize(str::String, bindings::Bindings)::Vector{Token}`: returns the tokenized string as an array of tokens
 
 # Types:
+- `Bindings`: contains all binded names
 - `TokenizeError`: describes an error that occured while tokenizing
 
 # Authors:
@@ -17,6 +18,12 @@ Uses tokens defined by [`tokens.jl`].
 """
 
 include("tokens.jl")
+
+struct Bindings
+    agents::Set{String}
+    locations::Set{String}
+    variables::Set{String}
+end
 
 # set of all valid separators
 separators::Set{String} = Set([
@@ -99,29 +106,34 @@ numeric_symbols::Set{Char} = Set(union(
 ))
 
 """
-    tokenize(str::String)::Vector{Token}
+    tokenize(str::String, bindings::Bindings)::Vector{Token}
 
 Convert an input string `str` into ordered tokens.
 
 # Arguments
-- `str::String`: the string input to tokenize.
+- `str::String`: the string input to tokenize
+- `bindings::Bindings`: sets of all user-binded words
 
 # Examples
 ```julia-repl
-julia> tokenize("a + b")
+julia> tokenize("a + b", Bindings(Set([]), Set([]), Set(["a", "b"])))
 3-element Vector{Token}:
- CustomToken("a")
+ VariableToken("a")
  OperatorToken("+")
- CustomToken("b")
+ VariableToken("b")
 ```
 """
-function tokenize(str::String)::Vector{Token}
+function tokenize(str::String, bindings::Bindings)::Vector{Token}
+    if intersect(bindings.agents, bindings.locations, bindings.variables) != Set([])
+        throw(TokenizeError("A name is binded ambiguously."))
+    end
+
     # split string by ' ' characters and call tokenize on all substrings
     split_input::Vector{SubString{String}} = split(str)
     if length(split_input) != 1
         tokens::Vector{Token} = Vector{Token}(undef, 0)
         for substring in split_input
-            append!(tokens, tokenize(String(substring)))
+            append!(tokens, tokenize(String(substring), bindings))
         end
         return tokens
     end
@@ -142,24 +154,24 @@ function tokenize(str::String)::Vector{Token}
         current_symbols = union(numeric_symbols, ['.'])
         current_type = NumericToken
     else
-        throw(TokenizeError("$(str[1]) is an invalid starting symbol."))
+        throw(TokenizeError("'$(str[1])' is an invalid starting symbol."))
     end
 
     # get longest substring of symbols in the current set of symbols
     for i in (firstindex(str) + 1):lastindex(str)
         if !(str[i] in current_symbols)
             try
-                return Vector{Token}([_convert_to_token(str[1:(i - 1)], current_type); tokenize(str[i:end])])
+                return Vector{Token}([_convert_to_token(str[1:(i - 1)], current_type, bindings); tokenize(str[i:end], bindings)])
             catch e
                 throw(e)
             end
         end
     end
     
-    return Vector{Token}([_convert_to_token(str, current_type)])
+    return Vector{Token}([_convert_to_token(str, current_type, bindings)])
 end
 
-function _convert_to_token(token::String, type::Type)::Token
+function _convert_to_token(token::String, type::Type, bindings::Bindings)::Token
     if token in separators
         return SeparatorToken(token)
     elseif haskey(keywords, token)
@@ -172,12 +184,20 @@ function _convert_to_token(token::String, type::Type)::Token
         if _is_valid_numeric(token)
             return NumericToken(token)
         else
-            throw(TokenizeError("$token is an invalid number."))
+            throw(TokenizeError("'$token' is an invalid number."))
         end
     elseif type == CustomToken
-        return CustomToken(token)
+        if token in bindings.agents
+            return AgentToken(token)
+        elseif token in bindings.locations
+            return LocationToken(token)
+        elseif token in bindings.variables
+            return VariableToken(token)
+        else
+            throw(TokenizeError("'$token' is not defined in bindings."))
+        end
     else
-        throw(TokenizeError("$token is an invalid sequence of symbols."))
+        throw(TokenizeError("'$token' is an invalid sequence of symbols."))
     end
 end
 
