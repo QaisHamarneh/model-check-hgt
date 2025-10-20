@@ -19,6 +19,15 @@ Uses tokens defined by [`tokens.jl`].
 
 include("tokens.jl")
 
+"""
+    Bindings
+
+Bindings contain binded variable, location or agent names.
+
+    Bindings(agents::Set{String}, locations::Set{String}, variables::Set{String})
+
+Create Bindings of `agents`, `locations` and `variables`.
+"""
 struct Bindings
     agents::Set{String}
     locations::Set{String}
