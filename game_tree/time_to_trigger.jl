@@ -1,5 +1,4 @@
 using DifferentialEquations
-include("../parsers/parse_constraint.jl")
 include("../essential_definitions/evolution.jl")
 include("../game_semantics/configuration.jl")
 include("tree.jl")
@@ -66,40 +65,3 @@ function time_to_trigger(config::Configuration, trigger::Constraint, properties:
     final_valuation = valuation_from_vector(config.valuation, sol[end])
     return round5(final_valuation), round5(sol.t[end]), path_to_trigger
 end
-
-
-# t1 = time();
-
-# valuation = OrderedDict(:x => -5, :y => 5, :dir_x => -5.0, :dir_y => -5.0, :spd_A => 0.1, :spd_B => 0.2, :spd_C => 0.4)
-# flow = Dict(:x => parse_expression("spd_A * dir_x"), :y => parse_expression("spd_A * dir_y"))
-# config = Configuration( 
-#     Location(:r_r, 
-#              parse_constraint("x <= 100 && y <= 100"), 
-#              flow), 
-#     valuation,
-#     0.0
-# )
-
-# trigger = And(And(LeQ(Const(-9.5), Var(:x)), LeQ(Var(:x), Const(-10.5))), And(LeQ(Const(-0.5), Var(:y)), LeQ(Var(:y), Const(0.5))))
-# new_valuation, ttt = time_to_trigger(config, 
-#                       trigger, 
-#                       50.0)
-# t2 = time();
-
-# println("valuation = $new_valuation")
-# println("ttt = $ttt")
-# println("Time = $(t2 - t1)")
-# println("*************************")
-
-
-# valuation = OrderedDict(:x => -9.499823194984256, :y => 0.5001768050157437, :dir_x => -5.0, :dir_y => -5.0, :spd_A => 0.1, :spd_B => 0.2, :spd_C => 0.4)
-# trigger = And(
-#             And(
-#                 LeQ(Const(-9.5), Var(:x)), 
-#                 LeQ(Var(:x), Const(-10.5))), 
-#             And(
-#                 LeQ(Const(-0.5), Var(:y)), 
-#                 LeQ(Var(:y), Const(0.5)))
-#             )
-# println(evaluate(trigger, valuation))
-# println("*************************")

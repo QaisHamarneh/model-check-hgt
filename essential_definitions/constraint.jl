@@ -53,6 +53,11 @@ struct Not <: Constraint
     constraint::Constraint
 end
 
+struct Imply <: Constraint
+    left::Constraint
+    right::Constraint
+end
+
 function str(constraint::Constraint)::String
     @match constraint begin
         Truth(value) => string(value)
@@ -65,6 +70,7 @@ function str(constraint::Constraint)::String
         And(left, right) => "($(str(left))) ∧ ($(str(right)))"
         Or(left, right) => "($(str(left))) ∨ ($(str(right)))"
         Not(constraint) => "¬($(str(constraint)))"
+        Imply(left, right) => "($(str(left))) → ($(str(right)))"
     end
 end
 
@@ -80,6 +86,7 @@ function is_closed(constraint::Constraint)::Bool
         And(left, right) => is_closed(left) && is_closed(right)
         Or(left, right) => is_closed(left) && is_closed(right)
         Not(constraint) => ! is_closed(constraint)
+        Imply(left, right) => is_closed(left) && is_closed(right)
     end
 end
 
@@ -95,6 +102,7 @@ function simplify(constraint::Constraint)::Constraint
         And(left, right) => And(simplify(left), simplify(right))
         Or(left, right) => Or(simplify(left), simplify(right))
         Not(constraint) => Not(simplify(constraint))
+        Imply(left, right) => Imply(simplify(left), simplify(right))
     end
 end
 
@@ -114,6 +122,7 @@ function get_atomic_constraints(constraint::Constraint)::Vector{Constraint}
         And(left, right) => get_atomic_constraints(left) ∪ get_atomic_constraints(right)
         Or(left, right) => get_atomic_constraints(left) ∪ get_atomic_constraints(right)
         Not(constraint) => get_atomic_constraints(constraint)
+        Imply(left, right) => get_atomic_constraints(left) ∪ get_atomic_constraints(right)
     end
 end
 
@@ -130,6 +139,7 @@ function get_zero(constraint::Constraint)::Vector{ExprLike}
         And(left, right) => get_zero(left) ∪ get_zero(right)
         Or(left, right) => get_zero(left) ∪ get_zero(right)
         Not(constraint) => get_zero(constraint)
+        Imply(left, right) => get_zero(left) ∪ get_zero(right)
     end
 end
 
@@ -145,6 +155,7 @@ function evaluate(constraint::Constraint, valuation::Valuation)::Bool
         And(left, right) => evaluate(left, valuation) && evaluate(right, valuation)
         Or(left, right) => evaluate(left, valuation) || evaluate(right, valuation)
         Not(constraint) => !evaluate(constraint, valuation)
+        Imply(left, right) => !evaluate(left, valuation) || evaluate(right, valuation)
     end
 end
 
