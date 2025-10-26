@@ -26,7 +26,19 @@ ApplicationWindow {
             if (variable_model.get(i).name === name)
                 return true
         }
+        for (var i = 0; i < location_model.count; i++) {
+            if (location_model.get(i).name === name)
+                return true
+        }
         return false
+    }
+
+    function get_variables() {
+        var variables = []
+        for (var i = 0; i < variable_model.count; i++) {
+            variables.push(variable_model.get(i).name)
+        }
+        return variables
     }
             
     ListModel {
@@ -47,8 +59,15 @@ ApplicationWindow {
 
     }
 
+    ListModel {
+
+        id: location_model
+
+    }
+
     ColumnLayout {
 
+        id: columns
         width: 1000
         spacing: 20
         anchors { fill: parent; margins: 20 }
@@ -298,7 +317,6 @@ ApplicationWindow {
                     spacing: 10
 
                     Text {
-                        id: variable_name
                         width: (parent.width - 100 - parent.spacing) / 2
                         horizontalAlignment: Text.AlignLeft
                         text: model.name 
@@ -306,7 +324,6 @@ ApplicationWindow {
                     }
 
                     Text {
-                        id: variable_value
                         width: (parent.width - 100 - parent.spacing) / 2
                         horizontalAlignment: Text.AlignLeft
                         text: model.value 
@@ -368,6 +385,145 @@ ApplicationWindow {
                     }
                 }
 
+            }
+
+        }
+
+        Column {
+
+            id: locations
+            width: parent.width / 2
+            spacing: 10
+
+            function add_location() {
+                if (location_model.count == 0) {
+                    location_model.append({
+                        name: "",
+                        initial: true
+                    });
+                } else {
+                    location_model.append({
+                        name: "",
+                        initial: false
+                    });   
+                }
+            }
+
+            ButtonGroup {
+                id: initial_button
+            }
+
+            Text {
+                id: location_text
+                text: "Locations"
+            }
+
+            ListView {
+
+                id: location_list
+                width: columns.width / 2
+                height: Math.min(contentHeight, 600)
+                spacing: 10
+                clip: true
+
+                model: location_model
+                delegate: Column {
+
+                    width: location_list.width
+                    spacing: 10
+
+                    Row {
+
+                        width: parent.width
+                        spacing: 10
+
+                        Text {
+                            height: parent.height
+                            horizontalAlignment: Text.AlignLeft
+                            verticalAlignment: Text.AlignVCenter
+                            text: "Name"
+                        }
+
+                        TextField {
+                            id: location_name_text_field
+                            width: (parent.width - parent.spacing) / 2
+                            placeholderText: "Enter name"
+                            onAccepted: {
+                                var regex = /^[A-Za-z]\w*$/;
+                                if (regex.test(location_name_text_field.text) && !has_name(location_name_text_field.text)) {
+                                    model.name = location_name_text_field.text;
+                                    placeholderText = "";
+                                } else {
+                                    model.name = "";
+                                    location_name_text_field.text = "";
+                                    placeholderText = "Invalid name";
+                                }
+                                focus = false;
+                            }
+                        }
+
+                        RadioButton {
+                            id: initial_location
+                            ButtonGroup.group: initial_button
+                            text: "Initial"
+                            checked: model.initial
+                            onCheckedChanged: {
+                                if (model.initial != checked) {
+                                    model.initial = checked;
+                                }
+                            }
+                        }
+
+                    }
+
+                    Row {
+
+                        width: parent.width
+                        spacing: 10
+
+                        Text {
+                            height: parent.height
+                            horizontalAlignment: Text.AlignLeft
+                            verticalAlignment: Text.AlignVCenter
+                            text: "Invariant"
+                        }
+
+                        TextField {
+                            id: location_inv_text_field
+                            width: (parent.width - parent.spacing) / 2
+                            placeholderText: "Enter invariant"
+                            onAccepted: {
+                                if (Julia.is_valid_constraint(location_inv_text_field.text, get_variables())) {
+                                    model.inv = location_inv_text_field.text;
+                                    placeholderText = "";
+                                } else {
+                                    model.name = "";
+                                    location_inv_text_field.text = "";
+                                    placeholderText = "Invalid invariant";
+                                }
+                                focus = false;
+                            }
+                        }
+
+                    }
+
+                }
+
+                ScrollBar.vertical: ScrollBar {
+                    active: true
+                    policy: ScrollBar.AsNeeded
+                }
+
+            }
+
+            Button {
+                Material.foreground: "white"
+                Material.background: Material.DeepOrange
+                Layout.fillHeight: false
+                text: "Add location"
+                onClicked: {
+                    locations.add_location();
+                }
             }
 
         }
