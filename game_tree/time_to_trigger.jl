@@ -5,11 +5,11 @@ include("tree.jl")
 
 
 
-function time_to_trigger(config::Configuration, trigger::Constraint, properties::Set{Constraint}, max_time::Float64)
-    unsatisfied_properties = unsatisfied_constraints(properties, config.valuation)
-    zero_properties::Vector{ExprLike} = union_safe([get_zero(prop) for prop in unsatisfied_properties])
+function time_to_trigger(config::Configuration, trigger::Constraint, constraints::Set{Constraint}, max_time::Float64)
+    unsatisfied_constraints = get_unsatisfied_constraints(constraints, config.valuation)
+    zero_constraints::Vector{ExprLike} = union_safe([get_zero(constr) for constr in unsatisfied_constraints])
     zero_triggers = get_zero(trigger)
-    path_to_trigger::Vector{Configuration} = Vector() # time => (valuation, satisfied_properties)
+    path_to_trigger::Vector{Configuration} = Vector()
     function flowODE!(du, u, p, t)
         current_valuation = valuation_from_vector(config.valuation, u)
         for (i, (var, _)) in enumerate(config.valuation)
@@ -23,8 +23,8 @@ function time_to_trigger(config::Configuration, trigger::Constraint, properties:
     end
 
     function condition(out, u, t, integrator) # Event when condition(out,u,t,integrator) == 0
-        for (i, zero_prop) in enumerate(zero_properties ∪ zero_triggers)
-            out[i] = evaluate(zero_prop, valuation_from_vector(config.valuation, u))
+        for (i, zero_constr) in enumerate(zero_constraints ∪ zero_triggers)
+            out[i] = evaluate(zero_constr, valuation_from_vector(config.valuation, u))
         end
     end
 
@@ -38,23 +38,23 @@ function time_to_trigger(config::Configuration, trigger::Constraint, properties:
             terminate!(integrator) # Stop the integration when the condition is met
             return
         end
-        if any(zero_prop -> evaluate(zero_prop, current_valuation) == 0.0, zero_properties) && any(prop -> evaluate(prop, current_valuation), unsatisfied_properties)
+        if any(zero_constr -> evaluate(zero_constr, current_valuation) == 0.0, zero_constraints) && any(constr -> evaluate(constr, current_valuation), unsatisfied_constraints)
             push!(path_to_trigger, Configuration(config.location, current_valuation, config.global_clock + integrator.t))
-            unsatisfied_properties = unsatisfied_constraints(properties, current_valuation)
-            zero_properties = union_safe([get_zero(prop) for prop in unsatisfied_properties])
-            # time = round5(integrator.t)
-            # if !haskey(path_to_trigger, time)
-            #     path_to_trigger[time] = Pair(current_valuation, Set{Constraint}())
-            # end
-            # for prop in unsatisfied_properties
-            #     if evaluate(prop, current_valuation)
-            #         push!(path_to_trigger[time].second, prop)
-            #     end
-            # end
+            unsatisfied_constraints = get_unsatisfied_constraints(constraints, current_valuation)
+            for i in eachindex(zero_constraints)
+                pop!(zero_constraints)
+            end
+            for constr in unsatisfied_constraints
+                for zero_constr in get_zero(constr)
+                    if !(zero_constr in zero_constraints)
+                        push!(zero_constraints, zero_constr)
+                    end
+                end
+            end
         end
     end
 
-    cbv = VectorContinuousCallback(condition, affect!, length(zero_properties ∪ zero_triggers)) #, save_positions = false)
+    cbv = VectorContinuousCallback(condition, affect!, length(zero_constraints ∪ zero_triggers)) #, save_positions = false)
 
     u0 = collect(values(config.valuation))
     tspan = (0.0, max_time + 1e-5)  # Add a small buffer to ensure we capture the trigger time

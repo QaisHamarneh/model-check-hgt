@@ -1,7 +1,9 @@
 using JSON3
 using DataStructures
 include("../game_syntax/game.jl")
-include("parser.jl")
+include("syntax_parsers/parser.jl")
+include("ast_to_logic.jl")
+
 
 function parse_game(json_file)
     open(json_file,"r") do f

@@ -130,7 +130,7 @@ struct State_Deadlock <: State_Formula
 end
 
 
-function get_all_properties(formula::State_Formula)::Set{Constraint}
+function get_all_constraints(formula::State_Formula)::Set{Constraint}
     @match formula begin
         State_Location(_) => Set{State_Formula}()
         State_Constraint(constraint) => Set([constraint, Not(constraint)])
@@ -142,7 +142,7 @@ function get_all_properties(formula::State_Formula)::Set{Constraint}
     end
 end
 
-function get_all_properties(formula::Strategy_Formula)::Set{Constraint}
+function get_all_constraints(formula::Strategy_Formula)::Set{Constraint}
     @match formula begin
         Strategy_to_State(f) => get_all_properties(f)
         Exist_Always(_, f) => get_all_properties(f)
@@ -156,7 +156,7 @@ function get_all_properties(formula::Strategy_Formula)::Set{Constraint}
     end
 end
 
-function get_all_properties(formulae::Vector{Logic_formula})::Set{Constraint}
+function get_all_constraints(formulae::Vector{Logic_formula})::Set{Constraint}
     props = Set{Constraint}()
     for formula in formulae
         props = props ∪ get_all_properties(formula)
@@ -179,8 +179,8 @@ end
 function evaluate(formula::Strategy_Formula, node::Node, all_agents::Set{Agent})::Bool
     @match formula begin
         Strategy_to_State(f) => evaluate(f, node)
-        All_Always(agents, f) => ! evaluate(Exist_Eventually(setdiff(all_agents, agents), State_Not(f)), node, all_agents)
-        All_Eventually(agents, f) => ! evaluate(Exist_Always(setdiff(all_agents, agents), State_Not(f)), node, all_agents)
+        All_Always(agents, f) => ! evaluate(Exist_Eventually(setdiff(all_agents, agents), Strategy_Not(f)), node, all_agents)
+        All_Eventually(agents, f) => ! evaluate(Exist_Always(setdiff(all_agents, agents), Strategy_Not(f)), node, all_agents)
         Strategy_And(left, right) => evaluate(left, node, all_agents) && evaluate(right, node, all_agents)
         Strategy_Or(left, right) => evaluate(left, node, all_agents) || evaluate(right, node, all_agents)
         Strategy_Not(f) => ! evaluate(f, node, all_agents)

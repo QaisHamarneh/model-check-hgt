@@ -1,7 +1,7 @@
 include("time_to_trigger.jl")
 include("../game_semantics/transitions.jl")
 include("tree.jl")
-include("../STL/logic.jl")
+include("../hybrid_atl/logic.jl")
 
 using IterTools
 using Match
@@ -11,13 +11,12 @@ struct TriggerPath
     trigger::Constraint
     end_valuation::Valuation
     ttt::Float64
-    path_to_trigger::Vector{Configuration} # time => (valuation, satisfied_properties)
+    path_to_trigger::Vector{Configuration}
 end
 
 function check_termination(node::Node, total_steps, termination_conditions):: Bool
-    global_clock = node.config.global_clock
     
-    if global_clock >= termination_conditions["time-bound"] || 
+    if node.config.global_clock >= termination_conditions["time-bound"] || 
         total_steps >= termination_conditions["max-steps"] ||
         evaluate(termination_conditions["state-formula"], node)
         return true
@@ -27,19 +26,23 @@ function check_termination(node::Node, total_steps, termination_conditions):: Bo
     
 end
 
-function build_triggers_game_tree(game::Game,
-                        properties::Set{Constraint},
+function build_game_tree(game::Game, termination_conditions, queries::Vector{Strategy_Formula}):: Node
+    constraints = get_all_constraints(queries ∪ State_Formula[termination_conditions["state-formula"]])
+    return build_complete_game_tree(game, constraints, termination_conditions)
+end
+
+function build_complete_game_tree(game::Game,
+                        constraints::Set{Constraint},
                         termination_conditions;
                         current_config::Union{Configuration,Nothing} = nothing, 
                         parent::Union{Node, Nothing} = nothing,
                         reaching_decision::Union{Pair{Agent, Action}, Nothing} = nothing,
-                        global_clock::Float64 = 0.0,
                         total_steps::Int64 = 0):: Node
     if current_config === nothing
         current_config = initial_configuration(game)
     end
 
-    remaining_time = termination_conditions["time-bound"] - global_clock
+    remaining_time = termination_conditions["time-bound"] - current_config.global_clock
     current_node = Node(parent, reaching_decision, false, current_config, false, [])
 
     if check_termination(current_node, total_steps, termination_conditions)
@@ -52,16 +55,17 @@ function build_triggers_game_tree(game::Game,
     for agent in game.agents
         triggers_valuations[agent] = TriggerPath[]
         for trigger in game.triggers[agent]
-            new_valuation, ttt, path_to_trigger = time_to_trigger(current_config, trigger, properties, location_invariant)
+            new_valuation, ttt, path_to_trigger = time_to_trigger(current_config, trigger, constraints, location_invariant)
             if ttt <= remaining_time && ttt < location_invariant
                 trigger_path = TriggerPath(trigger, new_valuation, ttt, path_to_trigger)
                 push!(triggers_valuations[agent], trigger_path)
             end
         end
     end
+
     for agent in game.agents
         for trigger_path in triggers_valuations[agent]
-            config_after_trigger = Configuration(current_config.location, trigger_path.end_valuation, global_clock + trigger_path.ttt)
+            config_after_trigger = Configuration(current_config.location, trigger_path.end_valuation, current_config.global_clock + trigger_path.ttt)
             for action in enabled_actions(config_after_trigger, agent)
                 for edge in select_edges(game, config_after_trigger, agent => action)
                     config_after_edge = discrete_transition(config_after_trigger, edge)
@@ -74,12 +78,11 @@ function build_triggers_game_tree(game::Game,
                     end
                     push!(path_node.children, 
                         build_triggers_game_tree(game, 
-                                properties,
+                                constraints,
                                 termination_conditions,
-                                parent=current_node,
+                                parent=path_node,
                                 reaching_decision=Pair(agent, action),
                                 current_config=config_after_edge,
-                                global_clock=global_clock + trigger_path.ttt,
                                 total_steps=total_steps + 1
                         )
                     )

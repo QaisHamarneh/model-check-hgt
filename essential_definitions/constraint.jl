@@ -160,10 +160,10 @@ function evaluate(constraint::Constraint, valuation::Valuation)::Bool
 end
 
 
-function satisfied_constraints(constraints, valuation::Valuation)
+function get_satisfied_constraints(constraints, valuation::Valuation)
     filter(constraint -> evaluate(constraint, valuation), constraints)
 end
 
-function unsatisfied_constraints(constraints, valuation::Valuation)
+function get_unsatisfied_constraints(constraints, valuation::Valuation)
     filter(constraint -> ! evaluate(constraint, valuation), constraints)
 end
