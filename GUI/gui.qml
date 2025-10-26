@@ -13,9 +13,17 @@ ApplicationWindow {
     width: 1920
     height: 1080
 
-    function hasName(name, model) {
-        for (var i = 0; i < model.count; i++) {
-            if (model.get(i).name === name)
+    function has_name(name) {
+        for (var i = 0; i < agent_model.count; i++) {
+            if (agent_model.get(i).name === name)
+                return true
+        }
+        for (var i = 0; i < action_model.count; i++) {
+            if (action_model.get(i).name === name)
+                return true
+        }
+        for (var i = 0; i < variable_model.count; i++) {
+            if (variable_model.get(i).name === name)
                 return true
         }
         return false
@@ -25,23 +33,11 @@ ApplicationWindow {
 
         id: agent_model
 
-        ListElement {
-
-            name: "Test agent."
-
-        }
-
     }
 
     ListModel {
 
         id: action_model
-
-        ListElement {
-
-            name: "Test action."
-
-        }
 
     }
 
@@ -49,40 +45,31 @@ ApplicationWindow {
 
         id: variable_model
 
-        ListElement {
-
-            name: "Test var."
-            value: "0"
-
-        }
-
-    }
-
-    ListModel {
-
-        id: location_model
-
-        ListElement {
-
-            name: "loc"
-            initial: true
-            invariant: "x < 10"
-
-        }
-
     }
 
     ColumnLayout {
 
-        width: 500
+        width: 1000
         spacing: 20
         anchors { fill: parent; margins: 20 }
 
         Column {
 
             id: agents
-            width: parent.width
+            width: parent.width / 4 + 100
             spacing: 10
+
+            function add_agent(agent) {
+                var regex = /^[A-Za-z]\w*$/;
+                if (regex.test(agent) && !has_name(agent, agent_model)) {
+                    agent_model.append({name: agent});
+                    agent_text_field.placeholderText = "Enter name";
+                    agent_text_field.text = "";
+                } else {
+                    agent_text_field.placeholderText = "Invalid name";
+                    agent_text_field.text = "";
+                }
+            }
 
             Text {
                 text: "Agents"
@@ -91,17 +78,33 @@ ApplicationWindow {
             ListView {
 
                 id: agent_list
-                width: (parent.width - parent.spacing) / 2
+                width: parent.width
                 height: Math.min(contentHeight, 100)
                 clip: true
 
                 model: agent_model
-                delegate: Text {
+                delegate: Row {
 
-                    id: agent_name
-                    text: model.name
-                    color: "blue"
-        
+                    width: agent_list.width
+                    spacing: 10
+                    
+                    Text {
+
+                        id: agent_name
+                        width: parent.width - 100 - parent.spacing
+                        text: model.name
+                        color: "blue"
+            
+                    }
+
+                    Button {
+                        text: "-"
+                        height: parent.height
+                        onClicked: {
+                            agent_model.remove(index, 1);
+                        }
+                    }
+
                 }
 
                 ScrollBar.vertical: ScrollBar {
@@ -118,18 +121,10 @@ ApplicationWindow {
 
                 TextField {
                     id: agent_text_field
-                    width: (parent.width - parent.spacing) / 2
+                    width: parent.width - 100 - parent.spacing
                     placeholderText: "Enter name"
                     onAccepted: {
-                        var regex = /^[A-Za-z][A-Za-z0-9_]*$/;
-                        if (regex.test(agent_text_field.text) && !hasName(agent_text_field.text, agent_model)) {
-                            agent_model.append({name: agent_text_field.text});
-                            agent_text_field.placeholderText = "Enter name";
-                            agent_text_field.text = "";
-                        } else {
-                            agent_text_field.placeholderText = "Invalid name";
-                            agent_text_field.text = "";
-                        }
+                        agents.add_agent(agent_text_field.text);
                     }
                     onActiveFocusChanged: {
                         placeholderText = "Enter name";
@@ -142,15 +137,7 @@ ApplicationWindow {
                     Layout.fillHeight: false
                     text: "Add agent"
                     onClicked: {
-                        var regex = /^[A-Za-z]\w*$/;
-                        if (regex.test(agent_text_field.text) && !hasName(agent_text_field.text, agent_model)) {
-                            agent_model.append({name: agent_text_field.text});
-                            agent_text_field.placeholderText = "Enter name";
-                            agent_text_field.text = "";
-                        } else {
-                            agent_text_field.placeholderText = "Invalid name";
-                            agent_text_field.text = "";
-                        }
+                        agents.add_agent(agent_text_field.text);
                     }
                 }
 
@@ -161,8 +148,20 @@ ApplicationWindow {
         Column {
 
             id: actions
-            width: parent.width
+            width: parent.width / 4 + 100
             spacing: 10
+
+            function add_action(action) {
+                var regex = /^[A-Za-z][A-Za-z0-9_]*$/;
+                if (regex.test(action) && !has_name(action, action_model)) {
+                    action_model.append({name: action});
+                    action_text_field.placeholderText = "Enter name";
+                    action_text_field.text = "";
+                } else {
+                    action_text_field.placeholderText = "Invalid name";
+                    action_text_field.text = "";
+                }
+            }
 
             Text {
                 text: "Actions"
@@ -171,16 +170,32 @@ ApplicationWindow {
             ListView {
 
                 id: action_list
-                width: (parent.width - parent.spacing) / 2
+                width: parent.width
                 height: Math.min(contentHeight, 100)
                 clip: true
 
                 model: action_model
-                delegate: Text {
+                delegate: Row {
 
-                    id: action_name
-                    text: model.name 
-                    color: "blue"
+                    width: action_list.width
+                    spacing: 10
+                    
+                    Text {
+
+                        id: action_name
+                        width: parent.width - 100 - parent.spacing
+                        text: model.name 
+                        color: "blue"
+
+                    }
+
+                    Button {
+                        text: "-"
+                        height: parent.height
+                        onClicked: {
+                            action_model.remove(index, 1);
+                        }
+                    }
 
                 }
 
@@ -198,18 +213,10 @@ ApplicationWindow {
 
                 TextField {
                     id: action_text_field
-                    width: (parent.width - parent.spacing) / 2
+                    width: parent.width - 100 - parent.spacing
                     placeholderText: "Enter name"
                     onAccepted: {
-                        var regex = /^[A-Za-z][A-Za-z0-9_]*$/;
-                        if (regex.test(action_text_field.text) && !hasName(action_text_field.text, action_model)) {
-                            action_model.append({name: action_text_field.text});
-                            action_text_field.placeholderText = "Enter name";
-                            action_text_field.text = "";
-                        } else {
-                            action_text_field.placeholderText = "Invalid name";
-                            action_text_field.text = "";
-                        }
+                        actions.add_action(action_text_field.text);
                     }
                     onActiveFocusChanged: {
                         placeholderText = "Enter name";
@@ -222,15 +229,7 @@ ApplicationWindow {
                     Layout.fillHeight: false
                     text: "Add action"
                     onClicked: {
-                        var regex = /^[A-Za-z][A-Za-z0-9_]*$/;
-                        if (regex.test(action_text_field.text) && !hasName(action_text_field.text, action_model)) {
-                            action_model.append({name: action_text_field.text});
-                            action_text_field.placeholderText = "Enter name";
-                            action_text_field.text = "";
-                        } else {
-                            action_text_field.placeholderText = "Invalid name";
-                            action_text_field.text = "";
-                        }
+                        actions.add_action(action_text_field.text);
                     }
                 }
 
@@ -241,8 +240,28 @@ ApplicationWindow {
         Column {
 
             id: variables
-            width: parent.width
+            width: parent.width / 2 + 100
             spacing: 10
+
+            function add_variable(variable, value) {
+                var name_regex = /^[A-Za-z]\w*$/;
+                var value_regex = /(^[1-9]\d*(\.\d+)?$)|(^0(\.\d+)?$)/;
+                if (name_regex.test(variable) && !has_name(variable, variable_model)) {
+                    if (value_regex.test(value)) {
+                        variable_model.append({name: variable, value: value});
+                        variable_name_text_field.text = "";
+                        variable_value_text_field.text = "";
+                    } else {
+                        variable_value_text_field.placeholderText = "Invalid value";
+                        variable_name_text_field.text = "";
+                        variable_value_text_field.text = "";
+                    }
+                } else {
+                    variable_name_text_field.placeholderText = "Invalid name";
+                    variable_name_text_field.text = "";
+                    variable_value_text_field.text = "";
+                }
+            }
 
             Text {
                 text: "Variables"
@@ -250,7 +269,7 @@ ApplicationWindow {
 
             Row {
 
-                width: parent.width
+                width: parent.width - 100
                 spacing: 10
 
                 Text {
@@ -275,22 +294,31 @@ ApplicationWindow {
                 model: variable_model
                 delegate: Row {
 
-                    width: parent.width
+                    width: variable_list.width
                     spacing: 10
 
                     Text {
                         id: variable_name
-                        width: (parent.width - parent.spacing) / 2
+                        width: (parent.width - 100 - parent.spacing) / 2
                         horizontalAlignment: Text.AlignLeft
                         text: model.name 
                         color: "blue"
                     }
+
                     Text {
                         id: variable_value
-                        width: (parent.width - parent.spacing) / 2
+                        width: (parent.width - 100 - parent.spacing) / 2
                         horizontalAlignment: Text.AlignLeft
                         text: model.value 
                         color: "blue"
+                    }
+
+                    Button {
+                        text: "-"
+                        height: parent.height
+                        onClicked: {
+                            variable_model.remove(index, 1);
+                        }
                     }
                 }
 
@@ -308,26 +336,10 @@ ApplicationWindow {
 
                 TextField {
                     id: variable_name_text_field
-                    width: (parent.width - parent.spacing) / 2
+                    width: (parent.width - 100 - parent.spacing) / 2
                     placeholderText: "Enter name"
                     onAccepted: {
-                        var name_regex = /^[A-Za-z]\w*$/;
-                        var value_regex = /(^[1-9]\d*(\.\d+)?$)|(^0(\.\d+)?$)/;
-                        if (name_regex.test(variable_name_text_field.text) && !hasName(variable_name_text_field.text, variable_model)) {
-                            if (value_regex.test(variable_value_text_field.text)) {
-                                variable_model.append({name: variable_name_text_field.text, value: variable_value_text_field.text});
-                                variable_name_text_field.text = "";
-                                variable_value_text_field.text = "";
-                            } else {
-                                variable_value_text_field.placeholderText = "Invalid value";
-                                variable_name_text_field.text = "";
-                                variable_value_text_field.text = "";
-                            }
-                        } else {
-                            variable_name_text_field.placeholderText = "Invalid name";
-                            variable_name_text_field.text = "";
-                            variable_value_text_field.text = "";
-                        }
+                        variables.add_variable(variable_name_text_field.text, variable_value_text_field.text);
                     }
                     onActiveFocusChanged: {
                         placeholderText = "Enter name";
@@ -336,26 +348,10 @@ ApplicationWindow {
 
                 TextField {
                     id: variable_value_text_field
-                    width: (parent.width - parent.spacing) / 2
+                    width: (parent.width - 100 - parent.spacing) / 2
                     placeholderText: "Enter value"
                     onAccepted: {
-                        var name_regex = /^[A-Za-z]\w*$/;
-                        var value_regex = /(^[1-9]\d*(\.\d+)?$)|(^0(\.\d+)?$)/;
-                        if (name_regex.test(variable_name_text_field.text) && !hasName(variable_name_text_field.text, variable_model)) {
-                            if (value_regex.test(variable_value_text_field.text)) {
-                                variable_model.append({name: variable_name_text_field.text, value: variable_value_text_field.text});
-                                variable_name_text_field.text = "";
-                                variable_value_text_field.text = "";
-                            } else {
-                                variable_value_text_field.placeholderText = "Invalid value";
-                                variable_name_text_field.text = "";
-                                variable_value_text_field.text = "";
-                            }
-                        } else {
-                            variable_name_text_field.placeholderText = "Invalid name";
-                            variable_name_text_field.text = "";
-                            variable_value_text_field.text = "";
-                        }
+                        variables.add_variable(variable_name_text_field.text, variable_value_text_field.text);
                     }
                     onActiveFocusChanged: {
                         placeholderText = "Enter value";
@@ -366,25 +362,9 @@ ApplicationWindow {
                     Material.foreground: "white"
                     Material.background: Material.DeepOrange
                     Layout.fillHeight: false
-                    text: "Add action"
+                    text: "Add variable"
                     onClicked: {
-                        var name_regex = /^[A-Za-z]\w*$/;
-                        var value_regex = /(^[1-9]\d*(\.\d+)?$)|(^0(\.\d+)?$)/;
-                        if (name_regex.test(variable_name_text_field.text) && !hasName(variable_name_text_field.text, variable_model)) {
-                            if (value_regex.test(variable_value_text_field.text)) {
-                                variable_model.append({name: variable_name_text_field.text, value: variable_value_text_field.text});
-                                variable_name_text_field.text = "";
-                                variable_value_text_field.text = "";
-                            } else {
-                                variable_value_text_field.placeholderText = "Invalid value";
-                                variable_name_text_field.text = "";
-                                variable_value_text_field.text = "";
-                            }
-                        } else {
-                            variable_name_text_field.placeholderText = "Invalid name";
-                            variable_name_text_field.text = "";
-                            variable_value_text_field.text = "";
-                        }
+                        variables.add_variable(variable_name_text_field.text, variable_value_text_field.text);
                     }
                 }
 
