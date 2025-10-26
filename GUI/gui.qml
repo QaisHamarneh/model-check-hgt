@@ -80,7 +80,7 @@ ApplicationWindow {
 
             function add_agent(agent) {
                 var regex = /^[A-Za-z]\w*$/;
-                if (regex.test(agent) && !has_name(agent, agent_model)) {
+                if (regex.test(agent) && !has_name(agent)) {
                     agent_model.append({name: agent});
                     agent_text_field.placeholderText = "Enter name";
                     agent_text_field.text = "";
@@ -172,7 +172,7 @@ ApplicationWindow {
 
             function add_action(action) {
                 var regex = /^[A-Za-z][A-Za-z0-9_]*$/;
-                if (regex.test(action) && !has_name(action, action_model)) {
+                if (regex.test(action) && !has_name(action)) {
                     action_model.append({name: action});
                     action_text_field.placeholderText = "Enter name";
                     action_text_field.text = "";
@@ -265,7 +265,7 @@ ApplicationWindow {
             function add_variable(variable, value) {
                 var name_regex = /^[A-Za-z]\w*$/;
                 var value_regex = /(^[1-9]\d*(\.\d+)?$)|(^0(\.\d+)?$)/;
-                if (name_regex.test(variable) && !has_name(variable, variable_model)) {
+                if (name_regex.test(variable) && !has_name(variable)) {
                     if (value_regex.test(value)) {
                         variable_model.append({name: variable, value: value});
                         variable_name_text_field.text = "";
@@ -414,7 +414,6 @@ ApplicationWindow {
             }
 
             Text {
-                id: location_text
                 text: "Locations"
             }
 
@@ -438,6 +437,7 @@ ApplicationWindow {
                         spacing: 10
 
                         Text {
+                            width: (parent.width - parent.spacing) / 4
                             height: parent.height
                             horizontalAlignment: Text.AlignLeft
                             verticalAlignment: Text.AlignVCenter
@@ -482,6 +482,7 @@ ApplicationWindow {
                         spacing: 10
 
                         Text {
+                            width: (parent.width - parent.spacing) / 4
                             height: parent.height
                             horizontalAlignment: Text.AlignLeft
                             verticalAlignment: Text.AlignVCenter
@@ -489,22 +490,66 @@ ApplicationWindow {
                         }
 
                         TextField {
-                            id: location_inv_text_field
+                            id: invariant_text_field
                             width: (parent.width - parent.spacing) / 2
                             placeholderText: "Enter invariant"
                             onAccepted: {
-                                if (Julia.is_valid_constraint(location_inv_text_field.text, get_variables())) {
-                                    model.inv = location_inv_text_field.text;
+                                if (Julia.is_valid_constraint(invariant_text_field.text, get_variables())) {
+                                    model.inv = invariant_text_field.text;
                                     placeholderText = "";
                                 } else {
                                     model.name = "";
-                                    location_inv_text_field.text = "";
+                                    invariant_text_field.text = "";
                                     placeholderText = "Invalid invariant";
                                 }
                                 focus = false;
                             }
                         }
 
+                    }
+
+                    Text {
+                        text: "Flow"
+                        visible: variable_model.count > 0
+                    }
+
+                    ListView {
+
+                        id: flow
+                        width: parent.width
+                        height: Math.min(contentHeight, 200)
+                        spacing: 10
+                        clip: true
+
+                        model: variable_model
+                        delegate: Row {
+
+                            width: flow.width
+                            spacing: 10
+
+                            Text {
+                                width: (parent.width - parent.spacing) / 4
+                                height: parent.height
+                                horizontalAlignment: Text.AlignLeft
+                                verticalAlignment: Text.AlignVCenter
+                                text: model.name
+                            }
+
+                            TextField {
+                                id: flow_text_field
+                                width: (parent.width - parent.spacing) / 2
+                                placeholderText: "Enter expression"
+                                onAccepted: {
+                                if (Julia.is_valid_expression(flow_text_field.text, get_variables())) {
+                                    placeholderText = "";
+                                } else {
+                                    flow_text_field.text = "";
+                                    placeholderText = "Invalid expression";
+                                }
+                                focus = false;
+                            }
+                            }
+                        }
                     }
 
                 }
