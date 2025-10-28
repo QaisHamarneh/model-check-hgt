@@ -1,10 +1,6 @@
-using Pkg
-
-Pkg.activate(".")
-Pkg.instantiate()
+include("../packages.jl")
 
 using QML
-using Observables
 
 include("../parsers/parser.jl")
 
