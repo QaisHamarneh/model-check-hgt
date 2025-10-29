@@ -69,209 +69,216 @@ ApplicationWindow {
 
     }
 
+    ListModel {
+
+        id: edge_model
+
+    }
+
     Row {
 
-        anchors.top: parent.top
-        anchors.left: parent.left
+        anchors.fill: parent
         anchors.margins: 10
-        width: parent.width - 2 * anchors.margins
-        height: parent.heigth - 2 * anchors.margins
         spacing: 10
 
-        ColumnLayout {
+        Column {
 
             id: left_column
-            width: (parent.width - parent.spacing) / 2
+            width: (parent.width - 2 * parent.spacing - page_separator.width) / 2
             height: parent.height
             spacing: 20
 
-            Column {
+            Row {
 
-                id: agents
                 width: parent.width
-                spacing: 10
-
-                function add_agent(agent) {
-                    var regex = /^[A-Za-z]\w*$/;
-                    if (regex.test(agent) && !has_name(agent)) {
-                        agent_model.append({name: agent});
-                        agent_text_field.placeholderText = "Enter name";
-                        agent_text_field.text = "";
-                    } else {
-                        agent_text_field.placeholderText = "Invalid name";
-                        agent_text_field.text = "";
-                    }
-                }
-
-                Text {
-                    width: parent.width
-                    text: "Agents"
-                }
-
-                ListView {
-
-                    id: agent_list
-                    width: parent.width
-                    height: Math.min(contentHeight, 100)
-                    clip: true
-
-                    model: agent_model
-                    delegate: Row {
-
-                        width: agent_list.width
-                        spacing: 10
-                        
-                        Text {
-
-                            id: agent_name
-                            width: parent.width / 1.5
-                            text: model.name
-                            color: "blue"
+                spacing: 20
                 
-                        }
+                // agents
+                Column {
 
-                        Button {
-                            text: "-"
-                            height: parent.height
-                            onClicked: {
-                                agent_model.remove(index, 1);
-                            }
-                        }
-
-                    }
-
-                    ScrollBar.vertical: ScrollBar {
-                        active: true
-                        policy: ScrollBar.AsNeeded
-                    }
-
-                }
-
-                Row {
-
-                    width: parent.width
+                    id: agents
+                    width: (parent.width - parent.spacing) / 2 
                     spacing: 10
 
-                    TextField {
-                        id: agent_text_field
-                        width: parent.width / 1.5
-                        placeholderText: "Enter name"
-                        onAccepted: {
-                            agents.add_agent(agent_text_field.text);
-                        }
-                        onActiveFocusChanged: {
-                            placeholderText = "Enter name";
-                        }
-                    }
-
-                    Button {
-                        Material.foreground: "white"
-                        Material.background: Material.DeepOrange
-                        Layout.fillHeight: false
-                        text: "Add agent"
-                        onClicked: {
-                            agents.add_agent(agent_text_field.text);
+                    function add_agent(agent) {
+                        var regex = /^[A-Za-z]\w*$/;
+                        if (regex.test(agent) && !has_name(agent)) {
+                            agent_model.append({name: agent});
+                            agent_text_field.placeholderText = "Enter name";
+                            agent_text_field.text = "";
+                        } else {
+                            agent_text_field.placeholderText = "Invalid name";
+                            agent_text_field.text = "";
                         }
                     }
 
-                }
-
-            }
-
-            Rectangle {
-                width: parent.width
-                height: 5
-                radius: 4
-                color: "black"
-            }
-
-            Column {
-
-                id: actions
-                width: parent.width
-                spacing: 10
-
-                function add_action(action) {
-                    var regex = /^[A-Za-z][A-Za-z0-9_]*$/;
-                    if (regex.test(action) && !has_name(action)) {
-                        action_model.append({name: action});
-                        action_text_field.placeholderText = "Enter name";
-                        action_text_field.text = "";
-                    } else {
-                        action_text_field.placeholderText = "Invalid name";
-                        action_text_field.text = "";
+                    Text {
+                        width: parent.width
+                        text: "Agents"
                     }
-                }
 
-                Text {
-                    width: parent.width
-                    text: "Actions"
-                }
+                    ListView {
 
-                ListView {
+                        id: agent_list
+                        width: parent.width
+                        height: Math.min(contentHeight, 100)
+                        clip: true
 
-                    id: action_list
-                    width: parent.width
-                    height: Math.min(contentHeight, 100)
-                    clip: true
+                        model: agent_model
+                        delegate: Row {
 
-                    model: action_model
-                    delegate: Row {
+                            width: agent_list.width
+                            spacing: 10
+                            
+                            Text {
 
-                        width: action_list.width
+                                id: agent_name
+                                width: parent.width - parent.spacing - agent_button.width
+                                text: model.name
+                                color: "blue"
+                    
+                            }
+
+                            Button {
+                                text: "-"
+                                height: parent.height
+                                onClicked: {
+                                    agent_model.remove(index, 1);
+                                }
+                            }
+
+                        }
+
+                        ScrollBar.vertical: ScrollBar {
+                            active: true
+                            policy: ScrollBar.AsNeeded
+                        }
+
+                    }
+
+                    Row {
+
+                        width: parent.width
                         spacing: 10
-                        
-                        Text {
 
-                            id: action_name
-                            width: parent.width / 1.5
-                            text: model.name 
-                            color: "blue"
-
+                        TextField {
+                            id: agent_text_field
+                            width: parent.width - parent.spacing - agent_button.width
+                            placeholderText: "Enter name"
+                            onAccepted: {
+                                agents.add_agent(agent_text_field.text);
+                            }
+                            onActiveFocusChanged: {
+                                placeholderText = "Enter name";
+                            }
                         }
 
                         Button {
-                            text: "-"
-                            height: parent.height
+                            id: agent_button
+                            Layout.fillHeight: false
+                            Material.foreground: "white"
+                            Material.background: Material.DeepOrange
+                            text: "+"
                             onClicked: {
-                                action_model.remove(index, 1);
+                                agents.add_agent(agent_text_field.text);
                             }
                         }
 
                     }
 
-                    ScrollBar.vertical: ScrollBar {
-                        active: true
-                        policy: ScrollBar.AsNeeded
-                    }
-
                 }
 
-                Row {
+                // actions
+                Column {
 
-                    width: parent.width
+                    id: actions
+                    width: (parent.width - parent.spacing) / 2
                     spacing: 10
 
-                    TextField {
-                        id: action_text_field
-                        width: parent.width / 1.5
-                        placeholderText: "Enter name"
-                        onAccepted: {
-                            actions.add_action(action_text_field.text);
-                        }
-                        onActiveFocusChanged: {
-                            placeholderText = "Enter name";
+                    function add_action(action) {
+                        var regex = /^[A-Za-z][A-Za-z0-9_]*$/;
+                        if (regex.test(action) && !has_name(action)) {
+                            action_model.append({name: action});
+                            action_text_field.placeholderText = "Enter name";
+                            action_text_field.text = "";
+                        } else {
+                            action_text_field.placeholderText = "Invalid name";
+                            action_text_field.text = "";
                         }
                     }
 
-                    Button {
-                        Material.foreground: "white"
-                        Material.background: Material.DeepOrange
-                        Layout.fillHeight: false
-                        text: "Add action"
-                        onClicked: {
-                            actions.add_action(action_text_field.text);
+                    Text {
+                        width: parent.width
+                        text: "Actions"
+                    }
+
+                    ListView {
+
+                        id: action_list
+                        width: parent.width
+                        height: Math.min(contentHeight, 100)
+                        clip: true
+
+                        model: action_model
+                        delegate: Row {
+
+                            width: action_list.width
+                            spacing: 10
+                            
+                            Text {
+
+                                id: action_name
+                                width: parent.width - parent.spacing - action_button.width
+                                text: model.name 
+                                color: "blue"
+
+                            }
+
+                            Button {
+                                text: "-"
+                                height: parent.height
+                                onClicked: {
+                                    action_model.remove(index, 1);
+                                }
+                            }
+
                         }
+
+                        ScrollBar.vertical: ScrollBar {
+                            active: true
+                            policy: ScrollBar.AsNeeded
+                        }
+
+                    }
+
+                    Row {
+
+                        width: parent.width
+                        spacing: 10
+
+                        TextField {
+                            id: action_text_field
+                            width: parent.width - parent.spacing - action_button.width
+                            placeholderText: "Enter name"
+                            onAccepted: {
+                                actions.add_action(action_text_field.text);
+                            }
+                            onActiveFocusChanged: {
+                                placeholderText = "Enter name";
+                            }
+                        }
+
+                        Button {
+                            id: action_button
+                            Layout.fillHeight: false
+                            Material.foreground: "white"
+                            Material.background: Material.DeepOrange
+                            text: "+"
+                            onClicked: {
+                                actions.add_action(action_text_field.text);
+                            }
+                        }
+
                     }
 
                 }
@@ -285,6 +292,7 @@ ApplicationWindow {
                 color: "black"
             }
 
+            // variables
             Column {
 
                 id: variables
@@ -318,7 +326,7 @@ ApplicationWindow {
 
                 Row {
 
-                    width: parent.width / 1.5
+                    width: parent.width - parent.spacing - variable_button.width
                     spacing: 10
 
                     Text {
@@ -347,14 +355,14 @@ ApplicationWindow {
                         spacing: 10
 
                         Text {
-                            width: (parent.width - parent.spacing) / 3
+                            width: (parent.width - 2 * parent.spacing - variable_button.width) / 2
                             horizontalAlignment: Text.AlignLeft
                             text: model.name 
                             color: "blue"
                         }
 
                         Text {
-                            width: (parent.width - parent.spacing) / 3
+                            width: (parent.width - 2 * parent.spacing - variable_button.width) / 2
                             horizontalAlignment: Text.AlignLeft
                             text: model.value 
                             color: "blue"
@@ -378,12 +386,12 @@ ApplicationWindow {
 
                 Row {
 
-                    width: parent.width / 1.5
+                    width: parent.width
                     spacing: 10
 
                     TextField {
                         id: variable_name_text_field
-                        width: (parent.width - parent.spacing) / 2
+                        width: (parent.width - 2 * parent.spacing - variable_button.width) / 2
                         placeholderText: "Enter name"
                         onAccepted: {
                             variables.add_variable(variable_name_text_field.text, variable_value_text_field.text);
@@ -395,7 +403,7 @@ ApplicationWindow {
 
                     TextField {
                         id: variable_value_text_field
-                        width: (parent.width - parent.spacing) / 2
+                        width: (parent.width - 2 * parent.spacing - variable_button.width) / 2
                         placeholderText: "Enter value"
                         onAccepted: {
                             variables.add_variable(variable_name_text_field.text, variable_value_text_field.text);
@@ -406,10 +414,11 @@ ApplicationWindow {
                     }
 
                     Button {
+                        id: variable_button
+                        Layout.fillHeight: false
                         Material.foreground: "white"
                         Material.background: Material.DeepOrange
-                        Layout.fillHeight: false
-                        text: "Add variable"
+                        text: "+"
                         onClicked: {
                             variables.add_variable(variable_name_text_field.text, variable_value_text_field.text);
                         }
@@ -425,22 +434,42 @@ ApplicationWindow {
                 radius: 4
                 color: "black"
             }
+            
 
+        }
+
+        Rectangle {
+            id: page_separator
+            width: 5
+            height: parent.height
+            radius: 4
+            color: "black"
+        }
+
+        Column {
+
+            width: (parent.width - 2 * parent.spacing - page_separator.width) / 2
+            height: parent.height
+            spacing: 20
+
+            // locations
             Column {
 
                 id: locations
-                width: parent.width / 2
+                width: parent.width
                 spacing: 10
 
                 function add_location() {
                     if (location_model.count == 0) {
                         location_model.append({
                             name: "",
+                            inv: "",
                             initial: true
                         });
                     } else {
                         location_model.append({
                             name: "",
+                            inv: "",
                             initial: false
                         });   
                     }
@@ -451,14 +480,15 @@ ApplicationWindow {
                 }
 
                 Text {
+                    width: parent.width
                     text: "Locations"
                 }
 
                 ListView {
 
                     id: location_list
-                    width: left_column.width / 2
-                    height: Math.min(contentHeight, 600)
+                    width: parent.width
+                    height: Math.min(contentHeight, 400)
                     spacing: 10
                     clip: true
 
@@ -474,7 +504,8 @@ ApplicationWindow {
                             spacing: 10
 
                             Text {
-                                width: (parent.width - parent.spacing) / 4
+                                id: location_name_text
+                                width: contentWidth
                                 height: parent.height
                                 horizontalAlignment: Text.AlignLeft
                                 verticalAlignment: Text.AlignVCenter
@@ -483,7 +514,7 @@ ApplicationWindow {
 
                             TextField {
                                 id: location_name_text_field
-                                width: (parent.width - parent.spacing) / 2
+                                width: (parent.width - 4 * parent.spacing - location_name_text.width - location_inv_text.width - initial_location.width) / 2
                                 placeholderText: "Enter name"
                                 onAccepted: {
                                     var regex = /^[A-Za-z]\w*$/;
@@ -494,6 +525,32 @@ ApplicationWindow {
                                         model.name = "";
                                         location_name_text_field.text = "";
                                         placeholderText = "Invalid name";
+                                    }
+                                    focus = false;
+                                }
+                            }
+
+                            Text {
+                                id: location_inv_text
+                                width: contentWidth
+                                height: parent.height
+                                horizontalAlignment: Text.AlignLeft
+                                verticalAlignment: Text.AlignVCenter
+                                text: "Invariant"
+                            }
+
+                            TextField {
+                                id: invariant_text_field
+                                width: (parent.width - 4 * parent.spacing - location_name_text.width - location_inv_text.width - initial_location.width) / 2
+                                placeholderText: "Enter invariant"
+                                onAccepted: {
+                                    if (Julia.is_valid_constraint(invariant_text_field.text, get_variables())) {
+                                        model.inv = invariant_text_field.text;
+                                        placeholderText = "";
+                                    } else {
+                                        model.inv = "";
+                                        invariant_text_field.text = "";
+                                        placeholderText = "Invalid invariant";
                                     }
                                     focus = false;
                                 }
@@ -513,38 +570,6 @@ ApplicationWindow {
 
                         }
 
-                        Row {
-
-                            width: parent.width
-                            spacing: 10
-
-                            Text {
-                                width: (parent.width - parent.spacing) / 4
-                                height: parent.height
-                                horizontalAlignment: Text.AlignLeft
-                                verticalAlignment: Text.AlignVCenter
-                                text: "Invariant"
-                            }
-
-                            TextField {
-                                id: invariant_text_field
-                                width: (parent.width - parent.spacing) / 2
-                                placeholderText: "Enter invariant"
-                                onAccepted: {
-                                    if (Julia.is_valid_constraint(invariant_text_field.text, get_variables())) {
-                                        model.inv = invariant_text_field.text;
-                                        placeholderText = "";
-                                    } else {
-                                        model.name = "";
-                                        invariant_text_field.text = "";
-                                        placeholderText = "Invalid invariant";
-                                    }
-                                    focus = false;
-                                }
-                            }
-
-                        }
-
                         Text {
                             text: "Flow"
                             visible: variable_model.count > 0
@@ -557,6 +582,7 @@ ApplicationWindow {
                             height: contentHeight
                             spacing: 10
                             clip: true
+                            interactive: false
 
                             model: variable_model
                             delegate: Row {
@@ -565,7 +591,7 @@ ApplicationWindow {
                                 spacing: 10
 
                                 Text {
-                                    width: (parent.width - parent.spacing) / 4
+                                    width: location_name_text.width
                                     height: parent.height
                                     horizontalAlignment: Text.AlignLeft
                                     verticalAlignment: Text.AlignVCenter
@@ -574,26 +600,32 @@ ApplicationWindow {
 
                                 TextField {
                                     id: flow_text_field
-                                    width: (parent.width - parent.spacing) / 2
+                                    width: parent.width - 2 * parent.spacing - location_name_text.width - initial_location.width
                                     placeholderText: "Enter expression"
                                     onAccepted: {
-                                    if (Julia.is_valid_expression(flow_text_field.text, get_variables())) {
-                                        placeholderText = "";
-                                    } else {
-                                        flow_text_field.text = "";
-                                        placeholderText = "Invalid expression";
+                                        if (Julia.is_valid_expression(flow_text_field.text, get_variables())) {
+                                            placeholderText = "";
+                                        } else {
+                                            flow_text_field.text = "";
+                                            placeholderText = "Invalid expression";
+                                        }
+                                        focus = false;
                                     }
-                                    focus = false;
                                 }
-                                }
+
                             }
+
                         }
 
-                    }
+                        Rectangle {
+                            
+                            width: parent.width
+                            height: 3
+                            radius: 4
+                            color: "grey"
 
-                    ScrollBar.vertical: ScrollBar {
-                        active: true
-                        policy: ScrollBar.AsNeeded
+                        }
+
                     }
 
                 }
@@ -602,9 +634,88 @@ ApplicationWindow {
                     Material.foreground: "white"
                     Material.background: Material.DeepOrange
                     Layout.fillHeight: false
-                    text: "Add location"
+                    text: "+"
                     onClicked: {
                         locations.add_location();
+                    }
+                }
+
+            }
+
+            Rectangle {
+                width: parent.width
+                height: 5
+                radius: 4
+                color: "black"
+            }
+
+            // edges
+            Column {
+
+                id: edges
+                width: parent.width
+                spacing: 10
+
+                Text {
+                    width: parent.width
+                    text: "Edges"
+                }
+
+                ListView {
+
+                    id: edge_list
+                    width: parent.width
+                    height: Math.min(contentHeight, 400)
+                    spacing: 10
+                    clip: true
+
+                    model: edge_model
+                    delegate: Column {
+
+                        width: edge_list.width
+                        spacing: 10
+
+                        Row {
+
+                            width: parent.width
+                            spacing: 10
+
+                            Text {
+                                width: (parent.width - 2 * parent.spacing) / 3
+                                height: parent.height
+                                horizontalAlignment: Text.AlignLeft
+                                text: "Name"
+                            }
+
+                            Text {
+                                width: (parent.width - 2 * parent.spacing) / 3
+                                height: parent.height
+                                horizontalAlignment: Text.AlignLeft
+                                text: "Start location"
+                            }
+
+                            Text {
+                                width: (parent.width - 2 * parent.spacing) / 3
+                                height: parent.height
+                                horizontalAlignment: Text.AlignLeft
+                                text: "End location"
+                            }
+
+                        }
+
+                    }
+
+                }
+
+                Button {
+                    Material.foreground: "white"
+                    Material.background: Material.DeepOrange
+                    Layout.fillHeight: false
+                    text: "+"
+                    onClicked: {
+                        edge_model.append({
+                            name: ""
+                        });
                     }
                 }
 
