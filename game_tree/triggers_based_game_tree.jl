@@ -46,7 +46,8 @@ function build_complete_game_tree(game::Game,
     current_node = Node(parent, reaching_decision, false, current_config, false, [])
 
     if check_termination(current_node, total_steps, termination_conditions)
-        return Node(parent, reaching_decision, false, current_config, true, [])
+        current_node.terminal_node = true
+        return current_node
     end
 
     _, location_invariant, _ = time_to_trigger(current_config, Not(current_config.location.invariant), Set{Constraint}(), remaining_time)
@@ -71,13 +72,13 @@ function build_complete_game_tree(game::Game,
                     config_after_edge = discrete_transition(config_after_trigger, edge)
                     path_node = current_node
                     for path_config in trigger_path.path_to_trigger
-                        child_node = Node(path_node, Pair(agent, action), true, path_config, 
-                                check_termination(path_node, total_steps, termination_conditions), [])
+                        child_node = Node(path_node, Pair(agent, action), true, path_config, false, [])
+                        child_node.terminal_node = check_termination(child_node, total_steps, termination_conditions)
                         push!(path_node.children, child_node)
                         path_node = child_node
                     end
                     push!(path_node.children, 
-                        build_triggers_game_tree(game, 
+                        build_complete_game_tree(game, 
                                 constraints,
                                 termination_conditions,
                                 parent=path_node,
@@ -90,7 +91,7 @@ function build_complete_game_tree(game::Game,
             end
         end
     end 
-    sort_children_by_clock!(current_node)
+    # sort_children_by_clock!(current_node)
     return current_node
 end
 

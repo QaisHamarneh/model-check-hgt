@@ -2,7 +2,7 @@ include("../game_syntax/game.jl")
 include("../game_semantics/configuration.jl")
 
 
-struct Node
+mutable struct Node
     parent::Union{Node, Nothing}
     reaching_decision::Union{Pair{Agent, Action}, Nothing}
     passive_node::Bool

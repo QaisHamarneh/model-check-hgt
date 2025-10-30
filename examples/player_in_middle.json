@@ -10,9 +10,9 @@
                 "invariant": "timer <= 5",
                 "flow": 
                     {
-                        "time": "1",
                         "middle_player": "sin(time) * spd_C",
-                        "timer": "1"
+                        "timer": "1",
+                        "time": "1"
                     }
             },
             {
@@ -50,7 +50,7 @@
             },
             {
                 "name": "Caught",
-                "invariant": "1 <= x <= 1 && (y - middle_player)^2 <= 1",
+                "invariant": "-1 <= x && x <= 1 && (y - middle_player)^2 <= 1",
                 "flow": 
                     {
                         "time": "1"
@@ -61,6 +61,10 @@
             {
                 "x": -5,
                 "y": 0.5,
+                "pos_A_x": -10,
+                "pos_A_y": 0,
+                "pos_B_x": 10,
+                "pos_B_y": 0,
                 "middle_player": 0,
                 "dir_x": -5,
                 "dir_y": -0.5,
@@ -78,7 +82,7 @@
                 "name": "A_Caught",
                 "start_location": "B_Throwing",
                 "target_location": "A_Waiting",
-                "guard": "(x - 10)^2 + y^2 <= 1",
+                "guard": "(x - pos_A_x)^2 + (y - pos_A_y)^2 <= 1",
                 "decision": 
                 {
                     "A": "catch"
@@ -92,22 +96,23 @@
                 "name": "A_throw",
                 "start_location": "A_Waiting",
                 "target_location": "A_Throwing",
-                "guard": "1 <= timer <= 4",
+                "guard": "1 <= timer && timer <= 4",
                 "decision": 
                 {
                     "A": "throw"
                 },
                 "jump": 
                 {
-                    "dir_x": "-10 - x",
-                    "dir_y": "- y"
+                    "dir_x": "pos_B_x - x",
+                    "dir_y": "pos_B_y - y",
+                    "timer": "0"
                 }
             },
             {
                 "name": "B_Caught",
                 "start_location": "A_Throwing",
                 "target_location": "B_Waiting",
-                "guard": "(x + 10)^2 + y^2 <= 1",
+                "guard": "(x - pos_B_x)^2 + (y - pos_B_y)^2 <= 1",
                 "decision": 
                 {
                     "B": "catch"
@@ -121,15 +126,16 @@
                 "name": "B_throw",
                 "start_location": "B_Waiting",
                 "target_location": "B_Throwing",
-                "guard": "1 <= timer <= 4",
+                "guard": "1 <= timer && timer <= 4",
                 "decision": 
                 {
                     "B": "throw"
                 },
                 "jump": 
                 {
-                    "dir_x": "10 - x",
-                    "dir_y": "- y"
+                    "dir_x": "pos_A_x - x",
+                    "dir_y": "pos_A_y - y",
+                    "timer": "0"
                 }
             },
             {
@@ -161,8 +167,8 @@
         ],
         "triggers": 
         {
-            "A": ["-10.5 <= x <= -9.5 && -0.5 <= y <= 0.5", "timer == 1", "timer == 2", "timer == 3", "timer == 4"],
-            "B": ["9.5 <= x <= 10.5 && -0.5 <= y <= 0.5", "timer == 1", "timer == 2", "timer == 3", "timer == 4"],
+            "A": ["(x - pos_A_x)^2 + (y - pos_A_y)^2 <= 0.5", "timer == 1", "timer == 2", "timer == 3", "timer == 4"],
+            "B": ["(x - pos_B_x)^2 + (y - pos_B_y)^2 <= 0.5", "timer == 1", "timer == 2", "timer == 3", "timer == 4"],
             "C": ["x^2 + (y - middle_player)^2 <= 0.5"]
         }
     },
