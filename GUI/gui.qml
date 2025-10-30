@@ -518,7 +518,9 @@ ApplicationWindow {
 
                             TextField {
                                 id: location_name_text_field
-                                width: (parent.width - 4 * parent.spacing - location_name_text.width - location_inv_text.width - initial_location.width) / 2
+                                width: (
+                                    parent.width - 5 * parent.spacing - location_name_text.width - location_inv_text.width - initial_location.width - location_remove.width
+                                ) / 2
                                 placeholderText: "Enter name"
                                 onAccepted: {
                                     var regex = /^[A-Za-z]\w*$/;
@@ -545,7 +547,9 @@ ApplicationWindow {
 
                             TextField {
                                 id: invariant_text_field
-                                width: (parent.width - 4 * parent.spacing - location_name_text.width - location_inv_text.width - initial_location.width) / 2
+                                width: (
+                                    parent.width - 5 * parent.spacing - location_name_text.width - location_inv_text.width - initial_location.width - location_remove.width
+                                ) / 2
                                 placeholderText: "Enter invariant"
                                 onAccepted: {
                                     if (Julia.is_valid_constraint(text, get_variables())) {
@@ -569,6 +573,15 @@ ApplicationWindow {
                                     if (model.initial != checked) {
                                         model.initial = checked;
                                     }
+                                }
+                            }
+
+                            Button {
+                                id: location_remove
+                                text: "-"
+                                height: parent.height
+                                onClicked: {
+                                    location_model.remove(index, 1);
                                 }
                             }
 
@@ -687,21 +700,30 @@ ApplicationWindow {
                             spacing: 10
 
                             Text {
-                                width: (parent.width - 2 * parent.spacing) / 3
+                                width: (parent.width - 3 * parent.spacing - edge_remove.width) / 3
                                 horizontalAlignment: Text.AlignLeft
                                 text: "Name"
                             }
 
                             Text {
-                                width: (parent.width - 2 * parent.spacing) / 3
+                                width: (parent.width - 3 * parent.spacing - edge_remove.width) / 3
                                 horizontalAlignment: Text.AlignLeft
                                 text: "Start location"
                             }
 
                             Text {
-                                width: (parent.width - 2 * parent.spacing) / 3
+                                width: (parent.width - 3 * parent.spacing - edge_remove.width) / 3
                                 horizontalAlignment: Text.AlignLeft
                                 text: "End location"
+                            }
+
+                            Button {
+                                id: edge_remove
+                                text: "-"
+                                height: parent.height
+                                onClicked: {
+                                    edge_model.remove(index, 1);
+                                }
                             }
 
                         }
@@ -713,7 +735,7 @@ ApplicationWindow {
 
                             TextField {
                                 id: edge_name_text_field
-                                width: (parent.width - 2 * parent.spacing) / 3
+                                width: (parent.width - 3 * parent.spacing - edge_remove.width) / 3
                                 placeholderText: "Enter name"
                                 onAccepted: {
                                     var regex = /^[A-Za-z]\w*$/;
@@ -732,7 +754,8 @@ ApplicationWindow {
                             ComboBox {
                                 
                                 id: edge_start_menu
-                                width: (parent.width - 2 * parent.spacing) / 3
+                                width: (parent.width - 3 * parent.spacing - edge_remove.width) / 3
+                                enabled: location_model.count > 0
 
                                 model: location_model
 
@@ -741,6 +764,7 @@ ApplicationWindow {
                                 onActivated: {
                                     edge_list.model.setProperty(edge_index, "start", currentValue);
                                 }
+
                                 popup.closePolicy: Popup.CloseOnPressOutside
 
                             }
@@ -748,7 +772,8 @@ ApplicationWindow {
                             ComboBox {
                                 
                                 id: edge_end_menu
-                                width: (parent.width - 2 * parent.spacing) / 3
+                                width: (parent.width - 3 * parent.spacing - edge_remove.width) / 3
+                                enabled: location_model.count > 0
 
                                 model: location_model
 
@@ -811,7 +836,8 @@ ApplicationWindow {
                             ComboBox {
                                 id: agent_menu
                                 width: (parent.width - 3 * parent.spacing - edge_agent_text.width - edge_action_text.width) / 2
-
+                                enabled: agent_model.count > 0
+                                
                                 model: agent_model
 
                                 textRole: "name"
@@ -833,6 +859,7 @@ ApplicationWindow {
                             ComboBox {
                                 id: action_menu
                                 width: (parent.width - 3 * parent.spacing - edge_agent_text.width - edge_action_text.width) / 2
+                                enabled: action_model.count > 0
                                 
                                 model: action_model
 
