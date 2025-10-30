@@ -34,6 +34,10 @@ ApplicationWindow {
             if (location_model.get(i).name === name)
                 return true
         }
+        for (var i = 0; i < edge_model.count; i++) {
+            if (edge_model.get(i).name === name)
+                return true
+        }
         return false
     }
 
@@ -544,12 +548,12 @@ ApplicationWindow {
                                 width: (parent.width - 4 * parent.spacing - location_name_text.width - location_inv_text.width - initial_location.width) / 2
                                 placeholderText: "Enter invariant"
                                 onAccepted: {
-                                    if (Julia.is_valid_constraint(invariant_text_field.text, get_variables())) {
-                                        model.inv = invariant_text_field.text;
+                                    if (Julia.is_valid_constraint(text, get_variables())) {
+                                        model.inv = text;
                                         placeholderText = "";
                                     } else {
                                         model.inv = "";
-                                        invariant_text_field.text = "";
+                                        text = "";
                                         placeholderText = "Invalid invariant";
                                     }
                                     focus = false;
@@ -591,8 +595,8 @@ ApplicationWindow {
                                 spacing: 10
 
                                 Text {
-                                    width: location_name_text.width
                                     height: parent.height
+                                    width: location_name_text.width
                                     horizontalAlignment: Text.AlignLeft
                                     verticalAlignment: Text.AlignVCenter
                                     text: model.name
@@ -603,10 +607,10 @@ ApplicationWindow {
                                     width: parent.width - 2 * parent.spacing - location_name_text.width - initial_location.width
                                     placeholderText: "Enter expression"
                                     onAccepted: {
-                                        if (Julia.is_valid_expression(flow_text_field.text, get_variables())) {
+                                        if (Julia.is_valid_expression(text, get_variables())) {
                                             placeholderText = "";
                                         } else {
-                                            flow_text_field.text = "";
+                                            text = "";
                                             placeholderText = "Invalid expression";
                                         }
                                         focus = false;
@@ -675,6 +679,8 @@ ApplicationWindow {
                         width: edge_list.width
                         spacing: 10
 
+                        property int edge_index: index
+
                         Row {
 
                             width: parent.width
@@ -682,24 +688,216 @@ ApplicationWindow {
 
                             Text {
                                 width: (parent.width - 2 * parent.spacing) / 3
-                                height: parent.height
                                 horizontalAlignment: Text.AlignLeft
                                 text: "Name"
                             }
 
                             Text {
                                 width: (parent.width - 2 * parent.spacing) / 3
-                                height: parent.height
                                 horizontalAlignment: Text.AlignLeft
                                 text: "Start location"
                             }
 
                             Text {
                                 width: (parent.width - 2 * parent.spacing) / 3
-                                height: parent.height
                                 horizontalAlignment: Text.AlignLeft
                                 text: "End location"
                             }
+
+                        }
+
+                        Row {
+
+                            width: parent.width
+                            spacing: 10
+
+                            TextField {
+                                id: edge_name_text_field
+                                width: (parent.width - 2 * parent.spacing) / 3
+                                placeholderText: "Enter name"
+                                onAccepted: {
+                                    var regex = /^[A-Za-z]\w*$/;
+                                    if (regex.test(text) && !has_name(text)) {
+                                        model.name = text;
+                                        placeholderText = "";
+                                    } else {
+                                        model.name = "";
+                                        text = "";
+                                        placeholderText = "Invalid name";
+                                    }
+                                    focus = false;
+                                }
+                            }
+
+                            ComboBox {
+                                
+                                id: edge_start_menu
+                                width: (parent.width - 2 * parent.spacing) / 3
+
+                                model: location_model
+
+                                textRole: "name"
+                                valueRole: "name"
+                                onActivated: {
+                                    edge_list.model.setProperty(edge_index, "start", currentValue);
+                                }
+                                popup.closePolicy: Popup.CloseOnPressOutside
+
+                            }
+
+                            ComboBox {
+                                
+                                id: edge_end_menu
+                                width: (parent.width - 2 * parent.spacing) / 3
+
+                                model: location_model
+
+                                textRole: "name"
+                                valueRole: "name"
+                                onActivated: {
+                                    edge_list.model.setProperty(edge_index, "end", currentValue);
+                                }
+                                popup.closePolicy: Popup.CloseOnPressOutside
+
+                            }
+
+                        }
+
+                        Row {
+
+                            width: parent.width
+                            spacing: 10
+
+                            Text {
+                                width: contentWidth
+                                height: parent.height
+                                verticalAlignment: Text.AlignVCenter
+                                id: guard_text
+                                text: "Guard"
+                            }
+
+                            TextField {
+                                id: guard_text_field
+                                width: parent.width - parent.spacing - guard_text.width
+                                placeholderText: "Enter guard"
+                                onAccepted: {
+                                    if (Julia.is_valid_constraint(text, get_variables())) {
+                                        model.guard = text;
+                                        placeholderText = "";
+                                    } else {
+                                        model.guard = "";
+                                        text = "";
+                                        placeholderText = "Invalid guard";
+                                    }
+                                    focus = false;
+                                }
+                            }
+
+                        }
+
+                        Row {
+
+                            width: parent.width
+                            spacing: 10
+
+                            Text {
+                                width: guard_text.width
+                                height: parent.height
+                                verticalAlignment: Text.AlignVCenter
+                                id: edge_agent_text
+                                text: "Agent"
+                            }
+
+                            ComboBox {
+                                id: agent_menu
+                                width: (parent.width - 3 * parent.spacing - edge_agent_text.width - edge_action_text.width) / 2
+
+                                model: agent_model
+
+                                textRole: "name"
+                                valueRole: "name"
+                                onActivated: {
+                                    edge_list.model.setProperty(edge_index, "agent", currentValue);
+                                }
+                                popup.closePolicy: Popup.CloseOnPressOutside
+                            }
+
+                            Text {
+                                width: contentWidth
+                                height: parent.height
+                                verticalAlignment: Text.AlignVCenter
+                                id: edge_action_text
+                                text: "Action"
+                            }
+
+                            ComboBox {
+                                id: action_menu
+                                width: (parent.width - 3 * parent.spacing - edge_agent_text.width - edge_action_text.width) / 2
+                                
+                                model: action_model
+
+                                textRole: "name"
+                                valueRole: "name"
+                                onActivated: {
+                                    edge_list.model.setProperty(edge_index, "action", currentValue);
+                                }
+                                popup.closePolicy: Popup.CloseOnPressOutside
+                            }
+                        }
+
+                        Text {
+                            text: "Jump"
+                            visible: variable_model.count > 0
+                        }
+
+                        ListView {
+
+                            id: jump
+                            width: parent.width
+                            height: contentHeight
+                            spacing: 10
+                            clip: true
+                            interactive: false
+
+                            model: variable_model
+                            delegate: Row {
+
+                                width: jump.width
+                                spacing: 10
+
+                                Text {
+                                    height: parent.height
+                                    width: guard_text.width
+                                    horizontalAlignment: Text.AlignLeft
+                                    verticalAlignment: Text.AlignVCenter
+                                    text: model.name
+                                }
+
+                                TextField {
+                                    id: jump_text_field
+                                    width: parent.width - parent.spacing - guard_text.width
+                                    placeholderText: "Enter expression"
+                                    onAccepted: {
+                                        if (Julia.is_valid_expression(text, get_variables())) {
+                                            placeholderText = "";
+                                        } else {
+                                            text = "";
+                                            placeholderText = "Invalid expression";
+                                        }
+                                        focus = false;
+                                    }
+                                }
+
+                            }
+
+                        }
+
+                        Rectangle {
+                            
+                            width: parent.width
+                            height: 3
+                            radius: 4
+                            color: "grey"
 
                         }
 
@@ -714,7 +912,12 @@ ApplicationWindow {
                     text: "+"
                     onClicked: {
                         edge_model.append({
-                            name: ""
+                            name: "",
+                            start: "",
+                            end: "",
+                            guard: "",
+                            agent: "",
+                            action: ""
                         });
                     }
                 }
