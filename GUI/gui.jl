@@ -7,7 +7,7 @@ include("../parsers/parser.jl")
 function is_valid_expression(expr, vars)
     expr = String(expr)
     variables = Vector{String}()
-    for i in 1:length(vars)
+    for i in eachindex(vars)
         push!(variables, vars[i])
     end
     try
@@ -21,7 +21,7 @@ end
 function is_valid_constraint(constr, vars)
     constr = String(constr)
     variables = Vector{String}()
-    for i in 1:length(vars)
+    for i in eachindex(vars)
         push!(variables, vars[i])
     end
     try
